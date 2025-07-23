@@ -6,7 +6,6 @@ const logo = require("../assets/images/logo.png");
 export default function Welcome() {
   return (
     <View className="flex-1 bg-black px-6 justify-center items-center">
-     
       <View className="items-center mb-8">
         <Image
           source={logo}
@@ -14,15 +13,13 @@ export default function Welcome() {
           resizeMode="contain"
         />
 
-        
         <Text
           className="text-[27.11px] text-white uppercase text-center"
-          style={{ fontFamily: "News701BT", lineHeight: 30 }}
+          style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
           INTERNSYNC
         </Text>
 
-        
         <Text
           className="text-[24px] text-white font-bold text-center mt-4"
           style={{
@@ -34,7 +31,6 @@ export default function Welcome() {
         </Text>
       </View>
 
-     
       <View className="w-full items-center mt-6">
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
@@ -42,7 +38,7 @@ export default function Welcome() {
         >
           <Text className="text-black text-lg font-bold">Create Account</Text>
         </TouchableOpacity>
-        <View className="h-6" /> 
+        <View className="h-6" />
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
           onPress={() => router.push("/login")}
@@ -51,7 +47,6 @@ export default function Welcome() {
         </TouchableOpacity>
       </View>
 
-    
       <TouchableOpacity className="mt-10">
         <Text
           className="text-white text-[13.26px] text-center font-bold"
