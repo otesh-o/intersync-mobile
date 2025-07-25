@@ -51,7 +51,7 @@ export default function BirthdayScreen() {
 
   const handleContinue = () => {
     if (!isValid) return;
-    // router.replace("/home");
+    router.push("/access");
   };
 
   const placeholders = ["Y", "Y", "Y", "Y", "M", "M", "D", "D"];
