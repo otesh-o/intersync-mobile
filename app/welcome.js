@@ -34,7 +34,7 @@ export default function Welcome() {
       <View className="w-full items-center mt-6">
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => router.push("/email")}
+          onPress={() => router.push("/create_account/email")}
         >
           <Text className="text-black text-lg font-bold">Create Account</Text>
         </TouchableOpacity>

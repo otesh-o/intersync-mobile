@@ -163,7 +163,7 @@ export default function SubscriptionPage() {
       >
         <View>
           <Text style={{ fontSize: 18, fontWeight: "600" }}>
-            ₦{displayAmount}
+            ${displayAmount}
           </Text>
           <Text
             style={{

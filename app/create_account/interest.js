@@ -61,7 +61,7 @@ const Interest = () => {
         {/* Continue Button */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/creat')} // <-- Navigate to creat.js
+          onPress={() => router.push('/kind_of_jobs')} // <-- Navigate to creat.js
         >
           <Text style={styles.buttonText}>Continue 2/5</Text>
         </TouchableOpacity>

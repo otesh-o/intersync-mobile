@@ -57,7 +57,7 @@ const Agreement = () => {
         {/* I Agree Button */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/access')}
+          onPress={() => router.push('/payment_plan/access')}
         >
           <Text style={styles.buttonText}>I Agree</Text>
         </TouchableOpacity>
