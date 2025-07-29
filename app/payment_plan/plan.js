@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
 import { router } from "expo-router";
+import { useState } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-const backIcon = require("../assets/images/back.png"); // make sure this path is correct
+const backIcon = require("../../assets/images/back.png"); // make sure this path is correct
 
 export default function Plan() {
   const [selectedPlan, setSelectedPlan] = useState("");

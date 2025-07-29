@@ -1,5 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 const logo = require("../assets/images/logo.png");
 
@@ -41,7 +41,7 @@ export default function Welcome() {
         <View className="h-6" />
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => router.push("/login")}
+          onPress={() => router.push("/login_account/login")}
         >
           <Text className="text-black text-lg font-bold">Log In</Text>
         </TouchableOpacity>

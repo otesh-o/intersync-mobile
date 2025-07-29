@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-const backIcon = require("../assets/images/back.png");
-const checkIcon = require("../assets/images/check.png");
+const backIcon = require("../../assets/images/back.png");
+const checkIcon = require("../../assets/images/check.png");
 
 export default function Review() {
   const { planId } = useLocalSearchParams();

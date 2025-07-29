@@ -1,23 +1,22 @@
-import React, { useState } from "react";
+import Constants from "expo-constants";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  View,
+  Image,
+  SafeAreaView,
   Text,
   TouchableOpacity,
-  SafeAreaView,
-  Image,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import Constants from "expo-constants";
-import { useLocalSearchParams } from "expo-router";
 
 const logos = {
-  PayPal: require("../assets/images/paypal.png"),
-  "G Pay": require("../assets/images/gpay.png"),
-  "Apple Pay": require("../assets/images/apple.png"),
-  Card: require("../assets/images/mastercard.png"),
+  PayPal: require("../../assets/images/paypal.png"),
+  "G Pay": require("../../assets/images/gpay.png"),
+  "Apple Pay": require("../../assets/images/apple.png"),
+  Card: require("../../assets/images/mastercard.png"),
 };
 
-const backIcon = require("../assets/images/back.png");
+const backIcon = require("../../assets/images/back.png");
 
 const paymentOptions = ["PayPal", "G Pay", "Apple Pay", "Card"];
 

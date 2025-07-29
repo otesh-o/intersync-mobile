@@ -1,11 +1,11 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-const logo = require("../assets/images/logo.png");
-const globe = require("../assets/images/globe.png");
-const resume = require("../assets/images/resume.png");
-const contact = require("../assets/images/contact.png");
-const apply = require("../assets/images/apply.png");
+const logo = require("../../assets/images/logo.png");
+const globe = require("../../assets/images/globe.png");
+const resume = require("../../assets/images/resume.png");
+const contact = require("../../assets/images/contact.png");
+const apply = require("../../assets/images/apply.png");
 
 export default function Access() {
   return (
