@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 
-const checkIcon = require("../assets/images/check.png");
-const backIcon = require("../assets/images/back.png");
+const checkIcon = require("../../assets/images/check.png");
+const backIcon = require("../../assets/images/back.png");
 
 export default function PaymentSuccess() {
   const { selectedAmount, planId } = useLocalSearchParams();

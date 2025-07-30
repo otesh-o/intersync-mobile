@@ -84,11 +84,13 @@ const Creat = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>What kind of jobs are you looking for?</Text>
+          <Text style={styles.title}>
+            What kind of jobs are you looking for?
+          </Text>
 
           {/* Role Section */}
           <Text style={styles.label}>What role do you want to see?</Text>
@@ -96,7 +98,9 @@ const Creat = () => {
             {roles.map((role, index) => (
               <View style={styles.tag} key={index}>
                 <Text style={styles.tagText}>{role}</Text>
-                <TouchableOpacity onPress={() => removeItem(setRoles, roles, role)}>
+                <TouchableOpacity
+                  onPress={() => removeItem(setRoles, roles, role)}
+                >
                   <Text style={styles.remove}> ✕ </Text>
                 </TouchableOpacity>
               </View>
@@ -120,7 +124,7 @@ const Creat = () => {
               style={styles.addButton}
               onPress={() => {
                 setShowRoleInput(true);
-                setRoleInput('');
+                setRoleInput("");
               }}
             >
               <Text style={styles.addText}>+ Add role title</Text>
@@ -133,7 +137,9 @@ const Creat = () => {
             {locations.map((loc, index) => (
               <View style={styles.tag} key={index}>
                 <Text style={styles.tagText}>{loc}</Text>
-                <TouchableOpacity onPress={() => removeItem(setLocations, locations, loc)}>
+                <TouchableOpacity
+                  onPress={() => removeItem(setLocations, locations, loc)}
+                >
                   <Text style={styles.remove}> ✕ </Text>
                 </TouchableOpacity>
               </View>
@@ -157,7 +163,7 @@ const Creat = () => {
               style={styles.addButton}
               onPress={() => {
                 setShowLocationInput(true);
-                setLocationInput('');
+                setLocationInput("");
               }}
             >
               <Text style={styles.addText}>+ Add Location</Text>
@@ -170,7 +176,9 @@ const Creat = () => {
             {types.map((type, index) => (
               <View style={styles.tag} key={index}>
                 <Text style={styles.tagText}>{type}</Text>
-                <TouchableOpacity onPress={() => removeItem(setTypes, types, type)}>
+                <TouchableOpacity
+                  onPress={() => removeItem(setTypes, types, type)}
+                >
                   <Text style={styles.remove}> ✕ </Text>
                 </TouchableOpacity>
               </View>
@@ -194,7 +202,7 @@ const Creat = () => {
               style={styles.addButton}
               onPress={() => {
                 setShowTypeInput(true);
-                setTypeInput('');
+                setTypeInput("");
               }}
             >
               <Text style={styles.addText}>+ Add type</Text>
@@ -232,13 +240,13 @@ const Creat = () => {
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => router.push('/welcome')} // Navigate to welcome.js
+              onPress={() => router.push("/welcome")} // Navigate to welcome.js
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.okButton}
-              onPress={() => router.push('/agreement')} // Navigate to agreement.js
+              onPress={() => router.push("/create_account/agreement")} // Navigate to agreement.js
             >
               <Text style={styles.okText}>OK</Text>
             </TouchableOpacity>

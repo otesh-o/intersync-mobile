@@ -71,7 +71,7 @@ export default function EmailScreen() {
 
         <TouchableOpacity
           onPress={() => {
-            if (emailIsValid) router.push("/verify");
+            if (emailIsValid) router.push("/create_account/verify");
           }}
           disabled={!emailIsValid}
           style={{

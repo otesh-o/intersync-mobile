@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
-const backIcon = require("../assets/images/back.png");
-const checkIcon = require("../assets/images/check.png");
+const backIcon = require("../../assets/images/back.png");
+const checkIcon = require("../../assets/images/check.png");
 
 export default function Review() {
   const { planId } = useLocalSearchParams();
@@ -29,7 +29,6 @@ export default function Review() {
         paddingTop: 56,
       }}
     >
-      
       <TouchableOpacity onPress={() => router.back()}>
         <Image
           source={backIcon}
@@ -38,7 +37,6 @@ export default function Review() {
         />
       </TouchableOpacity>
 
-      
       <View
         style={{
           width: 340,
@@ -53,7 +51,6 @@ export default function Review() {
           justifyContent: "space-between",
         }}
       >
-
         <Text
           style={{
             textAlign: "center",
@@ -99,7 +96,6 @@ export default function Review() {
           Amount Due Today: ${selected.amount}
         </Text>
 
-        
         <View style={{ marginTop: 20 }}>
           <Text
             style={{
@@ -125,12 +121,11 @@ export default function Review() {
           </Text>
         </View>
 
-        
         <View style={{ marginTop: 40 }}>
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/subscription",
+                pathname: "/payment_plan/subscription",
                 params: {
                   selectedAmount: selected.amount,
                   planId: planId,
@@ -159,7 +154,6 @@ export default function Review() {
             </Text>
           </TouchableOpacity>
 
-          
           <TouchableOpacity
             style={{
               backgroundColor: "#ccc",

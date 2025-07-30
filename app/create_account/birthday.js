@@ -51,7 +51,7 @@ export default function BirthdayScreen() {
 
   const handleContinue = () => {
     if (!isValid) return;
-    router.push("/interest");
+    router.push("/create_account/interest");
   };
 
   const placeholders = ["Y", "Y", "Y", "Y", "M", "M", "D", "D"];

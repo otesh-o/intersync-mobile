@@ -18,7 +18,7 @@ export default function FirstNameScreen() {
 
   const onContinue = () => {
     if (!firstName.trim()) return;
-    router.push("/birthday");
+    router.push("/create_account/birthday");
   };
 
   return (

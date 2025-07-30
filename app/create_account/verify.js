@@ -24,7 +24,7 @@ export default function VerifyScreen() {
 
   const handleVerify = () => {
     if (!isValid) return;
-    router.push("/first-name");
+    router.push("/create_account/first-name");
   };
 
   const onChangeCode = (text) => {

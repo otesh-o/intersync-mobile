@@ -35,7 +35,8 @@ const Interest = () => {
         {/* Title */}
         <Text style={styles.title}>Interests</Text>
         <Text style={styles.subtitle}>
-          Let everyone know what you’re interested in by adding it to your profile.
+          Let everyone know what you’re interested in by adding it to your
+          profile.
         </Text>
 
         {/* Interest Chips */}
@@ -49,7 +50,12 @@ const Interest = () => {
                   style={[styles.chip, isSelected && styles.chipSelected]}
                   onPress={() => toggleInterest(item)}
                 >
-                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isSelected && styles.chipTextSelected,
+                    ]}
+                  >
                     {item}
                   </Text>
                 </TouchableOpacity>
@@ -61,7 +67,7 @@ const Interest = () => {
         {/* Continue Button */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/kind_of_jobs')} // <-- Navigate to creat.js
+          onPress={() => router.push("/create_account/kind_of_jobs")} // <-- Navigate to creat.js
         >
           <Text style={styles.buttonText}>Continue 2/5</Text>
         </TouchableOpacity>

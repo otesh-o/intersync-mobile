@@ -1,9 +1,9 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 
-const logo = require("../assets/images/logo.png");
+const logo = require("../../assets/images/logo.png");
 
-export default function Welcome() {
+export default function Login() {
   return (
     <View className="flex-1 bg-black px-6 justify-center items-center">
       <View className="items-center mb-8">
@@ -27,32 +27,46 @@ export default function Welcome() {
             lineHeight: 35,
           }}
         >
-          Find your next opportunity{"\n"}Swipe. Match. Apply.
+          Welcome Back!
         </Text>
       </View>
 
       <View className="w-full items-center mt-6">
         <TouchableOpacity
-          className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => router.push("/create_account/email")}
+          className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center mb-4"
+          onPress={() => router.push("/login/email")}
         >
-          <Text className="text-black text-lg font-bold">Create Account</Text>
+          <Text className="text-black text-lg font-bold">Login with Email</Text>
         </TouchableOpacity>
-        <View className="h-6" />
+
+        <TouchableOpacity
+          className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center mb-4"
+          onPress={() => console.log("Google login")}
+        >
+          <Text className="text-black text-lg font-bold">
+            Login with Google
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => router.push("/login_flow/login")}
+          onPress={() => console.log("LinkedIn login")}
         >
-          <Text className="text-black text-lg font-bold">Log In</Text>
+          <Text className="text-black text-lg font-bold">
+            Login with LinkedIn
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity className="mt-10">
+      <TouchableOpacity
+        className="mt-10"
+        onPress={() => router.push("/create_account/email")}
+      >
         <Text
           className="text-white text-[13.26px] text-center font-bold"
           style={{ fontFamily: "Roboto", lineHeight: 24 }}
         >
-          Trouble logging in?
+          New here? Create an account
         </Text>
       </TouchableOpacity>
     </View>

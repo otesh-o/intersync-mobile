@@ -11,13 +11,13 @@ import Constants from "expo-constants";
 import { useLocalSearchParams } from "expo-router";
 
 const logos = {
-  PayPal: require("../assets/images/paypal.png"),
-  "G Pay": require("../assets/images/gpay.png"),
-  "Apple Pay": require("../assets/images/apple.png"),
-  Card: require("../assets/images/mastercard.png"),
+  PayPal: require("../../assets/images/paypal.png"),
+  "G Pay": require("../../assets/images/gpay.png"),
+  "Apple Pay": require("../../assets/images/apple.png"),
+  Card: require("../../assets/images/mastercard.png"),
 };
 
-const backIcon = require("../assets/images/back.png");
+const backIcon = require("../../assets/images/back.png");
 
 const paymentOptions = ["PayPal", "G Pay", "Apple Pay", "Card"];
 
@@ -181,7 +181,7 @@ export default function SubscriptionPage() {
           onPress={() => {
             if (selectedOption) {
               router.push({
-                pathname: "/paid",
+                pathname: "/payment_plan/paid",
                 params: {
                   paymentMethod: selectedOption,
                   selectedAmount: displayAmount,

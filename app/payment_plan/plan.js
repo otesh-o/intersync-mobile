@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { router } from "expo-router";
 
-const backIcon = require("../assets/images/back.png"); // make sure this path is correct
+const backIcon = require("../../assets/images/back.png"); // make sure this path is correct
 
 export default function Plan() {
   const [selectedPlan, setSelectedPlan] = useState("");
@@ -92,7 +92,7 @@ export default function Plan() {
         onPress={() => {
           if (selectedPlan)
             router.push({
-              pathname: "/review",
+              pathname: "/payment_plan/review",
               params: { planId: selectedPlan },
             });
         }}

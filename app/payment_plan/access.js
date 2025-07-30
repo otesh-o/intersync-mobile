@@ -1,11 +1,11 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 
-const logo = require("../assets/images/logo.png");
-const globe = require("../assets/images/globe.png");
-const resume = require("../assets/images/resume.png");
-const contact = require("../assets/images/contact.png");
-const apply = require("../assets/images/apply.png");
+const logo = require("../../assets/images/logo.png");
+const globe = require("../../assets/images/globe.png");
+const resume = require("../../assets/images/resume.png");
+const contact = require("../../assets/images/contact.png");
+const apply = require("../../assets/images/apply.png");
 
 export default function Access() {
   return (
@@ -98,7 +98,7 @@ export default function Access() {
           alignSelf: "stretch",
         }}
         onPress={() => {
-          router.push("/plan");
+          router.push("/payment_plan/plan");
         }}
       >
         <Text style={{ color: "black", fontWeight: "bold", fontSize: 18 }}>
