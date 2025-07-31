@@ -34,7 +34,7 @@ export default function Login() {
       <View className="w-full items-center mt-6">
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center mb-4"
-          onPress={() => router.push("/login/email")}
+          onPress={() => router.push("/login_flow/with_email")}
         >
           <Text className="text-black text-lg font-bold">Login with Email</Text>
         </TouchableOpacity>

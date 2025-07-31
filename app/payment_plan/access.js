@@ -10,14 +10,14 @@ const apply = require("../../assets/images/apply.png");
 export default function Access() {
   return (
     <View className="flex-1 bg-black px-6 pt-20 items-center">
-      {/* Logo */}
+      
       <Image
         source={logo}
         className="w-[221px] h-[221px]"
         resizeMode="contain"
       />
 
-      {/* Heading */}
+      
       <Text
         style={{
           fontFamily: "Roboto",
@@ -31,7 +31,7 @@ export default function Access() {
         Get Access to Internships
       </Text>
 
-      {/* Subtitle */}
+      
       <Text
         style={{
           fontFamily: "Roboto",
@@ -47,7 +47,7 @@ export default function Access() {
         with global companies
       </Text>
 
-      {/* Feature Card */}
+      
       <View
         style={{
           marginTop: 40,
@@ -61,7 +61,7 @@ export default function Access() {
           justifyContent: "space-around",
         }}
       >
-        {/* Each item */}
+        
         {[
           { icon: globe, text: "Global Internship Listings" },
           { icon: resume, text: "Smart Resume builder" },
@@ -86,7 +86,7 @@ export default function Access() {
         ))}
       </View>
 
-      {/* Subscribe Button */}
+      
       <TouchableOpacity
         style={{
           marginTop: 32,
@@ -106,7 +106,7 @@ export default function Access() {
         </Text>
       </TouchableOpacity>
 
-      {/* Skip */}
+      
       <TouchableOpacity
         style={{ marginTop: 16 }}
         onPress={() => router.push("/welcome")}
