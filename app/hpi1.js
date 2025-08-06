@@ -1,60 +1,49 @@
-// FILE: hpi1.js
-// This is the first floating screen.
+// ========================================================================
+// FILE: app/hpi1.js
+// This file is updated to navigate to hp.js and trigger the tutorial.
 // ========================================================================
 import React from 'react';
-import { View, Text, StyleSheet as StyleSheet1, TouchableOpacity as TouchableOpacity1, Modal, StatusBar, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { router } from 'expo-router';
 
-const Hpi1 = ({ navigation }) => {
+const Hpi1 = () => {
   return (
-    <View style={styles1.modalOverlay}>
-      <View style={styles1.modalContent}>
-        
-        <Text style={styles1.modalTitle}>Let's get you ready !</Text>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Let's get you ready !</Text>
+        <View style={styles.logoContainer}><View style={styles.logoCircle} /></View>
+        <Text style={styles.modalSubtitle}>Find Your Perfect Opportunity!</Text>
 
-        <View style={styles1.logoContainer}>
-          <View style={styles1.logoCircle} />
-        </View>
-
-        <Text style={styles1.modalSubtitle}>Find Your Perfect Opportunity!</Text>
-        
-        <TouchableOpacity1 
-          style={styles1.guideButton}
-          onPress={() => navigation.navigate('Hpi2')} // Navigate to the next intro screen
+        <TouchableOpacity
+          style={styles.guideButton}
+          onPress={() => router.replace({ pathname: '/hp', params: { startTutorial: 'true' } })}
         >
-          <Text style={styles1.guideButtonText}>Quick Guide</Text>
-        </TouchableOpacity1>
+          <Text style={styles.guideButtonText}>Start Guide</Text>
+        </TouchableOpacity>
 
-        <View style={styles1.iconButtonsContainer}>
-            <TouchableOpacity1 style={[styles1.iconButton, styles1.iconButtonRed]}>
-                <Icon name="close" size={30} color="#fff" />
-            </TouchableOpacity1>
-            <TouchableOpacity1 style={[styles1.iconButton, styles1.iconButtonBlack]}>
-                <Icon name="add" size={30} color="#fff" />
-            </TouchableOpacity1>
-            <TouchableOpacity1 style={[styles1.iconButton, styles1.iconButtonGreen]}>
-                <Icon name="checkmark" size={30} color="#fff" />
-            </TouchableOpacity1>
+        <View style={styles.iconButtonsContainer}>
+            <TouchableOpacity style={[styles.iconButton, styles.iconButtonRed]}><Icon name="close" size={30} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity style={[styles.iconButton, styles.iconButtonBlack]}><Icon name="add" size={30} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity style={[styles.iconButton, styles.iconButtonGreen]}><Icon name="checkmark" size={30} color="#fff" /></TouchableOpacity>
         </View>
 
-        {/* This button now skips the intro and goes to the main app */}
-        <TouchableOpacity1 onPress={() => navigation.navigate('Hp')}>
-          <Text style={styles1.skipText}>Skip</Text>
-        </TouchableOpacity1>
-
+        <TouchableOpacity onPress={() => router.replace('/hp')}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles1 = StyleSheet1.create({
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center' },
+const styles = StyleSheet.create({
+  modalOverlay: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' },
   modalContent: { width: '85%', backgroundColor: '#2C2C2E', borderRadius: 20, padding: 30, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 20 },
   modalTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
   logoContainer: { width: 100, height: 100, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginTop: 25 },
   logoCircle: { width: 50, height: 50, backgroundColor: '#fff', borderRadius: 25, opacity: 0.8 },
   modalSubtitle: { fontSize: 16, color: '#E0E0E0', marginTop: 15, textAlign: 'center' },
-  guideButton: { backgroundColor: '#FFFFFF', paddingVertical: 16, paddingHorizontal: 50, borderRadius: 30, marginTop: 35, marginBottom: 20 },
+  guideButton: { backgroundColor: '#FFFFFF', paddingVertical: 16, paddingHorizontal: 60, borderRadius: 30, marginTop: 35, marginBottom: 20 },
   guideButtonText: { color: '#000000', fontSize: 18, fontWeight: 'bold' },
   iconButtonsContainer: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 20 },
   iconButton: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },

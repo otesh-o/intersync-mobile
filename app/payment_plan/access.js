@@ -109,7 +109,7 @@ export default function Access() {
       
       <TouchableOpacity
         style={{ marginTop: 16 }}
-        onPress={() => router.push("/welcome")}
+        onPress={() => router.push("/Hpi1")}
       >
         <Text style={{ color: "white", fontSize: 16 }}>Skip</Text>
       </TouchableOpacity>
