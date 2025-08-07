@@ -1,46 +1,142 @@
 // ========================================================================
 // FILE: app/hp.js
-// This is the main Home Page, with corrected tutorial positioning
-// to ensure tips and pointers are accurate and do not cover the UI.
+// This version replaces the bottom navigation icons with your custom
+// image assets.
 // ========================================================================
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, ScrollView, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 
+// --- Import Custom Assets ---
+const arrowVector = require('../assets/images/Vector.png');
+const folderIcon = require('../assets/images/foldericon.png');
+const homeIcon = require('../assets/images/homeicon.png');
+const bookmarkIcon = require('../assets/images/bookmark.png');
+
+
+// --- Mock Data ---
+const PROFILE_PIC_URL = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1886&auto=format&fit=crop';
+const JOB_IMAGE_URL = 'https://images.unsplash.com/photo-1504253163759-c23fccaebb55?q=80&w=2070&auto=format&fit=crop';
+
 // --- Tutorial Data ---
-// Positions and arrow directions have been meticulously recalculated for accuracy.
+// This array is now the single source of truth for the tutorial's appearance.
 const tutorialSteps = [
-    { icon: 'menu-outline', title: 'Explore More', text: 'Discover Internship, Volunteer And Club Activity Opportunities.', position: { top: 85, left: 70 }, highlightTarget: 'menu', arrowDirection: 'left' },
-    { icon: 'person-circle-outline', title: 'Hey There!', text: 'Let\'s Personalize Your Journey.', position: { top: 120, left: 90 }, highlightTarget: 'profile', arrowDirection: 'left' },
-    { icon: 'notifications-outline', title: 'Let\'s Keep You Informed.', text: 'Tap The 🔔 Notification Icon To Check Important Updates.', position: { top: 120, right: 90 }, highlightTarget: 'notifications', arrowDirection: 'right' },
-    { icon: 'return-down-back-outline', title: 'Swipe Left Card', text: 'Reject An Internship Quickly And Easily.', position: { top: '73%', left: 100 }, highlightTarget: 'reject', arrowDirection: 'left' },
-    { icon: 'return-down-forward-outline', title: 'Swipe Right Card', text: 'Shortlist Or Mark The Internship As OK.', position: { top: '73%', right: 100 }, highlightTarget: 'accept', arrowDirection: 'right' },
-    { icon: 'add-circle-outline', title: 'Tap The Plus Icon', text: 'See More Details About The Internship.', position: { top: '60%', alignSelf: 'center' }, highlightTarget: 'details', arrowDirection: 'down' },
-    { icon: 'reader-outline', title: 'Application Tracker', text: 'View The List Of Internships You\'ve Applied To.', position: { bottom: 125, left: 25 }, highlightTarget: 'tracker', arrowDirection: 'down' },
-    { icon: 'home-outline', title: 'Home', text: 'Discover And Swipe Through The Latest Opportunities.', position: { bottom: 125, alignSelf: 'center' }, highlightTarget: 'home', arrowDirection: 'down' },
-    { icon: 'bookmark-outline', title: 'Saved Internships', text: 'All Swipe-Rights Land Here! Review And Apply Anytime.', position: { bottom: 125, right: 25 }, highlightTarget: 'saved', arrowDirection: 'down' },
+    {
+        title: '👋 Hey There!',
+        text: "Let's Personalize Your Journey.\nTap \"View Your Profile Here!\" To Update Your Details And Unlock A Tailored Experience.",
+        modalPosition: { top: 180, alignSelf: 'center' },
+        spotlight: { top: 118, left: 18, width: 60, height: 60 },
+        highlightedComponent: { type: 'image', source: { uri: PROFILE_PIC_URL } }
+    },
+    {
+        icon: 'menu-outline',
+        title: 'Explore More',
+        text: 'Discover Internship, Volunteer And Club Activity Opportunities.',
+        modalPosition: { top: 85, left: 80 },
+        arrowStyle: { top: 20, left: -45, transform: [{ rotate: '90deg' }, { scaleY: -1 }, { scaleX: -1 }] },
+        spotlight: { top: 52, left: 18, width: 45, height: 45 },
+        highlightedComponent: { type: 'icon', name: 'menu', size: 30, color: '#000' }
+    },
+    {
+        icon: 'notifications-outline',
+        title: 'Let\'s Keep You Informed.',
+        text: 'Tap The 🔔 Notification Icon To Check Important Updates.',
+        modalPosition: { top: 150, right: 65 },
+        arrowStyle: { top: 20, right: -40, transform: [{ rotate: '270deg' }, { scaleX: 1 }, { scaleY: -1 }] },
+        spotlight: { top: 120, right: 18, width: 45, height: 45 },
+        highlightedComponent: { type: 'icon', name: 'notifications-outline', size: 28, color: '#000' }
+    },
+    {
+        icon: 'return-down-back-outline',
+        title: 'Swipe Left Card',
+        text: 'Reject An Internship Quickly And Easily.',
+        modalPosition: { top: '55.5%', left: 80 },
+        arrowStyle: { bottom: 20, left: -35, transform: [{ rotate: '180deg' }] },
+        spotlight: { top: '77.5%', left: 50, width: 65, height: 65 },
+        highlightedComponent: { type: 'icon', name: 'close', size: 30, color: '#fff', backgroundColor: '#FC8181' }
+    },
+    {
+        icon: 'return-down-forward-outline',
+        title: 'Swipe Right Card',
+        text: 'Shortlist Or Mark The Internship As OK.',
+        modalPosition: { top: '55.5%', right: 75 },
+        arrowStyle: { bottom: 20, right: -35, transform: [{ rotate: '180deg' }, { scaleX: -1 }] },
+        spotlight: { top: '77.5%', right: 50, width: 65, height: 65 },
+        highlightedComponent: { type: 'icon', name: 'checkmark', size: 30, color: '#fff', backgroundColor: '#68D391' }
+    },
+    {
+        icon: 'add-circle-outline',
+        title: 'Tap The Plus Icon',
+        text: 'See More Details About The Internship.',
+        modalPosition: { top: '53%', alignSelf: 'center' },
+        arrowStyle: { bottom: -25, alignSelf: 'center', transform: [{ rotate: '90deg' }], marginLeft: -20.5 },
+        spotlight: { top: '77.5%', alignSelf: 'center', width: 65, height: 65, marginLeft: -5.5 },
+        highlightedComponent: { type: 'icon', name: 'add', size: 30, color: '#fff', backgroundColor: '#2D3748' }
+    },
+    {
+        icon: 'reader-outline',
+        title: 'Application Tracker',
+        text: 'View The List Of Internships You\'ve Applied To.',
+        modalPosition: { bottom: 130, left: 25 },
+        arrowStyle: { bottom: -30, left: 20, transform: [{ rotate: '90deg' }] },
+        spotlight: { bottom: 18, left: 40, width: 60, height: 60 },
+        highlightedComponent: { type: 'image', source: folderIcon, style: { width: 28, height: 28 } }
+    },
+    {
+        icon: 'home-outline',
+        title: 'Home',
+        text: 'Discover And Swipe Through The Latest Opportunities.',
+        modalPosition: { bottom: 130, alignSelf: 'center' },
+        arrowStyle: { bottom: -30, alignSelf: 'center', transform: [{ rotate: '90deg' }], marginLeft: -35.5 },
+        spotlight: { bottom: 18, alignSelf: 'center', width: 60, height: 60, marginLeft: -30 },
+        highlightedComponent: { type: 'image', source: homeIcon, style: { width: 28, height: 28 } }
+    },
+    {
+        icon: 'bookmark-outline',
+        title: 'Saved Internships',
+        text: 'All Swipe-Rights Land Here! Review And Apply Anytime.',
+        modalPosition: { bottom: 130, right: 25 },
+        arrowStyle: { bottom: -30, right: 20, transform: [{ rotate: '90deg' }] },
+        spotlight: { bottom: 18, right: 40, width: 60, height: 60 },
+        highlightedComponent: { type: 'image', source: bookmarkIcon, style: { width: 28, height: 28 } }
+    },
 ];
 
 const TutorialOverlay = ({ currentStep, onNext }) => {
   const step = tutorialSteps[currentStep];
   const isLastStep = currentStep === tutorialSteps.length - 1;
 
-  const getArrowStyle = (direction) => {
-    switch (direction) {
-      case 'up': return styles.arrowUp;
-      case 'down': return styles.arrowDown;
-      case 'left': return styles.arrowLeft;
-      case 'right': return styles.arrowRight;
-      default: return null;
+  const renderHighlightedComponent = () => {
+    const comp = step.highlightedComponent;
+    if (!comp) return null;
+
+    if (comp.type === 'image' && comp.source.uri) {
+      return <Image source={comp.source} style={styles.profilePic} />;
     }
+    if (comp.type === 'image') {
+        return <Image source={comp.source} style={[styles.navIcon, comp.style]} />;
+    }
+    if (comp.type === 'icon') {
+      return <Icon name={comp.name} size={comp.size} color={comp.color} />;
+    }
+    return null;
   };
 
   return (
     <View style={styles.overlay}>
-      <View style={[styles.modalContainer, step.position]}>
-        <View style={[styles.arrow, getArrowStyle(step.arrowDirection)]} />
-        <Icon name={step.icon} size={28} color="#333" style={styles.icon} />
+      <View style={[styles.spotlight, step.spotlight, { backgroundColor: step.highlightedComponent?.backgroundColor || '#FFFFFF' }]}>
+        {renderHighlightedComponent()}
+      </View>
+
+      <View style={[styles.modalContainer, step.modalPosition]}>
+        {step.arrowStyle && (
+          <Image
+            source={arrowVector}
+            style={[styles.arrowImage, step.arrowStyle]}
+          />
+        )}
+        {step.icon && <Icon name={step.icon} size={28} color="#333" style={styles.icon} />}
         <Text style={styles.title}>{step.title}</Text>
         <Text style={styles.text}>{step.text}</Text>
         <TouchableOpacity style={styles.nextButton} onPress={onNext}>
@@ -75,30 +171,25 @@ const Hp = () => {
       }
   };
 
-  const currentHighlight = isTutorialActive ? tutorialSteps[tutorialStep].highlightTarget : null;
-
-  const PROFILE_PIC_URL = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1886&auto=format&fit=crop';
-  const JOB_IMAGE_URL = 'https://images.unsplash.com/photo-1504253163759-c23fccaebb55?q=80&w=2070&auto=format&fit=crop';
-
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.container}>
+      <View style={styles.pageContent}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.header}>
-            <TouchableOpacity style={[styles.headerButton, currentHighlight === 'menu' && styles.highlighted]}>
-                <Icon name="menu" size={30} color={currentHighlight === 'menu' ? '#000' : '#000'} />
+            <TouchableOpacity style={styles.headerButton}>
+                <Icon name="menu" size={30} color="#000" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>INTERN SYNC</Text>
             <View style={{width: 30}} />
         </View>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.welcomeSection}>
-              <TouchableOpacity style={[styles.profilePicContainer, currentHighlight === 'profile' && styles.highlighted]}>
+              <TouchableOpacity style={styles.profilePicContainer}>
                 <Image source={{uri: PROFILE_PIC_URL}} style={styles.profilePic} />
               </TouchableOpacity>
-              <View style={styles.welcomeTextContainer}><Text style={styles.helloText}>Hello</Text><Text style={styles.userName}>Emelyn Angga</Text></View>
-              <TouchableOpacity style={[styles.notificationBell, currentHighlight === 'notifications' && styles.highlighted]}>
-                 <Icon name="notifications-outline" size={28} color={currentHighlight === 'notifications' ? '#000' : '#000'} />
+              <View style={styles.welcomeTextContainer}><Text style={styles.helloText}>Hello</Text><Text style={styles.userName}>Evelyn Ang</Text></View>
+              <TouchableOpacity style={styles.notificationBell}>
+                 <Icon name="notifications-outline" size={28} color="#000" />
                  <View style={styles.notificationDot} />
               </TouchableOpacity>
           </View>
@@ -118,16 +209,16 @@ const Hp = () => {
                 <Text style={styles.jobDescription}>Description : Project managers play the lead role in planning, executing, monitoring, controlling, and closing out projects.</Text>
               </View>
               <View style={styles.actionButtonsContainer}>
-                  <TouchableOpacity style={[styles.actionButton, styles.actionButtonRed, currentHighlight === 'reject' && styles.highlighted]}>
+                  <TouchableOpacity style={[styles.actionButton, styles.actionButtonRed]}>
                       <Icon name="close" size={30} color="#fff" />
                   </TouchableOpacity>
                   <TouchableOpacity
-                      style={[styles.actionButton, styles.actionButtonBlack, currentHighlight === 'details' && styles.highlighted]}
+                      style={[styles.actionButton, styles.actionButtonBlack]}
                       onPress={() => router.push('/jd')}
                   >
                       <Icon name="add" size={30} color="#fff" />
                   </TouchableOpacity>
-                  <TouchableOpacity style={[styles.actionButton, styles.actionButtonGreen, currentHighlight === 'accept' && styles.highlighted]}>
+                  <TouchableOpacity style={[styles.actionButton, styles.actionButtonGreen]}>
                       <Icon name="checkmark" size={30} color="#fff" />
                   </TouchableOpacity>
               </View>
@@ -135,14 +226,14 @@ const Hp = () => {
           <View style={{ height: 80 }} />
         </ScrollView>
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={[styles.navButton, currentHighlight === 'tracker' && styles.highlightedBottomNav]}>
-              <Icon name="person-outline" size={28} color={currentHighlight === 'tracker' ? '#000' : '#888'} />
+          <TouchableOpacity style={styles.navButton}>
+              <Image source={folderIcon} style={styles.navIcon} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.navButton, currentHighlight === 'home' && styles.highlightedBottomNav]}>
-              <Icon name="home" size={28} color={currentHighlight === 'home' ? '#000' : '#000'} />
+          <TouchableOpacity style={styles.navButton}>
+              <Image source={homeIcon} style={styles.navIcon} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.navButton, currentHighlight === 'saved' && styles.highlightedBottomNav]}>
-              <Icon name="bookmark-outline" size={28} color={currentHighlight === 'saved' ? '#000' : '#888'} />
+          <TouchableOpacity style={styles.navButton}>
+              <Image source={bookmarkIcon} style={styles.navIcon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -154,17 +245,18 @@ const Hp = () => {
 
 // --- Styles ---
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F9F9F9' },
+    pageContent: { flex: 1, backgroundColor: '#F9F9F9' },
+    container: { flex: 1 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingBottom: 10, paddingHorizontal: 20, backgroundColor: '#F9F9F9' },
-    headerButton: { padding: 5, borderRadius: 30 },
-    headerTitle: { fontSize: 22, fontWeight: 'bold', letterSpacing: 1 },
+    headerButton: { padding: 5, borderRadius: 30, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+    headerTitle: { fontFamily: 'ClaireNewsBold', fontSize: 26, letterSpacing: 1 },
     welcomeSection: { flexDirection: 'row', paddingHorizontal: 20, marginTop: 20, alignItems: 'center' },
-    profilePicContainer: { padding: 3, borderRadius: 30 },
+    profilePicContainer: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
     profilePic: { width: 50, height: 50, borderRadius: 25 },
     welcomeTextContainer: { flex: 1, marginLeft: 15 },
     helloText: { fontSize: 18, color: '#888' },
     userName: { fontSize: 24, fontWeight: 'bold' },
-    notificationBell: { position: 'relative', padding: 5, borderRadius: 20 },
+    notificationBell: { position: 'relative', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
     notificationDot: { position: 'absolute', right: 2, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: 'red', borderWidth: 1, borderColor: '#000' },
     searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, marginHorizontal: 20, marginTop: 25, paddingHorizontal: 15, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
     searchIcon: { marginRight: 10 },
@@ -189,21 +281,24 @@ const styles = StyleSheet.create({
     actionButtonBlack: { backgroundColor: '#2D3748' },
     actionButtonGreen: { backgroundColor: '#68D391' },
     bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 75, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingBottom: 10 },
-    navButton: { flex: 1, alignItems: 'center', justifyContent: 'center', height: '100%' },
-    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.4)', zIndex: 10 },
-    modalContainer: { minWidth: '60%', maxWidth: '85%', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 20, alignItems: 'center', position: 'absolute', shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 10 },
+    navButton: { flex: 1, alignItems: 'center', justifyContent: 'center', height: '100%', borderRadius: 20 },
+    navIcon: { width: 28, height: 28, resizeMode: 'contain' },
+    // --- TUTORIAL STYLES ---
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 10 },
+    spotlight: {
+        position: 'absolute',
+        borderRadius: 999,
+        zIndex: 11,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    modalContainer: { width: '80%', backgroundColor: '#FFFFFF', borderRadius: 15, padding: 20, alignItems: 'center', position: 'absolute', zIndex: 12 },
     icon: { marginBottom: 10 },
     title: { fontSize: 18, fontWeight: 'bold', color: '#000', marginBottom: 8, textAlign: 'center' },
     text: { fontSize: 14, color: '#555', textAlign: 'center', marginBottom: 20, lineHeight: 20 },
     nextButton: { backgroundColor: '#000', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 40, justifyContent: 'center', alignItems: 'center' },
     nextButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-    highlighted: { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 50, transform: [{ scale: 1.1 }], zIndex: 20, elevation: 20, shadowColor: '#0000FF', shadowRadius: 10, shadowOpacity: 1 },
-    highlightedBottomNav: { transform: [{ scale: 1.2 }], backgroundColor: 'rgba(230, 230, 250, 0.8)', borderRadius: 20 },
-    arrow: { width: 0, height: 0, backgroundColor: 'transparent', borderStyle: 'solid', position: 'absolute' },
-    arrowDown: { borderTopWidth: 15, borderTopColor: '#FFFFFF', borderLeftWidth: 15, borderLeftColor: 'transparent', borderRightWidth: 15, borderRightColor: 'transparent', bottom: -15, alignSelf: 'center' },
-    arrowUp: { borderBottomWidth: 15, borderBottomColor: '#FFFFFF', borderLeftWidth: 15, borderLeftColor: 'transparent', borderRightWidth: 15, borderRightColor: 'transparent', top: -15, alignSelf: 'center' },
-    arrowLeft: { borderRightWidth: 15, borderRightColor: '#FFFFFF', borderTopWidth: 15, borderTopColor: 'transparent', borderBottomWidth: 15, borderBottomColor: 'transparent', left: -15, top: '40%' },
-    arrowRight: { borderLeftWidth: 15, borderLeftColor: '#FFFFFF', borderTopWidth: 15, borderTopColor: 'transparent', borderBottomWidth: 15, borderBottomColor: 'transparent', right: -15, top: '40%' },
+    arrowImage: { width: 40, height: 40, position: 'absolute', resizeMode: 'contain', zIndex: 13, tintColor: '#FFFFFF' }
 });
 
 export default Hp;
