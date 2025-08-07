@@ -30,12 +30,12 @@ const Hpi1 = () => {
 
         <TouchableOpacity
           style={styles.guideButton}
-          onPress={() => router.replace({ pathname: '/hp', params: { startTutorial: 'true' } })}
+          onPress={() => router.replace({ pathname: '/Homepage/hp', params: { startTutorial: 'true' } })}
         >
           <Text style={styles.guideButtonText}>Quick Guide</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.replace('/hp')}>
+        <TouchableOpacity onPress={() => router.replace('/Homepage/hp')}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>

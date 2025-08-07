@@ -9,10 +9,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 
 // --- Import Custom Assets ---
-const arrowVector = require('../assets/images/Vector.png');
-const folderIcon = require('../assets/images/foldericon.png');
-const homeIcon = require('../assets/images/homeicon.png');
-const bookmarkIcon = require('../assets/images/bookmark.png');
+const arrowVector = require('../../assets/images/Vector.png');
+const folderIcon = require('../../assets/images/foldericon.png');
+const homeIcon = require('../../assets/images/homeicon.png');
+const bookmarkIcon = require('../../assets/images/bookmark.png');
 
 
 // --- Mock Data ---
@@ -214,7 +214,7 @@ const Hp = () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                       style={[styles.actionButton, styles.actionButtonBlack]}
-                      onPress={() => router.push('/jd')}
+                      onPress={() => router.push('/Homepage/jd')}
                   >
                       <Icon name="add" size={30} color="#fff" />
                   </TouchableOpacity>
