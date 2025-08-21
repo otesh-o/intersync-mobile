@@ -39,9 +39,14 @@ export default function Login() {
           <Text className="text-black text-lg font-bold">Login with Email</Text>
         </TouchableOpacity>
 
+        {/* FIREBASE AUTH: Social login buttons (Google, LinkedIn) */}
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center mb-4"
-          onPress={() => console.log("Google login")}
+          onPress={() => {
+            // FIREBASE AUTH: Google login implementation
+            // console.log("Google login")
+            alert("Google login is currently disabled");
+          }}
         >
           <Text className="text-black text-lg font-bold">
             Login with Google
@@ -50,7 +55,11 @@ export default function Login() {
 
         <TouchableOpacity
           className="bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => console.log("LinkedIn login")}
+          onPress={() => {
+            // FIREBASE AUTH: LinkedIn login implementation
+            // console.log("LinkedIn login")
+            alert("LinkedIn login is currently disabled");
+          }}
         >
           <Text className="text-black text-lg font-bold">
             Login with LinkedIn

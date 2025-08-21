@@ -115,7 +115,7 @@ export default function PaymentSuccess() {
         </Text>
 
         <TouchableOpacity
-          onPress={() => router.push("/Homepage/hpi1")}
+          onPress={() => router.push("/Homepage/homepage")}
           style={{
             backgroundColor: "#000",
             borderRadius: 12,

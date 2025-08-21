@@ -11,6 +11,8 @@ export default function LoginScreen() {
     emailOrUsername.trim() !== "" && password.trim() !== "" && agreed;
 
   const handleLogin = () => {
+    // FIREBASE AUTH: Firebase authentication logic would be here
+    // Instead of actual Firebase authentication, using mock credentials
     if (emailOrUsername === "user@example.com" && password === "password123") {
       router.push("/home");
     } else {

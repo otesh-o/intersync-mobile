@@ -1,6 +1,12 @@
+// ========================================================================
+// FILE: app/_layout.js
+// This version includes the minimal changes required to fix the
+// PanGestureHandler error.
+// ========================================================================
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler'; // 1. Import this
 import "./globals.css";
 
 export default function RootLayout() {
@@ -16,11 +22,14 @@ export default function RootLayout() {
     );
   }
 
+  // 2. Wrap your Stack with the GestureHandlerRootView
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </GestureHandlerRootView>
   );
 }

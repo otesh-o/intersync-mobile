@@ -2,6 +2,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+// FIREBASE AUTH: Import for Firebase authentication
 import { register } from "../services/auth";
 
 export default function EmailScreen() {
@@ -31,18 +32,24 @@ const isValidEmail = (email) => {
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords don’t match.");
+      alert("Passwords don't match.");
       return;
     }
 
     try {
-      await register(email, password);
-
+      // FIREBASE AUTH: Firebase registration logic
+      // await register(email, password);
+      
+      // Temporary mock implementation (Firebase auth disabled)
+      // Simulating successful registration
+      
       router.push({
         pathname: "/create_account/verify",
         params: { email },
       });
     } catch (error) {
+      // FIREBASE AUTH: Firebase-specific error handling
+      /*
       if (error.message.includes("email-already-in-use")) {
         alert("This email is already registered. Try logging in.");
       } else if (error.message.includes("weak-password")) {
@@ -50,6 +57,10 @@ const isValidEmail = (email) => {
       } else {
         alert("Something went wrong. Please try again.");
       }
+      */
+      
+      // Generic error handling
+      alert("Something went wrong. Please try again.");
     }
   };
 

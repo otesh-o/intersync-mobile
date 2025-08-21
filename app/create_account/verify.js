@@ -23,6 +23,7 @@ export default function VerifyScreen() {
   const isValid = useMemo(() => code.length === CODE_LENGTH, [code]);
 
   const handleVerify = () => {
+    // FIREBASE AUTH: Firebase email verification would be here
     if (!isValid) return;
     router.push("/create_account/first-name");
   };
