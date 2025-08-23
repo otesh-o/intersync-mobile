@@ -14,7 +14,10 @@ export default function LoginScreen() {
     // FIREBASE AUTH: Firebase authentication logic would be here
     // Instead of actual Firebase authentication, using mock credentials
     if (emailOrUsername === "user@example.com" && password === "password123") {
-      router.push("/home");
+      // --- MODIFICATION ---
+      // Changed the navigation path to point to your Homepage.js file.
+      // The route is based on the file path: app/Homepage/Homepage.js -> /Homepage/Homepage
+      router.push("/Homepage/Homepage");
     } else {
       router.push("/login_flow/oops/oops");
     }
