@@ -1,160 +1,114 @@
 // ========================================================================
-// FILE: app/jd.js
-// This is the Job Details page with Description and Company tabs.
+// FILE: app/jd.js - Back to Working Step 2
 // ========================================================================
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { router } from 'expo-router';
-
-// --- Mock Data ---
-const MOCK_GALLERY_IMAGES = [
-    'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=2070&auto=format&fit=crop'
-];
+import { useRouter } from 'expo-router';
 
 // --- Sub-components for the two tabs ---
 const DescriptionView = () => (
     <View>
-        <Text style={styles.sectionTitle}>Job Description</Text>
-        <Text style={styles.bodyText}>Project managers play the lead role in planning, executing, monitoring, controlling, and closing out projects. They are accountable for the entire project scope, the project team, and resources, the project budget, and the success or failure of the project.</Text>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Job Description</Text>
+        <Text className="text-base text-slate-600 leading-6">Project managers play the lead role in planning, executing, monitoring, controlling, and closing out projects.</Text>
 
-        <Text style={styles.sectionTitle}>Requirements</Text>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Requirements</Text>
         <View>
-            <Text style={styles.bulletPoint}>• Bachelor's degree in computer science, business, or a related field</Text>
-            <Text style={styles.bulletPoint}>• 5-8 years of project management and related experience</Text>
-            <Text style={styles.bulletPoint}>• Project Management Professional (PMP) certification preferred</Text>
-            <Text style={styles.bulletPoint}>• Proven ability to solve problems creatively</Text>
+            <Text className="text-base text-slate-600 leading-6 mb-1.5 ml-1">• Bachelor's degree in computer science</Text>
+            <Text className="text-base text-slate-600 leading-6 mb-1.5 ml-1">• 5-8 years of project management experience</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Stipend</Text>
-        <Text style={styles.bodyText}>$50 - $75 / Month</Text>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Stipend</Text>
+        <Text className="text-base text-slate-600 leading-6">$50 - $75 / Month</Text>
     </View>
 );
 
 const CompanyView = () => (
     <View>
-        <Text style={styles.sectionTitle}>About us</Text>
-        <Text style={styles.bodyText}>Linear is a purpose-built tool for modern product development. Streamline issues, projects, and product roadmaps. Start building. Start building.</Text>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">About us</Text>
+        <Text className="text-base text-slate-600 leading-6">Linear is a purpose-built tool for modern product development.</Text>
 
-        <Text style={styles.sectionTitle}>Gallery</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.galleryContainer}>
-            {MOCK_GALLERY_IMAGES.map((uri, index) => (
-                <Image key={index} source={{ uri }} style={styles.galleryImage} />
-            ))}
-        </ScrollView>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Address</Text>
+        <Text className="text-base text-slate-600 leading-6">Jakarta, Indonesia</Text>
 
-        <Text style={styles.sectionTitle}>Address</Text>
-        <Text style={styles.bodyText}>Jl. Jend. Sudirman Kav. 71 Sequis Tower, Level 19, Suite 3 Jakarta, 12190 Indonesia</Text>
-
-        <Text style={styles.sectionTitle}>Hours</Text>
-        <Text style={styles.bodyText}>Closed ⋅ opens 9 am</Text>
-
-        <Text style={styles.sectionTitle}>Phone</Text>
-        <Text style={styles.bodyText}>0821546789</Text>
-
-        <Text style={styles.sectionTitle}>Website</Text>
-        <Text style={styles.bodyText}>https://linear.com</Text>
+        <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Phone</Text>
+        <Text className="text-base text-slate-600 leading-6">0821546789</Text>
     </View>
 );
 
-
 const Jd = () => {
     const [activeTab, setActiveTab] = useState('Description');
+    const router = useRouter();
+
+    const handleBackPress = () => {
+        router.back();
+    };
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 bg-slate-50">
             <StatusBar barStyle="dark-content" />
+            
             {/* --- Header --- */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[50px] pb-4">
+                <TouchableOpacity onPress={handleBackPress} className="p-1">
                     <Icon name="chevron-back" size={28} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>DETAILS</Text>
-                <View style={{ width: 40 }} />
+                <Text className="text-xl font-bold">DETAILS</Text>
+                <View className="w-10" />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* --- Job Info Header --- */}
-                <View style={styles.jobHeader}>
-                    <View style={styles.jobLogoOuterContainer}>
-                        <View style={styles.jobLogoInnerContainer}><View style={styles.logoLine} /></View>
+                <View className="flex-row items-center px-5 mt-2.5">
+                    <View className="bg-white p-2 rounded-2xl" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 3 }}>
+                        <View className="w-12 h-12 bg-slate-600 rounded-xl" />
                     </View>
-                    <View style={styles.jobHeaderText}>
-                        <Text style={styles.jobTitle}>Software Engineer</Text>
-                        <Text style={styles.jobLocation}>Linear - Jakarta, ID</Text>
-                        <View style={styles.tagContainer}>
-                            <Text style={styles.tag}>Full Time</Text>
-                            <Text style={styles.tag}>Remote</Text>
-                            <Text style={styles.tag}>Senior</Text>
+                    <View className="ml-4 flex-1">
+                        <Text className="text-2xl font-bold text-slate-800">Software Engineer</Text>
+                        <Text className="text-base text-slate-500 mt-0.5">Linear - Jakarta, ID</Text>
+                        <View className="flex-row mt-2">
+                            <Text className="bg-slate-600 text-white text-xs font-medium mr-2.5 px-3 py-1 rounded-2xl">Full Time</Text>
+                            <Text className="bg-slate-600 text-white text-xs font-medium mr-2.5 px-3 py-1 rounded-2xl">Remote</Text>
+                            <Text className="bg-slate-600 text-white text-xs font-medium mr-2.5 px-3 py-1 rounded-2xl">Senior</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* --- Tab Switcher --- */}
-                <View style={styles.tabSwitcher}>
+                <View className="flex-row mx-5 mt-8 bg-slate-200 rounded-xl p-1">
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'Description' && styles.activeTab]}
+                        className={`flex-1 py-2.5 rounded-lg items-center ${activeTab === 'Description' ? 'bg-white' : ''}`}
+                        style={activeTab === 'Description' ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 } : {}}
                         onPress={() => setActiveTab('Description')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'Description' && styles.activeTabText]}>Description</Text>
+                        <Text className={`text-base font-semibold ${activeTab === 'Description' ? 'text-black' : 'text-slate-600'}`}>Description</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.tab, activeTab === 'Company' && styles.activeTab]}
+                        className={`flex-1 py-2.5 rounded-lg items-center ${activeTab === 'Company' ? 'bg-white' : ''}`}
+                        style={activeTab === 'Company' ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 } : {}}
                         onPress={() => setActiveTab('Company')}
                     >
-                        <Text style={[styles.tabText, activeTab === 'Company' && styles.activeTabText]}>Company</Text>
+                        <Text className={`text-base font-semibold ${activeTab === 'Company' ? 'text-black' : 'text-slate-600'}`}>Company</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* --- Content based on active tab --- */}
-                <View style={styles.contentContainer}>
+                <View className="px-5 mt-5">
                     {activeTab === 'Description' ? <DescriptionView /> : <CompanyView />}
                 </View>
 
                 {/* Spacer for the apply button */}
-                <View style={{ height: 100 }} />
+                <View className="h-24" />
             </ScrollView>
 
             {/* --- Apply Now Button (Fixed at bottom) --- */}
-            <View style={styles.applyButtonContainer}>
-                <TouchableOpacity style={styles.applyButton}>
-                    <Text style={styles.applyButtonText}>Apply Now</Text>
+            <View className="absolute bottom-0 left-0 right-0 p-5 bg-slate-50 border-t border-slate-200">
+                <TouchableOpacity className="bg-slate-800 py-4 rounded-2xl items-center">
+                    <Text className="text-white text-lg font-bold">Apply Now</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F9F9F9' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingBottom: 15, paddingHorizontal: 20, backgroundColor: '#F9F9F9' },
-    backButton: { padding: 5 },
-    headerTitle: { fontSize: 20, fontWeight: 'bold' },
-    jobHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 10 },
-    jobLogoOuterContainer: { backgroundColor: '#fff', padding: 8, borderRadius: 18, elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5 },
-    jobLogoInnerContainer: { width: 50, height: 50, backgroundColor: '#4A5568', borderRadius: 12, overflow: 'hidden', transform: [{ rotate: '45deg' }] },
-    logoLine: { position: 'absolute', top: 23, left: -10, width: 70, height: 4, backgroundColor: '#FFFFFF' },
-    jobHeaderText: { marginLeft: 15, flex: 1 },
-    jobTitle: { fontSize: 22, fontWeight: 'bold', color: '#1A202C' },
-    jobLocation: { fontSize: 16, color: '#718096', marginTop: 2 },
-    tagContainer: { flexDirection: 'row', marginTop: 8 },
-    tag: { backgroundColor: '#4A5568', color: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 15, marginRight: 10, fontSize: 12, fontWeight: '500' },
-    tabSwitcher: { flexDirection: 'row', marginHorizontal: 20, marginTop: 30, backgroundColor: '#E2E8F0', borderRadius: 12, padding: 4 },
-    tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
-    activeTab: { backgroundColor: '#FFFFFF', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
-    tabText: { fontSize: 16, fontWeight: '600', color: '#4A5568' },
-    activeTabText: { color: '#000000' },
-    contentContainer: { paddingHorizontal: 20, marginTop: 20 },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
-    bodyText: { fontSize: 15, color: '#4A5568', lineHeight: 22 },
-    bulletPoint: { fontSize: 15, color: '#4A5568', lineHeight: 22, marginBottom: 5, marginLeft: 5 },
-    galleryContainer: { marginVertical: 10 },
-    galleryImage: { width: 200, height: 120, borderRadius: 10, marginRight: 10 },
-    applyButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: '#F9F9F9', borderTopWidth: 1, borderTopColor: '#E2E8F0' },
-    applyButton: { backgroundColor: '#1A202C', paddingVertical: 16, borderRadius: 15, alignItems: 'center' },
-    applyButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-});
 
 export default Jd;

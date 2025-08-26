@@ -1,14 +1,11 @@
 // ========================================================================
 // FILE: app/components/SideMenu.js
-//
-// PURPOSE:
-// A reusable, animated, slide-in side menu for app navigation.
-// It includes a backdrop that closes the menu when pressed.
+// PURPOSE: A reusable side menu using NativeWind for styling.
 // ========================================================================
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, Animated
+  View, Text, TouchableOpacity, Image, Animated
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -33,43 +30,51 @@ const SideMenu = ({ isVisible, onClose, slideAnim }) => {
   const handleMenuItemPress = (itemId) => {
     console.log(`Menu item pressed: ${itemId}`);
     onClose();
-    // In a real app, you would add navigation logic here, e.g.:
-    // router.push(`/some-path/${itemId}`);
+    // Navigation logic would go here
   };
 
   return (
     <>
-      {/* The backdrop is only rendered when the menu is visible. 
-        Pressing it will trigger the onClose function.
-      */}
-      {isVisible && <TouchableOpacity style={styles.menuBackdrop} onPress={onClose} activeOpacity={1} />}
+      {/* The backdrop, pressing it closes the menu. */}
+      {isVisible && (
+        <TouchableOpacity
+          className="absolute inset-0 bg-black/50 z-[99]"
+          onPress={onClose}
+          activeOpacity={1}
+        />
+      )}
       
-      {/* The main menu container. Its horizontal position is controlled
-        by the animated 'slideAnim' value.
-      */}
-      <Animated.View style={[styles.sideMenu, { transform: [{ translateX: slideAnim }] }]}>
-        <View style={styles.menuHeader}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      {/* The main menu container, animated with the slideAnim value. */}
+      <Animated.View
+        className="absolute top-0 left-0 h-full w-[280px] bg-slate-800 z-[100] pt-[60px]"
+        style={[{ transform: [{ translateX: slideAnim }] }]}
+      >
+        <View className="flex-row items-center px-5 pb-5 mb-5">
+          <TouchableOpacity className="mr-3 p-1" onPress={onClose}>
             <Icon name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.menuTitle}>InternSync</Text>
+          <Text className="text-white text-lg font-semibold tracking-wide">InternSync</Text>
         </View>
 
-        <View style={styles.menuProfileSection}>
-          <Image source={{ uri: PROFILE_PIC_URL }} style={styles.menuProfilePic} />
-          <View style={styles.menuProfileInfo}>
-            <Text style={styles.menuGreeting}>Hello</Text>
-            <Text style={styles.menuUserName}>Emelyn Angga</Text>
+        <View className="flex-row items-center px-5 pb-[30px] mb-[30px] border-b border-white/10">
+          <Image source={{ uri: PROFILE_PIC_URL }} className="w-12 h-12 rounded-full mr-3" />
+          <View className="flex-1">
+            <Text className="text-slate-400 text-sm mb-0.5">Hello</Text>
+            <Text className="text-white text-base font-semibold">Emelyn Angga</Text>
           </View>
         </View>
 
-        <View style={styles.menuWhiteSection}>
+        <View className="flex-1 bg-white rounded-t-2xl p-2.5">
           {menuItems.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleMenuItemPress(item.id)}>
-              <View style={styles.menuItemIconContainer}>
+            <TouchableOpacity
+              key={item.id}
+              className="flex-row items-center px-4 py-3 mb-2 rounded-xl"
+              onPress={() => handleMenuItemPress(item.id)}
+            >
+              <View className="w-9 h-9 rounded-full justify-center items-center mr-3">
                 <Icon name={item.icon} size={22} color="#718096" />
               </View>
-              <Text style={styles.menuItemText}>{item.title}</Text>
+              <Text className="text-slate-600 text-[15px] font-medium">{item.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -77,23 +82,5 @@ const SideMenu = ({ isVisible, onClose, slideAnim }) => {
     </>
   );
 };
-
-// --- Styles ---
-const styles = StyleSheet.create({
-  menuBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 99 },
-  sideMenu: { position: 'absolute', top: 0, left: 0, width: 280, height: '100%', backgroundColor: '#2B3D5A', zIndex: 100, paddingTop: 60 },
-  menuHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 20, marginBottom: 20 },
-  closeButton: { marginRight: 12, padding: 4 },
-  menuTitle: { color: '#fff', fontSize: 18, fontWeight: '600', letterSpacing: 0.5 },
-  menuProfileSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 30, marginBottom: 30, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.1)' },
-  menuProfilePic: { width: 50, height: 50, borderRadius: 25, marginRight: 12 },
-  menuProfileInfo: { flex: 1 },
-  menuGreeting: { color: '#94A3B8', fontSize: 14, marginBottom: 2 },
-  menuUserName: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  menuWhiteSection: { flex: 1, backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 10 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 12, marginBottom: 8, borderRadius: 12 },
-  menuItemIconContainer: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  menuItemText: { color: '#4A5568', fontSize: 15, fontWeight: '500' },
-});
 
 export default SideMenu;

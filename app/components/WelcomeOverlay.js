@@ -1,15 +1,11 @@
 // ========================================================================
 // FILE: app/components/WelcomeOverlay.js
-//
-// PURPOSE:
-// A modal overlay shown to the user on their first visit to the app.
-// It provides options to start a quick guide (tutorial) or skip
-// the introduction.
+// PURPOSE: A modal overlay using NativeWind for styling.
 // ========================================================================
 
 import React, { useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, TouchableOpacity,
   ImageBackground, Keyboard
 } from 'react-native';
 
@@ -24,54 +20,41 @@ import { CARD_BACKGROUND_URL } from '../constants/appData';
  */
 const WelcomeOverlay = ({ onQuickGuide, onSkip }) => {
   // --- Effects ---
-  // Dismiss the keyboard automatically when this overlay is active,
-  // preventing it from covering the modal.
+  // Dismiss the keyboard automatically when this overlay is active.
   useEffect(() => {
     Keyboard.dismiss();
   }, []);
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.modalContainer}>
+    <View className="absolute inset-0 justify-center items-center bg-black/[.92] z-10">
+      <View className="w-[85%] items-center rounded-3xl bg-[#1C1C1E] p-5 shadow-2xl shadow-black">
         <ImageBackground
           source={{ uri: CARD_BACKGROUND_URL }}
-          style={styles.cardBackground}
-          imageStyle={{ borderRadius: 20 }}
+          className="w-full h-[200px] justify-center items-center overflow-hidden"
+          imageStyle={{ borderRadius: 20 }} // imageStyle applies to the <Image> component
         >
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.modalTitle}>Let's get you ready !</Text>
-            <View style={styles.logoContainer}>
-              <View style={styles.logoCircle} />
+          <View className="w-full h-full justify-center items-center bg-black/40 p-2.5">
+            <Text className="text-3xl font-bold italic text-white text-center">Let's get you ready !</Text>
+            <View className="w-[70px] h-[70px] justify-center items-center bg-white/10 rounded-2xl mt-4">
+              <View className="w-10 h-10 bg-white rounded-full opacity-90" />
             </View>
-            <Text style={styles.modalSubtitle}>Find Your Perfect Opportunity!</Text>
+            <Text className="text-base text-gray-200 text-center mt-2.5">Find Your Perfect Opportunity!</Text>
           </View>
         </ImageBackground>
 
-        <TouchableOpacity style={styles.guideButton} onPress={onQuickGuide}>
-          <Text style={styles.guideButtonText}>Quick Guide</Text>
+        <TouchableOpacity
+          className="bg-white py-4 px-14 rounded-full mt-6 mb-4 shadow-lg shadow-white/30"
+          onPress={onQuickGuide}
+        >
+          <Text className="text-black text-lg font-bold">Quick Guide</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onSkip}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text className="text-gray-400 text-base p-2.5">Skip</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-// --- Styles ---
-const styles = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.92)', zIndex: 10, justifyContent: 'center', alignItems: 'center' },
-  modalContainer: { width: '85%', backgroundColor: '#1C1C1E', borderRadius: 25, alignItems: 'center', padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 20 },
-  cardBackground: { width: '100%', height: 200, borderRadius: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  cardTextContainer: { width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', borderRadius: 20, padding: 10 },
-  modalTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', fontStyle: 'italic' },
-  logoContainer: { width: 70, height: 70, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginTop: 15 },
-  logoCircle: { width: 40, height: 40, backgroundColor: '#fff', borderRadius: 20, opacity: 0.9 },
-  modalSubtitle: { fontSize: 16, color: '#E0E0E0', marginTop: 10, textAlign: 'center' },
-  guideButton: { backgroundColor: '#FFFFFF', paddingVertical: 16, paddingHorizontal: 60, borderRadius: 30, marginTop: 25, marginBottom: 15, elevation: 5, shadowColor: '#fff', shadowOpacity: 0.3, shadowRadius: 10 },
-  guideButtonText: { color: '#000000', fontSize: 18, fontWeight: 'bold' },
-  skipText: { color: '#A0A0A0', fontSize: 16, padding: 10 },
-});
 
 export default WelcomeOverlay;

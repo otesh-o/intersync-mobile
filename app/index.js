@@ -10,7 +10,7 @@ const logo = require("../assets/images/logo.png");
 export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/welcome");
+      router.replace("/Homepage/homepage");
     }, 2000);
 
     return () => clearTimeout(timer);

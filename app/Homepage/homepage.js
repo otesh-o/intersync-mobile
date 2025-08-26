@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, TouchableOpacity, StatusBar,
   Image, TextInput, Animated
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 
 // --- Import Data and Constants ---
-// All static data is imported from a central file for easy management.
 import {
   JOBS_DATA,
   PROFILE_PIC_URL,
@@ -18,7 +17,6 @@ import {
 } from '../constants/appData';
 
 // --- Import Reusable Components ---
-// The UI is built by composing these smaller, focused components.
 import WelcomeOverlay from '../components/WelcomeOverlay';
 import SideMenu from '../components/SideMenu';
 import JobCard from '../components/JobCard';
@@ -36,18 +34,16 @@ const Homepage = () => {
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-300)).current;
 
-  // --- Effects ---
-  // Effect to handle deep linking for starting the tutorial
+  // --- Effects (No changes needed here) ---
   useEffect(() => {
     if (params.startTutorial === 'true') {
       setWelcomeActive(false);
       setTutorialActive(true);
       setTutorialStep(0);
-      router.setParams({ startTutorial: null }); // Clear param after use
+      router.setParams({ startTutorial: null });
     }
   }, [params]);
 
-  // Effect to animate the side menu's visibility
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: isMenuVisible ? 0 : -300,
@@ -56,7 +52,7 @@ const Homepage = () => {
     }).start();
   }, [isMenuVisible]);
 
-  // --- Handlers ---
+  // --- Handlers (No changes needed here) ---
   const handleWelcomeQuickGuide = () => {
     setWelcomeActive(false);
     setTutorialActive(true);
@@ -97,84 +93,86 @@ const Homepage = () => {
   const handleMenuClose = () => setMenuVisible(false);
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.pageContent}>
+    <View className="flex-1">
+      <View className="flex-1 bg-slate-50">
         <StatusBar barStyle="dark-content" />
-        <View style={styles.header}>
-            <TouchableOpacity style={styles.headerButton} onPress={handleMenuToggle}>
+        <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[50px] pb-2.5">
+            <TouchableOpacity className="p-1.5" onPress={handleMenuToggle}>
                 <Icon name="menu" size={30} color="#000" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>INTERN SYNC</Text>
+            <Text className="text-2xl tracking-wider" style={{ fontFamily: 'ClaireNewsBold' }}>
+              INTERN SYNC
+            </Text>
             <View style={{width: 40}} />
         </View>
 
-        <View style={styles.contentWrapper}>
-            <View style={styles.welcomeSection}>
-              <TouchableOpacity style={styles.profilePicContainer}>
-                <Image source={{uri: PROFILE_PIC_URL}} style={styles.profilePic} />
-              </TouchableOpacity>
-              <View style={styles.welcomeTextContainer}>
-                <Text style={styles.helloText}>Hello</Text>
-                <Text style={styles.userName} numberOfLines={1}>Evelyn Ang</Text>
-              </View>
-              <TouchableOpacity style={styles.notificationBell}>
-                  <Icon name="notifications-outline" size={28} color="#000" />
-                  <View style={styles.notificationDot} />
-              </TouchableOpacity>
+        <View className="flex-1 px-5">
+            <View className="flex-row items-center mt-5">
+                <TouchableOpacity className="w-14 h-14 justify-center items-center rounded-full">
+                    <Image source={{uri: PROFILE_PIC_URL}} className="w-12 h-12 rounded-full" />
+                </TouchableOpacity>
+                <View className="flex-1 ml-4 mr-2.5">
+                    <Text className="text-lg text-gray-500">Hello</Text>
+                    <Text className="text-2xl font-bold" numberOfLines={1}>Evelyn Ang</Text>
+                </View>
+                <TouchableOpacity className="relative w-10 h-10 justify-center items-center">
+                    <Icon name="notifications-outline" size={28} color="#000" />
+                    <View className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-[1.5px] border-slate-50" />
+                </TouchableOpacity>
             </View>
 
-            <View style={styles.searchContainer}>
-              <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
-              <TextInput 
-                placeholder="Search by job name" 
-                style={styles.searchInput} 
-                placeholderTextColor="#888"
-              />
-              <TouchableOpacity style={styles.filterButton}>
-                <Icon name="options-outline" size={26} color="#000" />
-              </TouchableOpacity>
+            <View className="flex-row items-center bg-white rounded-2xl mt-6 px-4 shadow-md">
+                <Icon name="search" size={20} color="#888" className="mr-2.5" />
+                <TextInput 
+                    placeholder="Search by job name" 
+                    className="flex-1 h-14 text-base"
+                    placeholderTextColor="#888"
+                />
+                <TouchableOpacity className="p-2.5">
+                    <Icon name="options-outline" size={26} color="#000" />
+                </TouchableOpacity>
             </View>
             
-            <View style={styles.cardContainer}>
-              {jobs.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Icon name="briefcase-outline" size={80} color="#ccc" />
-                  <Text style={styles.emptyStateText}>No more jobs to show!</Text>
-                  <Text style={styles.emptyStateSubtext}>Check back later</Text>
-                </View>
-              ) : (
-                jobs.map((job, index) => {
-                  const cardStackIndex = jobs.length - 1 - index;
-                  return (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      onSwipe={handleSwipe}
-                      isTop={index === jobs.length - 1}
-                      style={{
-                        zIndex: index + 1,
-                        transform: [
-                          { scale: 1 - cardStackIndex * 0.02 },
-                          { translateY: cardStackIndex * -5 }
-                        ]
-                      }}
-                    />
-                  );
-                }).reverse()
-              )}
+            <View className="flex-1 justify-center items-center mt-5 mb-5">
+                {jobs.length === 0 ? (
+                    <View className="flex-1 justify-center items-center pb-12">
+                        <Icon name="briefcase-outline" size={80} color="#ccc" />
+                        <Text className="text-xl font-bold text-gray-500 mt-5 text-center">No more jobs to show!</Text>
+                        <Text className="text-base text-gray-400 mt-2.5 text-center">Check back later</Text>
+                    </View>
+                ) : (
+                    jobs.map((job, index) => {
+                        const cardStackIndex = jobs.length - 1 - index;
+                        return (
+                            <JobCard
+                                key={job.id}
+                                job={job}
+                                onSwipe={handleSwipe}
+                                isTop={index === jobs.length - 1}
+                                style={{
+                                    zIndex: index + 1,
+                                    transform: [
+                                        { scale: 1 - cardStackIndex * 0.02 },
+                                        { translateY: cardStackIndex * -5 }
+                                    ]
+                                }}
+                            />
+                        );
+                    }).reverse()
+                )}
             </View>
         </View>
 
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navButton}>
-            <Image source={folderIcon} style={styles.navIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navButton}>
-            <Image source={homeIcon} style={styles.navIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navButton} onPress={handleBookmarkPress}>
-            <Image source={bookmarkIcon} style={styles.navIcon} />
-          </TouchableOpacity>
+        <View className="flex-row justify-around items-center bg-white h-[75px] border-t border-slate-200 pb-2.5">
+            <TouchableOpacity className="flex-1 items-center justify-center">
+                <Image source={folderIcon} className="w-7 h-7" resizeMode="contain" />
+            </TouchableOpacity>
+            <TouchableOpacity className="flex-1 items-center justify-center">
+                <Image source={homeIcon} className="w-7 h-7" resizeMode="contain" />
+            </TouchableOpacity>
+            <TouchableOpacity className="flex-1 items-center justify-center" onPress={handleBookmarkPress}>
+                <Image source={bookmarkIcon} className="w-7 h-7" resizeMode="contain" />
+            </TouchableOpacity>
         </View>
       </View>
 
@@ -185,33 +183,5 @@ const Homepage = () => {
     </View>
   );
 };
-
-// --- Styles ---
-const styles = StyleSheet.create({
-  pageContent: { flex: 1, backgroundColor: '#F9F9F9' },
-  contentWrapper: { flex: 1, paddingHorizontal: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 50, paddingBottom: 10, paddingHorizontal: 20, backgroundColor: '#F9F9F9' },
-  headerButton: { padding: 5 },
-  headerTitle: { fontFamily: 'ClaireNewsBold', fontSize: 26, letterSpacing: 1 },
-  welcomeSection: { flexDirection: 'row', marginTop: 20, alignItems: 'center' },
-  profilePicContainer: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  profilePic: { width: 50, height: 50, borderRadius: 25 },
-  welcomeTextContainer: { flex: 1, marginLeft: 15, marginRight: 10 },
-  helloText: { fontSize: 18, color: '#888' },
-  userName: { fontSize: 24, fontWeight: 'bold' },
-  notificationBell: { position: 'relative', width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  notificationDot: { position: 'absolute', right: 2, top: 2, width: 10, height: 10, borderRadius: 5, backgroundColor: 'red', borderWidth: 1.5, borderColor: '#F9F9F9' },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, marginTop: 25, paddingHorizontal: 15, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-  searchIcon: { marginRight: 10 },
-  searchInput: { flex: 1, height: 55, fontSize: 16 },
-  filterButton: { padding: 10 },
-  cardContainer: { flex: 1, marginTop: 20, marginBottom: 20, justifyContent: 'center', alignItems: 'center' },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 50 },
-  emptyStateText: { fontSize: 20, fontWeight: 'bold', color: '#888', marginTop: 20, textAlign: 'center' },
-  emptyStateSubtext: { fontSize: 16, color: '#aaa', marginTop: 10, textAlign: 'center' },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 75, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingBottom: 10 },
-  navButton: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navIcon: { width: 28, height: 28, resizeMode: 'contain' },
-});
 
 export default Homepage;
