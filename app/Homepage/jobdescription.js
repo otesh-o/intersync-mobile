@@ -14,7 +14,7 @@ const DescriptionView = () => (
 
         <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">Requirements</Text>
         <View>
-            <Text className="text-base text-slate-600 leading-6 mb-1.5 ml-1">• Bachelor's degree in computer science</Text>
+            <Text className="text-base text-slate-600 leading-6 mb-1.5 ml-1">• Bachelors degree in computer science</Text>
             <Text className="text-base text-slate-600 leading-6 mb-1.5 ml-1">• 5-8 years of project management experience</Text>
         </View>
 

@@ -1,9 +1,9 @@
 // app/create_account/email.tsx
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 // FIREBASE AUTH: Import for Firebase authentication
-import { register } from "../services/auth";
+import { register } from "../services/auth"; // backend
 
 export default function EmailScreen() {
   const [email, setEmail] = useState("");
@@ -12,10 +12,10 @@ export default function EmailScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Validation
-const isValidEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email.trim());
-};
+  const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email.trim());
+  };
 
   const passwordsMatch = password === confirmPassword;
   const isPasswordValid = password.length >= 6;
@@ -37,19 +37,16 @@ const isValidEmail = (email) => {
     }
 
     try {
-      // FIREBASE AUTH: Firebase registration logic
-      // await register(email, password);
-      
-      // Temporary mock implementation (Firebase auth disabled)
-      // Simulating successful registration
-      
+      // backend: Firebase registration
+      await register(email, password);
+
+      // Navigate after successful signup
       router.push({
         pathname: "/create_account/verify",
         params: { email },
       });
     } catch (error) {
-      // FIREBASE AUTH: Firebase-specific error handling
-      /*
+      // backend: Firebase-specific error handling
       if (error.message.includes("email-already-in-use")) {
         alert("This email is already registered. Try logging in.");
       } else if (error.message.includes("weak-password")) {
@@ -57,10 +54,6 @@ const isValidEmail = (email) => {
       } else {
         alert("Something went wrong. Please try again.");
       }
-      */
-      
-      // Generic error handling
-      alert("Something went wrong. Please try again.");
     }
   };
 

@@ -1,7 +1,3 @@
-// ========================================================================
-// FILE: app/components/JobCard.js
-// PURPOSE: A reusable, swipeable card component using NativeWind for styling.
-// ========================================================================
 
 import React, { useRef } from 'react';
 import {
@@ -13,7 +9,7 @@ import { router } from 'expo-router';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 /**
- * A swipeable card component to display job information.
+
  * @param {object} props - Component props.
  * @param {object} props.job - The job data object to display.
  * @param {(id: number, direction: 'left' | 'right') => void} props.onSwipe - Callback when a card is swiped off-screen.
@@ -25,7 +21,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 
-  // --- Animations ---
+
   const rotate = translateX.interpolate({
     inputRange: [-width / 2, 0, width / 2],
     outputRange: ['-15deg', '0deg', '15deg'],
@@ -44,7 +40,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     extrapolate: 'clamp',
   });
 
-  // --- Gesture Handling (No changes needed here) ---
+
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
     { useNativeDriver: true }
@@ -73,7 +69,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     }
   };
 
-  // --- Button Press Handling (No changes needed here) ---
+  
   const handleButtonPress = (direction) => {
     const toValue = direction === 'right' ? width * 1.5 : -width * 1.5;
     Animated.timing(translateX, {
@@ -86,10 +82,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   return (
     <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange} enabled={isTop}>
       <Animated.View
-        className="absolute w-[90%] max-w-sm self-center bg-white rounded-2xl shadow-lg"
+        className="absolute w-[90%] max-w-sm self-center bg-white rounded-3xl shadow-lg"
         style={[style, { transform: [{ translateX }, { translateY }, { rotate }] }]}
       >
-        {/* Like/Nope Overlays */}
+        
         <Animated.View
           className="absolute top-12 right-5 z-10 px-5 py-2.5 rounded-md border-2 border-white bg-green-400/90"
           style={[{ transform: [{ rotate: '15deg' }] }, { opacity: likeOpacity }]}
@@ -103,7 +99,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           <Text className="text-white text-lg font-bold">NOPE</Text>
         </Animated.View>
 
-        {/* Card Content */}
+        
         <View className="relative">
           <Image source={{ uri: job.image }} className="w-full h-40 rounded-t-2xl" />
           <View className="absolute -bottom-6 left-5 bg-white p-2 rounded-2xl shadow-md">
