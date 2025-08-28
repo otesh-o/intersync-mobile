@@ -7,25 +7,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
 
+  // still keep validation for UX, but backend logic is mocked
   const isValid =
     emailOrUsername.trim() !== "" && password.trim() !== "" && agreed;
 
   const handleLogin = () => {
-    // FIREBASE AUTH: Firebase authentication logic would be here
-    // Instead of actual Firebase authentication, using mock credentials
-    if (emailOrUsername === "user@example.com" && password === "password123") {
-      // --- MODIFICATION ---
-      // Changed the navigation path to point to your Homepage.js file.
-      // The route is based on the file path: app/Homepage/Homepage.js -> /Homepage/Homepage
-      router.push("/Homepage/Homepage");
-    } else {
-      router.push("/login_flow/oops/oops");
-    }
+    // DEMO ONLY: hardcoded route, no authentication yet
+    router.push("/Homepage/homepage");
   };
 
   return (
     <View className="flex-1 bg-white px-6 pt-24">
-      {/* Header with Back Icon and INTERNSYNC */}
+      {/* Header */}
       <View
         style={{
           flexDirection: "row",

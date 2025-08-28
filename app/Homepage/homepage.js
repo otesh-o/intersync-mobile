@@ -11,7 +11,6 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 
-// --- Import Data and Constants ---
 import {
   JOBS_DATA, // placeholder until backend is ready // backend
   PROFILE_PIC_URL, // placeholder // backend
@@ -21,7 +20,6 @@ import {
   bookmarkIcon,
 } from "../constants/appData";
 
-// --- Import Reusable Components ---
 import WelcomeOverlay from "../components/WelcomeOverlay";
 import SideMenu from "../components/SideMenu";
 import JobCard from "../components/JobCard";
@@ -30,7 +28,7 @@ import TutorialOverlay from "../components/TutorialOverlay";
 const Homepage = () => {
   const params = useLocalSearchParams();
 
-  // --- State Management ---
+  
   const [isWelcomeActive, setWelcomeActive] = useState(true);
   const [isTutorialActive, setTutorialActive] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
@@ -111,7 +109,7 @@ const Homepage = () => {
         <StatusBar barStyle="dark-content" />
 
         {/* Header */}
-        <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[40px] pb-2.5">
+        <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[10px] pb-2.5">
           <TouchableOpacity className="p-1.5" onPress={handleMenuToggle}>
             <Icon name="menu" size={30} color="#000" />
           </TouchableOpacity>
@@ -128,22 +126,27 @@ const Homepage = () => {
         <View className="flex-1 px-5">
           {/* User Info */}
           <View className="flex-row items-center mt-5">
-            <TouchableOpacity className="w-14 h-14 justify-center items-center rounded-full">
+            {/* Profile Picture - Now Navigates to Profile Page */}
+            <TouchableOpacity
+              className="w-14 h-14 justify-center items-center rounded-full"
+              onPress={() => router.push("../profile_page/MainProfile")}
+            >
               <Image
-                source={{ uri: PROFILE_PIC_URL }} // backend
+                source={{ uri: PROFILE_PIC_URL }}
                 className="w-12 h-12 rounded-full"
               />
             </TouchableOpacity>
+
             <View className="flex-1 ml-4 mr-2.5">
               <Text className="text-lg text-gray-500">Hello</Text>
               <Text className="text-2xl font-bold" numberOfLines={1}>
-                Emelyn Angga {/* backend: replace with dynamic user name */}
+                Emelyn Angga
               </Text>
             </View>
+
             <TouchableOpacity className="relative w-10 h-10 justify-center items-center">
               <Icon name="notifications-outline" size={28} color="#000" />
               <View className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-[1.5px] border-slate-50" />
-              {/* backend: notification count */}
             </TouchableOpacity>
           </View>
 
