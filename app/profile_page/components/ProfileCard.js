@@ -1,12 +1,17 @@
 // ProfileCard.js
 import { Image, Text, TouchableOpacity, View, TextInput } from "react-native";
 import { useState } from "react";
-import Icon from "react-native-vector-icons/Ionicons"; // Make sure you have this
+import Icon from "react-native-vector-icons/Ionicons";
+import { useProfile } from "../../context/ProfileContext";
 
 export default function ProfileCard() {
+  const { name, setName, role, setRole } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState("Emelyn Angga");
-  const [role, setRole] = useState("UX Researcher. UX Researcher");
+
+  // Local states for editable stats
+  const [rate, setRate] = useState("-");
+  const [projects, setProjects] = useState("-");
+  const [reviews, setReviews] = useState("-");
 
   return (
     <View
@@ -35,7 +40,7 @@ export default function ProfileCard() {
         />
       </TouchableOpacity>
 
-      {/* Edit Button - Top Right */}
+      {/* Edit Button */}
       <TouchableOpacity
         style={{
           position: "absolute",
@@ -45,7 +50,11 @@ export default function ProfileCard() {
         }}
         onPress={() => setIsEditing(!isEditing)}
       >
-        <Icon name={isEditing ? "checkmark" : "create-outline"} size={24} color="#007AFF" />
+        <Icon
+          name={isEditing ? "checkmark" : "create-outline"}
+          size={24}
+          color="#007AFF"
+        />
       </TouchableOpacity>
 
       {/* Name */}
@@ -102,7 +111,6 @@ export default function ProfileCard() {
             }}
             placeholder="e.g. UX Researcher"
             multiline
-            onSubmitEditing={() => setIsEditing(false)}
           />
         ) : (
           <Text
@@ -143,17 +151,37 @@ export default function ProfileCard() {
           >
             Rate
           </Text>
-          <Text
-            style={{
-              fontFamily: "Roboto-Bold",
-              fontWeight: "700",
-              fontSize: 14,
-              color: "#333",
-              marginTop: 4,
-            }}
-          >
-            $40/hr
-          </Text>
+          {isEditing ? (
+            <TextInput
+              value={rate.toString()}
+              onChangeText={setRate}
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+                borderBottomWidth: 1,
+                borderBottomColor: "#007AFF",
+                paddingBottom: 2,
+                width: 50,
+                textAlign: "center",
+              }}
+              keyboardType="numeric"
+            />
+          ) : (
+            <Text
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+              }}
+            >
+              {rate}
+            </Text>
+          )}
         </View>
 
         {/* Projects */}
@@ -168,17 +196,37 @@ export default function ProfileCard() {
           >
             Projects
           </Text>
-          <Text
-            style={{
-              fontFamily: "Roboto-Bold",
-              fontWeight: "700",
-              fontSize: 14,
-              color: "#333",
-              marginTop: 4,
-            }}
-          >
-            120
-          </Text>
+          {isEditing ? (
+            <TextInput
+              value={projects.toString()}
+              onChangeText={setProjects}
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+                borderBottomWidth: 1,
+                borderBottomColor: "#007AFF",
+                paddingBottom: 2,
+                width: 50,
+                textAlign: "center",
+              }}
+              keyboardType="numeric"
+            />
+          ) : (
+            <Text
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+              }}
+            >
+              {projects}
+            </Text>
+          )}
         </View>
 
         {/* Reviews */}
@@ -193,17 +241,37 @@ export default function ProfileCard() {
           >
             Reviews
           </Text>
-          <Text
-            style={{
-              fontFamily: "Roboto-Bold",
-              fontWeight: "700",
-              fontSize: 14,
-              color: "#333",
-              marginTop: 4,
-            }}
-          >
-            222
-          </Text>
+          {isEditing ? (
+            <TextInput
+              value={reviews.toString()}
+              onChangeText={setReviews}
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+                borderBottomWidth: 1,
+                borderBottomColor: "#007AFF",
+                paddingBottom: 2,
+                width: 50,
+                textAlign: "center",
+              }}
+              keyboardType="numeric"
+            />
+          ) : (
+            <Text
+              style={{
+                fontFamily: "Roboto-Bold",
+                fontWeight: "700",
+                fontSize: 14,
+                color: "#333",
+                marginTop: 4,
+              }}
+            >
+              {reviews}
+            </Text>
+          )}
         </View>
       </View>
     </View>

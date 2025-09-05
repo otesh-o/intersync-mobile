@@ -10,14 +10,12 @@ const apply = require("../../assets/images/apply.png");
 export default function Access() {
   return (
     <View className="flex-1 bg-black px-6 pt-20 items-center">
-      
       <Image
         source={logo}
         className="w-[221px] h-[221px]"
         resizeMode="contain"
       />
 
-      
       <Text
         style={{
           fontFamily: "Roboto",
@@ -31,7 +29,6 @@ export default function Access() {
         Get Access to Internships
       </Text>
 
-      
       <Text
         style={{
           fontFamily: "Roboto",
@@ -47,7 +44,6 @@ export default function Access() {
         with global companies
       </Text>
 
-      
       <View
         style={{
           marginTop: 40,
@@ -61,7 +57,6 @@ export default function Access() {
           justifyContent: "space-around",
         }}
       >
-        
         {[
           { icon: globe, text: "Global Internship Listings" },
           { icon: resume, text: "Smart Resume builder" },
@@ -86,7 +81,6 @@ export default function Access() {
         ))}
       </View>
 
-      
       <TouchableOpacity
         style={{
           marginTop: 32,
@@ -102,16 +96,8 @@ export default function Access() {
         }}
       >
         <Text style={{ color: "black", fontWeight: "bold", fontSize: 18 }}>
-          Subscribe now
+          Continue
         </Text>
-      </TouchableOpacity>
-
-      
-      <TouchableOpacity
-        style={{ marginTop: 16 }}
-        onPress={() => router.push("/Hpi1")}
-      >
-        <Text style={{ color: "white", fontSize: 16 }}>Skip</Text>
       </TouchableOpacity>
     </View>
   );

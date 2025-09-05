@@ -1,10 +1,18 @@
+// app/_layout.js
+
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
 
-// ✅ Direct requires (avoiding broken index.js)
+// 👇 Import all providers
+import { ProfileProvider } from "./context/ProfileContext";
+import { AuthProvider } from "./context/AuthContext";
+import { SavedJobsProvider } from "./context/SavedJobsContext";
+import { JobsProvider } from "./context/JobsContext"; // ✅ Add this
+
+// ✅ Font imports
 const ClaireNewsBold = require("../assets/fonts/ClaireNewsBold.otf");
 
 const Raleway_400Regular = require("../node_modules/@expo-google-fonts/raleway/400Regular/Raleway_400Regular.ttf");
@@ -32,7 +40,17 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <AuthProvider>
+        <ProfileProvider>
+          <SavedJobsProvider>
+            <JobsProvider>
+              {" "}
+              {/* ✅ Wrap here */}
+              <Stack screenOptions={{ headerShown: false }} />
+            </JobsProvider>
+          </SavedJobsProvider>
+        </ProfileProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }

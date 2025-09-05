@@ -1,123 +1,155 @@
-// ========================================================================
-// FILE: app/Homepage/saved.js
-// This page displays the saved/bookmarked jobs, refactored with NativeWind.
-// ========================================================================
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StatusBar, 
-  Image, 
-  ScrollView, 
+// app/screens/Saved.js
+
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StatusBar,
+  Image,
+  ScrollView,
   TextInput,
-  FlatList
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { router, useLocalSearchParams } from 'expo-router';
+  FlatList,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { router } from "expo-router";
+import { useSavedJobs } from "../context/SavedJobsContext"; // ✅ shared context
+import { useRouter } from "expo-router"; 
 
 const Saved = () => {
-  const params = useLocalSearchParams();
-  const [savedJobs, setSavedJobs] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { savedJobs, setSavedJobs } = useSavedJobs(); // ✅ use context
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredJobs, setFilteredJobs] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState(null);
 
-  // --- Logic for parsing and filtering jobs (No changes needed here) ---
-  useEffect(() => {
-    if (params.savedJobs) {
-      try {
-        const jobs = JSON.parse(params.savedJobs);
-        setSavedJobs(jobs);
-      } catch (error) {
-        console.error('Error parsing saved jobs:', error);
-      }
-    }
-  }, [params.savedJobs]);
+  const filterOptions = ["Full-Time", "Senior", "Remote"];
 
+  // --- Filter jobs based on search + filter chip ---
   useEffect(() => {
     let filtered = savedJobs;
+
     if (searchQuery.trim()) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter(job =>
-        job.title.toLowerCase().includes(lowercasedQuery) ||
-        job.company.toLowerCase().includes(lowercasedQuery) ||
-        job.location.toLowerCase().includes(lowercasedQuery)
+      const lower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (job) =>
+          job.title.toLowerCase().includes(lower) ||
+          job.company.toLowerCase().includes(lower) ||
+          job.location.toLowerCase().includes(lower)
       );
     }
-    if (activeFilter !== 'All') {
-      // Filtering logic remains the same
+
+    if (activeFilter) {
+      filtered = filtered.filter(
+        (job) =>
+          job.type === activeFilter ||
+          (job.title && job.title.includes(activeFilter)) ||
+          (job.tags && job.tags.includes(activeFilter))
+      );
     }
+
     setFilteredJobs(filtered);
   }, [searchQuery, activeFilter, savedJobs]);
 
+  // --- Format "time ago" ---
   const formatTimeAgo = (dateString) => {
-    // This helper function remains the same
     const now = new Date();
     const savedDate = new Date(dateString);
     const diffInMinutes = Math.floor((now - savedDate) / (1000 * 60));
-    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
+  // --- Remove job from saved list ---
   const handleRemoveJob = (jobId) => {
-    const updatedJobs = savedJobs.filter(job => job.id !== jobId);
-    setSavedJobs(updatedJobs);
+    setSavedJobs(savedJobs.filter((job) => job.id !== jobId));
   };
 
+
+const router = useRouter();
+
+
+  // --- Render job card ---
   const renderJobCard = ({ item }) => (
     <View className="bg-white rounded-2xl p-5 mb-4 shadow-md">
+      {/* Top row: Logo + info + remove button */}
       <View className="flex-row items-start mb-4">
-        <Image source={{ uri: item.image }} className="w-12 h-12 rounded-lg mr-4" />
+        <Image
+          source={{ uri: item.logo }} // ✅ corrected field
+          className="w-12 h-12 rounded-lg mr-4"
+        />
         <View className="flex-1">
-          <Text className="text-lg font-bold text-black mb-1">{item.title}</Text>
+          <Text className="text-lg font-bold text-black mb-1">
+            {item.title}
+          </Text>
           <Text className="text-sm text-gray-500 mb-0.5">{item.company}</Text>
           <Text className="text-sm text-gray-500">{item.location}</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           className="w-8 h-8 justify-center items-center"
           onPress={() => handleRemoveJob(item.id)}
         >
           <Icon name="close" size={20} color="#999" />
         </TouchableOpacity>
       </View>
-      
+
+      {/* Salary + saved time */}
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-base font-bold text-black">{item.salary}</Text>
-        <Text className="text-xs text-gray-400">{formatTimeAgo(item.savedAt)}</Text>
+        <Text className="text-base font-bold text-black">
+          {item.salary || "—"}
+        </Text>
+        <Text className="text-xs text-gray-400">
+          {formatTimeAgo(item.savedAt)}
+        </Text>
       </View>
 
+      {/* Tags */}
       <View className="flex-row mb-4">
         <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2">
-          <Text className="text-xs text-gray-500 font-medium">Full Time</Text>
+          <Text className="text-xs text-gray-500 font-medium">
+            {item.type || "Job"}
+          </Text>
         </View>
         <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2">
           <Text className="text-xs text-gray-500 font-medium">Remote</Text>
         </View>
       </View>
 
+      {/* Short description */}
       <Text className="text-sm text-gray-500 leading-5 mb-4" numberOfLines={2}>
-        Description: Project managers play the lead role in planning, executing, monitoring...
+        {item.description || "No description available."}
       </Text>
 
-      <TouchableOpacity className="bg-black rounded-lg py-3 items-center">
+      {/* Apply button */}
+      <TouchableOpacity
+        className="bg-black rounded-lg py-3 items-center"
+        onPress={() => router.push("./apply")}
+      >
         <Text className="text-white text-base font-semibold">Apply Now</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const filterOptions = ['All', 'Full-Time', 'Senior', 'Remote'];
-
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[50px] pb-2.5">
-        <TouchableOpacity className="w-10 h-10 justify-center items-center" onPress={() => router.back()}>
-          <Icon name="arrow-back" size={24} color="#000" />
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[10px] pb-2.5">
+        <TouchableOpacity
+          className="w-10 h-10 justify-center items-center"
+          onPress={() => router.back()}
+        >
+          <Image
+            source={require("../../assets/images/back.png")}
+            style={{
+              width: 24,
+              height: 24,
+              resizeMode: "contain",
+              tintColor: "#000",
+            }}
+          />
         </TouchableOpacity>
         <Text className="text-2xl font-bold tracking-wider">SAVED</Text>
         <TouchableOpacity className="w-10 h-10 justify-center items-center">
@@ -130,7 +162,7 @@ const Saved = () => {
         <Icon name="search" size={20} color="#888" className="mr-2.5" />
         <TextInput
           className="flex-1 h-14 text-base"
-          placeholder="UX Designer"
+          placeholder="Search jobs"
           placeholderTextColor="#888"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -138,38 +170,52 @@ const Saved = () => {
         />
       </View>
 
-      {/* Filter Chips */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        className="mt-4 mb-2.5"
-        contentContainerStyle={{ paddingHorizontal: 20 }}
-      >
-        {filterOptions.map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            className={`py-2 px-5 mr-2.5 flex-row items-center rounded-full border ${
-              activeFilter === filter ? 'bg-black border-black' : 'bg-white border-slate-200'
-            }`}
-            onPress={() => setActiveFilter(filter)}
-          >
-            <Text className={`text-sm font-medium ${activeFilter === filter ? 'text-white' : 'text-gray-500'}`}>
-              {filter}
-            </Text>
-            {filter !== 'All' && <Icon name="close" size={16} color={activeFilter === filter ? "#fff" : "#666"} style={{marginLeft: 4}}/>}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Filter Chips + Count */}
+      <View className="mt-6">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mb-1"
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+        >
+          {filterOptions.map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              onPress={() =>
+                setActiveFilter(activeFilter === filter ? null : filter)
+              }
+              className={`px-5 py-2.5 mr-3 rounded-full border justify-center ${
+                activeFilter === filter
+                  ? "bg-black border-black"
+                  : "bg-white border-slate-200"
+              }`}
+              style={{ minWidth: 100, height: 44, justifyContent: "center" }}
+            >
+              <Text
+                className={`text-sm font-medium ${
+                  activeFilter === filter ? "text-white" : "text-gray-600"
+                }`}
+                numberOfLines={1}
+              >
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      {/* Jobs Count */}
-      <View className="flex-row justify-between items-center px-5 py-2.5">
-        <Text className="text-base font-bold text-black">{filteredJobs.length} Jobs Available</Text>
-        <TouchableOpacity>
-          <Text className="text-sm text-blue-500 underline">view all</Text>
-        </TouchableOpacity>
+        {/* Jobs Count */}
+        <View className="flex-row justify-between items-center px-5">
+          <Text className="text-base font-bold text-black">
+            {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"}{" "}
+            Available
+          </Text>
+          <TouchableOpacity>
+            <Text className="text-sm text-blue-500 underline">view all</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Jobs List */}
+      {/* Jobs List / Empty State */}
       {filteredJobs.length > 0 ? (
         <FlatList
           data={filteredJobs}
@@ -181,12 +227,13 @@ const Saved = () => {
       ) : (
         <View className="flex-1 justify-center items-center px-10">
           <Icon name="bookmark-outline" size={80} color="#ccc" />
-          <Text className="text-xl font-bold text-gray-500 mt-5 text-center">No saved jobs found</Text>
+          <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
+            No saved jobs found
+          </Text>
           <Text className="text-base text-gray-400 mt-2.5 text-center leading-6">
-            {savedJobs.length === 0 
-              ? "Start swiping right on jobs you like!" 
-              : "Try adjusting your search or filters"
-            }
+            {savedJobs.length === 0
+              ? "Start swiping right on jobs you like!"
+              : "Try adjusting your search or filters"}
           </Text>
         </View>
       )}

@@ -2,8 +2,9 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-// FIREBASE AUTH: Import for Firebase authentication
-import { register } from "../services/auth"; // backend
+// FIREBASE AUTH: Import Firebase auth + signup function
+import { auth } from "../services/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function EmailScreen() {
   const [email, setEmail] = useState("");
@@ -23,22 +24,11 @@ export default function EmailScreen() {
   const formIsValid = emailIsValid && passwordsMatch && isPasswordValid;
 
   const handleSubmit = async () => {
-    if (!isValidEmail(email)) {
-      alert("Please enter a valid email.");
-      return;
-    }
-    if (password.length < 6) {
-      alert("Password must be at least 6 characters.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert("Passwords don't match.");
-      return;
-    }
+    if (!formIsValid) return;
 
     try {
-      // backend: Firebase registration
-      await register(email, password);
+      // Firebase signup
+      await createUserWithEmailAndPassword(auth, email, password);
 
       // Navigate after successful signup
       router.push({
@@ -46,13 +36,16 @@ export default function EmailScreen() {
         params: { email },
       });
     } catch (error) {
-      // backend: Firebase-specific error handling
-      if (error.message.includes("email-already-in-use")) {
-        alert("This email is already registered. Try logging in.");
-      } else if (error.message.includes("weak-password")) {
+      // Handle Firebase errors
+      if (error.code === "auth/email-already-in-use") {
+        alert("This email is already registered.");
+      } else if (error.code === "auth/weak-password") {
         alert("Password is too weak. Use 6+ characters.");
+      } else if (error.code === "auth/invalid-email") {
+        alert("Invalid email format.");
       } else {
         alert("Something went wrong. Please try again.");
+        console.error(error);
       }
     }
   };

@@ -25,7 +25,7 @@ export default function VerifyScreen() {
   const handleVerify = () => {
     // FIREBASE AUTH: Firebase email verification would be here
     if (!isValid) return;
-    router.push("/create_account/first-name");
+    router.push("/create_account/interest");
   };
 
   const onChangeCode = (text) => {

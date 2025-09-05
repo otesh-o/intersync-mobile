@@ -115,7 +115,12 @@ export default function PaymentSuccess() {
         </Text>
 
         <TouchableOpacity
-          onPress={() => router.push("/Homepage/homepage")}
+          onPress={() => {
+            router.push({
+              pathname: "/Homepage/homepage", // ✅ Correct path
+              params: { startTutorial: "true" }, // ✅ Triggers tutorial
+            });
+          }}
           style={{
             backgroundColor: "#000",
             borderRadius: 12,
