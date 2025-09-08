@@ -1,16 +1,19 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import backIcon from "../../assets/images/back.png"; // Adjust path if needed
 
 const CODE_LENGTH = 6;
 
@@ -23,7 +26,6 @@ export default function VerifyScreen() {
   const isValid = useMemo(() => code.length === CODE_LENGTH, [code]);
 
   const handleVerify = () => {
-    // FIREBASE AUTH: Firebase email verification would be here
     if (!isValid) return;
     router.push("/create_account/interest");
   };
@@ -60,9 +62,14 @@ export default function VerifyScreen() {
               {/* Header */}
               <View className="flex-row items-center justify-between mt-2">
                 <TouchableOpacity onPress={() => router.back()}>
-                  <Text className="text-2xl text-gray-700">{'\u2039'}</Text>
+                  <Image source={backIcon} className="w-6 h-6" />
                 </TouchableOpacity>
-                <Text className="font-clairesBold text-2xl">INTERN SYNC</Text>
+                <Text
+                  className="text-[27.11px] text-black uppercase text-center mb-12"
+                  style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
+                >
+                  INTERNSYNC
+                </Text>
                 <View className="w-6" />
               </View>
 
@@ -79,13 +86,18 @@ export default function VerifyScreen() {
                 autoFocus
                 keyboardType="number-pad"
                 maxLength={CODE_LENGTH}
+                returnKeyType="done"
+                onSubmitEditing={handleVerify} // ✅ trigger verify on "done"
+                blurOnSubmit={false}
                 className="opacity-0 h-0 w-0"
               />
 
               {/* CENTERED OTP BOXES */}
               <TouchableOpacity
                 activeOpacity={1}
-                onPress={() => inputRef.current?.focus()}
+                onPress={() => {
+                  inputRef.current?.focus(); // ✅ ensure keyboard opens
+                }}
                 className="flex-row mt-8 justify-center"
               >
                 {boxes}
@@ -98,16 +110,27 @@ export default function VerifyScreen() {
                   continue.
                 </Text>
 
+                {/* Resend Code Link */}
                 <View className="mt-4">
-                  <Text className="text-blue-600">
-                    Didn’t receive a code? <Text className="underline">[Resend Code]</Text>
+                  <Text className="text-gray-500">
+                    Didn’t receive a code?{" "}
+                    <Text
+                      className="text-blue-600 underline"
+                      onPress={() => console.log("Resend code pressed")}
+                    >
+                      [Resend Code]
+                    </Text>
                   </Text>
                 </View>
 
+                {/* Edit Email Link */}
                 <View className="mt-2">
-                  <Text className="text-blue-600">
+                  <Text className="text-gray-500">
                     Change email?{" "}
-                    <Text className="underline" onPress={() => router.back()}>
+                    <Text
+                      className="text-blue-600 underline"
+                      onPress={() => router.back()}
+                    >
                       [Edit Email]
                     </Text>
                   </Text>

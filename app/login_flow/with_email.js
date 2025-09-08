@@ -1,3 +1,4 @@
+// app/login_flow/with_email/LoginScreen.js
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View, Image } from "react-native";
@@ -5,20 +6,21 @@ import { Text, TextInput, TouchableOpacity, View, Image } from "react-native";
 export default function LoginScreen() {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [agreed, setAgreed] = useState(false);
 
-  // still keep validation for UX, but backend logic is mocked
-  const isValid =
-    emailOrUsername.trim() !== "" && password.trim() !== "" && agreed;
+  // ✅ Only require email and password — no agreement needed
+  const isValid = emailOrUsername.trim() !== "" && password.trim() !== "";
 
   const handleLogin = () => {
-    // DEMO ONLY: hardcoded route, no authentication yet
+    if (!isValid) return;
+
+    // 🔐 In real app: call Firebase/auth API
+    // For now: mock success
     router.push("/Homepage/homepage");
   };
 
   return (
     <View className="flex-1 bg-white px-6 pt-24">
-      {/* Header */}
+      {/* Header with Back Button */}
       <View
         style={{
           flexDirection: "row",
@@ -48,25 +50,28 @@ export default function LoginScreen() {
 
       {/* Welcome Back */}
       <Text
-        className="mb-12 text-center"
         style={{
           fontFamily: "Roboto",
           fontWeight: "700",
           fontSize: 24,
-          lineHeight: 24,
+          lineHeight: 35,
+          textAlign: "center",
+          marginBottom: 24,
         }}
       >
         Welcome Back!
       </Text>
 
-      {/* Inputs */}
-      <View style={{ gap: 16, alignItems: "center", marginBottom: 24 }}>
+      {/* Input Fields */}
+      <View style={{ gap: 16, marginBottom: 24 }}>
+        {/* Email or Username */}
         <TextInput
           placeholder="Email or username"
           placeholderTextColor="#888"
           value={emailOrUsername}
           onChangeText={setEmailOrUsername}
           autoCapitalize="none"
+          keyboardType="email-address"
           style={{
             fontFamily: "Roboto",
             width: "100%",
@@ -80,6 +85,7 @@ export default function LoginScreen() {
           }}
         />
 
+        {/* Password */}
         <TextInput
           placeholder="Password"
           placeholderTextColor="#888"
@@ -99,54 +105,15 @@ export default function LoginScreen() {
           }}
         />
 
+        {/* Forgot Password Link */}
         <TouchableOpacity
           onPress={() => router.push("/login_flow/forgot_password/email")}
-          style={{ alignSelf: "flex-start", marginTop: 8, marginBottom: 16 }}
+          style={{ alignSelf: "flex-start", marginTop: 8 }}
         >
           <Text style={{ color: "#1E40AF", fontWeight: "bold", fontSize: 14 }}>
             Forgot password?
           </Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Terms and Privacy */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: 32,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => setAgreed(!agreed)}
-          style={{
-            height: 20,
-            width: 20,
-            borderRadius: 4,
-            borderWidth: 1,
-            borderColor: "#aaa",
-            justifyContent: "center",
-            alignItems: "center",
-            marginRight: 10,
-            backgroundColor: agreed ? "#000" : "transparent",
-          }}
-        >
-          {agreed && <Text style={{ color: "white", fontSize: 14 }}>✓</Text>}
-        </TouchableOpacity>
-
-        <Text
-          style={{
-            fontFamily: "Roboto",
-            fontSize: 14,
-            fontWeight: "bold",
-            color: "#444",
-            flex: 1,
-          }}
-        >
-          I agree to the{" "}
-          <Text style={{ color: "blue" }}>Terms and Conditions</Text> and{" "}
-          <Text style={{ color: "blue" }}>Privacy Policy</Text>
-        </Text>
       </View>
 
       {/* Login Button */}
@@ -167,14 +134,13 @@ export default function LoginScreen() {
             color: "white",
             fontSize: 18,
             fontWeight: "bold",
-            opacity: isValid ? 1 : 0.6,
           }}
         >
           Log in
         </Text>
       </TouchableOpacity>
 
-      {/* Trouble logging in */}
+      {/* Trouble Logging In */}
       <Text
         style={{
           marginTop: 24,

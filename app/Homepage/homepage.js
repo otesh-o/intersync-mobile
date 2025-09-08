@@ -23,7 +23,7 @@ import WelcomeOverlay from "../components/WelcomeOverlay";
 import SideMenu from "../components/SideMenu";
 import JobCard from "../components/JobCard";
 import TutorialOverlay from "../components/TutorialOverlay";
-import ProfileSetupModal from "../components/ProfileSetupModal"; // ✅ new import
+import ProfileSetupModal from "../components/ProfileSetupModal";
 
 import { useProfile } from "../context/ProfileContext";
 import { useAuth } from "../context/AuthContext";
@@ -36,18 +36,22 @@ const Homepage = () => {
   const [isWelcomeActive, setWelcomeActive] = useState(false);
   const [isTutorialActive, setTutorialActive] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
-  const [isProfileModalVisible, setProfileModalVisible] = useState(false); // ✅ new state
+  const [isProfileModalVisible, setProfileModalVisible] = useState(false);
 
-  const { jobs } = useJobs();
+  const { jobs, setJobs } = useJobs(); // Full job list
   const { savedJobs, setSavedJobs } = useSavedJobs();
 
-  const [currentMode, setCurrentMode] = useState("internships");
+  const [currentMode, setCurrentMode] = useState("internships"); // Filter mode
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-300)).current;
 
   const { name: profileName } = useProfile();
   const { token } = useAuth();
 
+  // Filter jobs based on current mode (internships, volunteer, etc.)
+  const filteredJobs = jobs.filter((job) => job.category === currentMode);
+
+  // Handle tutorial start from deep link
   useEffect(() => {
     if (params.startTutorial === "true") {
       setWelcomeActive(false);
@@ -57,6 +61,7 @@ const Homepage = () => {
     }
   }, [params]);
 
+  // Animate sidebar in/out
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: isMenuVisible ? 0 : -300,
@@ -73,16 +78,17 @@ const Homepage = () => {
 
   const handleWelcomeSkip = () => setWelcomeActive(false);
 
-  const handleTutorialNext = async () => {
+  const handleTutorialNext = () => {
     if (tutorialStep < TUTORIAL_STEPS.length - 1) {
       setTutorialStep(tutorialStep + 1);
     } else {
       setTutorialActive(false);
-      setProfileModalVisible(true); // ✅ show CTA modal after tutorial
+      setProfileModalVisible(true);
     }
   };
 
-  const handleSwipe = async (jobId, direction) => {
+  // ✅ Handle swipe: save (if liked) and remove from list
+  const handleSwipe = (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
     if (direction === "right" && jobToSave) {
@@ -93,6 +99,9 @@ const Homepage = () => {
         ]);
       }
     }
+
+    // Remove from current jobs list → triggers re-render
+    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
   };
 
   const handleBookmarkPress = () => {
@@ -102,7 +111,24 @@ const Homepage = () => {
   const handleMenuToggle = () => setMenuVisible(!isMenuVisible);
   const handleMenuClose = () => setMenuVisible(false);
 
-  const handleModeChange = (mode) => setCurrentMode(mode);
+  const handleModeChange = (mode) => {
+    setCurrentMode(mode);
+
+    // 🔽 Optional: Fetch from backend when mode changes
+    // ✅ Commented for now — ready when you have API
+    /*
+    const fetchJobs = async () => {
+      try {
+        const res = await fetch(`https://yourapi.com/jobs?category=${mode}&token=${token}`);
+        const data = await res.json();
+        setJobs(data.jobs);
+      } catch (err) {
+        console.error("Failed to load jobs:", err);
+      }
+    };
+    fetchJobs();
+    */
+  };
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -172,25 +198,26 @@ const Homepage = () => {
 
         {/* Job Stack */}
         <View className="flex-1 justify-center items-center mt-5 mb-5">
-          {jobs.length === 0 ? (
+          {filteredJobs.length === 0 ? (
             <View className="flex-1 justify-center items-center pb-12">
-              <Icon name="briefcase-outline" size={80} color="#ccc" />
-              <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
-                No more jobs to show!
+              <Icon name="alert-circle-outline" size={60} color="#ccc" />
+              <Text className="text-xl font-bold text-gray-500 mt-5 text-center capitalize">
+                No {currentMode} found
               </Text>
               <Text className="text-base text-gray-400 mt-2.5 text-center">
-                Check back later
+                Try another category or check back later
               </Text>
             </View>
           ) : (
-            jobs.map((job, index) => {
-              const cardStackIndex = jobs.length - 1 - index;
+            filteredJobs.map((job, index) => {
+              const isTop = index === filteredJobs.length - 1;
+              const cardStackIndex = filteredJobs.length - 1 - index;
               return (
                 <JobCard
                   key={job.id}
                   job={job}
                   onSwipe={handleSwipe}
-                  isTop={index === jobs.length - 1}
+                  isTop={isTop}
                   style={{
                     position: "absolute",
                     zIndex: index + 1,
@@ -232,6 +259,7 @@ const Homepage = () => {
         onClose={handleMenuClose}
         slideAnim={slideAnim}
         onModeChange={handleModeChange}
+        currentMode={currentMode} // ✅ Pass current mode for UI feedback
       />
 
       {isWelcomeActive && (

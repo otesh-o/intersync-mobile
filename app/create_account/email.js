@@ -1,7 +1,17 @@
-// app/create_account/email.tsx
+// app/create_account/email.js
 import { router } from "expo-router";
-import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 // FIREBASE AUTH: Import Firebase auth + signup function
 import { auth } from "../services/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -27,16 +37,13 @@ export default function EmailScreen() {
     if (!formIsValid) return;
 
     try {
-      // Firebase signup
       await createUserWithEmailAndPassword(auth, email, password);
 
-      // Navigate after successful signup
       router.push({
         pathname: "/create_account/verify",
         params: { email },
       });
     } catch (error) {
-      // Handle Firebase errors
       if (error.code === "auth/email-already-in-use") {
         alert("This email is already registered.");
       } else if (error.code === "auth/weak-password") {
@@ -51,167 +58,190 @@ export default function EmailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white px-6 pt-16">
-      {/* Logo */}
-      <Text
-        className="text-[27.11px] text-black uppercase text-center mb-12"
-        style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-      >
-        INTERNSYNC
-      </Text>
-
-      <View style={{ marginTop: 60 }}>
-        <Text
-          className="text-black mb-4"
-          style={{
-            fontFamily: "Roboto",
-            fontWeight: "700",
-            fontSize: 24,
-            lineHeight: 24,
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "white" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 40,
           }}
+          keyboardShouldPersistTaps="handled"
         >
-          Let’s Get You Started
-        </Text>
-
-        {/* Email Input */}
-        <Text className="text-gray-700 mb-2" style={{ fontFamily: "Roboto" }}>
-          Email
-        </Text>
-        <TextInput
-          placeholder="Enter your email"
-          placeholderTextColor="#888"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          style={{
-            fontFamily: "Roboto",
-            width: 336,
-            height: 53,
-            borderRadius: 26.5,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            paddingHorizontal: 16,
-            fontSize: 16,
-            color: "#333",
-            marginBottom: 8,
-          }}
-          autoCapitalize="none"
-        />
-
-        {/* Password Input */}
-        <Text
-          className="text-gray-700 mb-2 mt-6"
-          style={{ fontFamily: "Roboto" }}
-        >
-          Password
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            width: 336,
-            height: 53,
-            borderRadius: 26.5,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            paddingHorizontal: 16,
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
-          <TextInput
-            placeholder="Create a password"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={{
-              flex: 1,
-              fontFamily: "Roboto",
-              fontSize: 16,
-              color: "#333",
-            }}
-            autoCapitalize="none"
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <View className="flex-1 bg-white">
+            {/* Logo */}
             <Text
-              style={{
-                fontFamily: "Roboto",
-                fontSize: 14,
-                color: "#000",
-              }}
+              className="text-[27.11px] text-black uppercase text-center mb-12"
+              style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
             >
-              {showPassword ? "Hide" : "Show"}
+              INTERNSYNC
             </Text>
-          </TouchableOpacity>
-        </View>
 
-        <Text
-          className="text-gray-600 mb-6"
-          style={{ fontFamily: "Roboto", fontSize: 12 }}
-        >
-          Use 6 or more characters.
-        </Text>
+            <View style={{ marginTop: 60 }}>
+              <Text
+                className="text-black mb-4"
+                style={{
+                  fontFamily: "Roboto",
+                  fontWeight: "700",
+                  fontSize: 24,
+                  lineHeight: 24,
+                }}
+              >
+                Let’s Get You Started
+              </Text>
 
-        {/* Confirm Password */}
-        <Text className="text-gray-700 mb-2" style={{ fontFamily: "Roboto" }}>
-          Confirm Password
-        </Text>
-        <TextInput
-          placeholder="Re-enter your password"
-          placeholderTextColor="#888"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry={!showPassword}
-          style={{
-            fontFamily: "Roboto",
-            width: 336,
-            height: 53,
-            borderRadius: 26.5,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            paddingHorizontal: 16,
-            fontSize: 16,
-            color: "#333",
-            marginBottom: 8,
-          }}
-          autoCapitalize="none"
-        />
+              {/* Email Input */}
+              <Text
+                className="text-gray-700 mb-2"
+                style={{ fontFamily: "Roboto" }}
+              >
+                Email
+              </Text>
+              <TextInput
+                placeholder="Enter your email"
+                placeholderTextColor="#888"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                style={{
+                  fontFamily: "Roboto",
+                  width: 336,
+                  height: 53,
+                  borderRadius: 26.5,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: "#333",
+                  marginBottom: 8,
+                }}
+                autoCapitalize="none"
+              />
 
-        {/* Error Message */}
-        {!passwordsMatch && confirmPassword ? (
-          <Text
-            className="text-red-500 mb-6"
-            style={{ fontFamily: "Roboto", fontSize: 14 }}
-          >
-            Passwords don’t match
-          </Text>
-        ) : null}
+              {/* Password Input */}
+              <Text
+                className="text-gray-700 mb-2 mt-6"
+                style={{ fontFamily: "Roboto" }}
+              >
+                Password
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: 336,
+                  height: 53,
+                  borderRadius: 26.5,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  paddingHorizontal: 16,
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <TextInput
+                  placeholder="Create a password"
+                  placeholderTextColor="#888"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  style={{
+                    flex: 1,
+                    fontFamily: "Roboto",
+                    fontSize: 16,
+                    color: "#333",
+                  }}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "Roboto",
+                      fontSize: 14,
+                      color: "#000",
+                    }}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-        {/* Continue Button */}
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={!formIsValid}
-          style={{
-            backgroundColor: formIsValid ? "#000" : "#ccc",
-            width: 336,
-            height: 56,
-            borderRadius: 9999,
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 20,
-          }}
-        >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 18,
-              fontWeight: "bold",
-            }}
-          >
-            Continue
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+              <Text
+                className="text-gray-600 mb-6"
+                style={{ fontFamily: "Roboto", fontSize: 12 }}
+              >
+                Use 6 or more characters.
+              </Text>
+
+              {/* Confirm Password */}
+              <Text
+                className="text-gray-700 mb-2"
+                style={{ fontFamily: "Roboto" }}
+              >
+                Confirm Password
+              </Text>
+              <TextInput
+                placeholder="Re-enter your password"
+                placeholderTextColor="#888"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPassword}
+                style={{
+                  fontFamily: "Roboto",
+                  width: 336,
+                  height: 53,
+                  borderRadius: 26.5,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: "#333",
+                  marginBottom: 8,
+                }}
+                autoCapitalize="none"
+              />
+
+              {!passwordsMatch && confirmPassword ? (
+                <Text
+                  className="text-red-500 mb-6"
+                  style={{ fontFamily: "Roboto", fontSize: 14 }}
+                >
+                  Passwords don’t match
+                </Text>
+              ) : null}
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={!formIsValid}
+                style={{
+                  backgroundColor: formIsValid ? "#000" : "#ccc",
+                  width: 336,
+                  height: 56,
+                  borderRadius: 9999,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 18,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Continue
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

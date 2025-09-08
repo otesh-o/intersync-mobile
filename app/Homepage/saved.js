@@ -1,6 +1,5 @@
 // app/screens/Saved.js
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,24 +9,31 @@ import {
   ScrollView,
   TextInput,
   FlatList,
+  Modal,
+  Pressable,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { router } from "expo-router";
-import { useSavedJobs } from "../context/SavedJobsContext"; // ✅ shared context
-import { useRouter } from "expo-router"; 
+import { useRouter } from "expo-router";
+import { useSavedJobs } from "../context/SavedJobsContext";
 
 const Saved = () => {
-  const { savedJobs, setSavedJobs } = useSavedJobs(); // ✅ use context
+  const { savedJobs, setSavedJobs } = useSavedJobs();
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredJobs, setFilteredJobs] = useState([]);
-  const [activeFilter, setActiveFilter] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    fullTime: false,
+    senior: false,
+    remote: false,
+  });
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
 
-  const filterOptions = ["Full-Time", "Senior", "Remote"];
-
-  // --- Filter jobs based on search + filter chip ---
+  // --- Filter jobs based on search and selected filters ---
   useEffect(() => {
-    let filtered = savedJobs;
+    let filtered = [...savedJobs];
 
+    // Text search
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -38,17 +44,19 @@ const Saved = () => {
       );
     }
 
-    if (activeFilter) {
-      filtered = filtered.filter(
-        (job) =>
-          job.type === activeFilter ||
-          (job.title && job.title.includes(activeFilter)) ||
-          (job.tags && job.tags.includes(activeFilter))
-      );
+    // Apply filters
+    if (activeFilters.fullTime) {
+      filtered = filtered.filter((job) => job.type === "Full Time");
+    }
+    if (activeFilters.senior) {
+      filtered = filtered.filter((job) => job.level === "Senior");
+    }
+    if (activeFilters.remote) {
+      filtered = filtered.filter((job) => job.workMode === "Remote");
     }
 
     setFilteredJobs(filtered);
-  }, [searchQuery, activeFilter, savedJobs]);
+  }, [searchQuery, activeFilters, savedJobs]);
 
   // --- Format "time ago" ---
   const formatTimeAgo = (dateString) => {
@@ -66,21 +74,40 @@ const Saved = () => {
     setSavedJobs(savedJobs.filter((job) => job.id !== jobId));
   };
 
+  // --- Toggle filter ---
+  const toggleFilter = (filterKey) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [filterKey]: !prev[filterKey],
+    }));
+  };
 
-const router = useRouter();
+  // --- Reset all filters ---
+  const resetFilters = () => {
+    setActiveFilters({ fullTime: false, senior: false, remote: false });
+  };
 
+  // --- Apply filters and close modal ---
+  const applyFilters = () => {
+    setFilterModalVisible(false);
+  };
+
+  // --- Clear search ---
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
 
   // --- Render job card ---
   const renderJobCard = ({ item }) => (
-    <View className="bg-white rounded-2xl p-5 mb-4 shadow-md">
+    <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
       {/* Top row: Logo + info + remove button */}
       <View className="flex-row items-start mb-4">
         <Image
-          source={{ uri: item.logo }} // ✅ corrected field
+          source={{ uri: item.image || "https://picsum.photos/200/300" }}
           className="w-12 h-12 rounded-lg mr-4"
         />
         <View className="flex-1">
-          <Text className="text-lg font-bold text-black mb-1">
+          <Text className="text-lg font-bold text-black mb-1" numberOfLines={1}>
             {item.title}
           </Text>
           <Text className="text-sm text-gray-500 mb-0.5">{item.company}</Text>
@@ -105,23 +132,36 @@ const router = useRouter();
       </View>
 
       {/* Tags */}
-      <View className="flex-row mb-4">
-        <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2">
-          <Text className="text-xs text-gray-500 font-medium">
-            {item.type || "Job"}
-          </Text>
-        </View>
-        <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2">
-          <Text className="text-xs text-gray-500 font-medium">Remote</Text>
-        </View>
+      <View className="flex-row flex-wrap mb-4">
+        {item.type && (
+          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
+            <Text className="text-xs text-gray-600 font-medium">
+              {item.type}
+            </Text>
+          </View>
+        )}
+        {item.level && (
+          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
+            <Text className="text-xs text-gray-600 font-medium">
+              {item.level}
+            </Text>
+          </View>
+        )}
+        {item.workMode && (
+          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
+            <Text className="text-xs text-gray-600 font-medium">
+              {item.workMode}
+            </Text>
+          </View>
+        )}
       </View>
 
-      {/* Short description */}
+      {/* Description */}
       <Text className="text-sm text-gray-500 leading-5 mb-4" numberOfLines={2}>
         {item.description || "No description available."}
       </Text>
 
-      {/* Apply button */}
+      {/* Apply Button */}
       <TouchableOpacity
         className="bg-black rounded-lg py-3 items-center"
         onPress={() => router.push("./apply")}
@@ -152,14 +192,17 @@ const router = useRouter();
           />
         </TouchableOpacity>
         <Text className="text-2xl font-bold tracking-wider">SAVED</Text>
-        <TouchableOpacity className="w-10 h-10 justify-center items-center">
-          <Icon name="options-outline" size={24} color="#000" />
-        </TouchableOpacity>
+        <View className="w-10" /> {/* Spacer */}
       </View>
 
-      {/* Search Bar */}
-      <View className="flex-row items-center bg-white rounded-2xl mx-5 mt-2.5 px-4 shadow-md">
-        <Icon name="search" size={20} color="#888" className="mr-2.5" />
+      {/* Search Bar with Icons */}
+      <View className="flex-row items-center bg-white rounded-2xl mx-5 mt-2.5 px-4 shadow-sm">
+        {/* 🔍 Search Icon (functional) */}
+        <TouchableOpacity className="p-2">
+          <Icon name="search" size={20} color="#888" />
+        </TouchableOpacity>
+
+        {/* Search Input */}
         <TextInput
           className="flex-1 h-14 text-base"
           placeholder="Search jobs"
@@ -168,75 +211,172 @@ const router = useRouter();
           onChangeText={setSearchQuery}
           returnKeyType="search"
         />
-      </View>
 
-      {/* Filter Chips + Count */}
-      <View className="mt-6">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-1"
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-        >
-          {filterOptions.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              onPress={() =>
-                setActiveFilter(activeFilter === filter ? null : filter)
-              }
-              className={`px-5 py-2.5 mr-3 rounded-full border justify-center ${
-                activeFilter === filter
-                  ? "bg-black border-black"
-                  : "bg-white border-slate-200"
-              }`}
-              style={{ minWidth: 100, height: 44, justifyContent: "center" }}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  activeFilter === filter ? "text-white" : "text-gray-600"
-                }`}
-                numberOfLines={1}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Jobs Count */}
-        <View className="flex-row justify-between items-center px-5">
-          <Text className="text-base font-bold text-black">
-            {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"}{" "}
-            Available
-          </Text>
-          <TouchableOpacity>
-            <Text className="text-sm text-blue-500 underline">view all</Text>
+        {/* ❌ Clear or 🔲 Filter Icon */}
+        {searchQuery ? (
+          <TouchableOpacity className="p-2" onPress={clearSearch}>
+            <Icon name="close" size={20} color="#888" />
           </TouchableOpacity>
-        </View>
+        ) : (
+          <TouchableOpacity
+            className="p-2"
+            onPress={() => setFilterModalVisible(true)}
+          >
+            <Icon name="options-outline" size={20} color="#888" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Jobs List / Empty State */}
+      {/* Jobs Count */}
+      <View className="px-5 mt-6 flex-row justify-between items-center">
+        <Text className="text-base font-bold text-black">
+          {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"}{" "}
+          Saved
+        </Text>
+        {Object.values(activeFilters).some(Boolean) && (
+          <TouchableOpacity onPress={resetFilters}>
+            <Text className="text-sm text-blue-500 underline">
+              Clear Filters
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Jobs List or Empty State */}
       {filteredJobs.length > 0 ? (
         <FlatList
           data={filteredJobs}
           renderItem={renderJobCard}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 5 }}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: 20,
+          }}
         />
       ) : (
-        <View className="flex-1 justify-center items-center px-10">
+        <View className="flex-1 justify-center items-center px-10 mt-10">
           <Icon name="bookmark-outline" size={80} color="#ccc" />
           <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
-            No saved jobs found
+            No Saved Jobs Found
           </Text>
           <Text className="text-base text-gray-400 mt-2.5 text-center leading-6">
             {savedJobs.length === 0
-              ? "Start swiping right on jobs you like!"
+              ? "Start liking jobs to save them!"
               : "Try adjusting your search or filters"}
           </Text>
         </View>
       )}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={isFilterModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50 justify-center items-center p-5"
+          onPress={() => setFilterModalVisible(false)}
+        >
+          <Pressable
+            className="bg-white rounded-2xl w-full max-w-sm p-6"
+            onPress={() => {}}
+          >
+            <Text className="text-xl font-bold text-black mb-4">Filters</Text>
+
+            {/* Filter Options */}
+            <View className="space-y-4">
+              <TouchableOpacity
+                className={`flex-row items-center p-3 rounded-lg border ${
+                  activeFilters.fullTime
+                    ? "border-black bg-black/10"
+                    : "border-gray-200"
+                }`}
+                onPress={() => toggleFilter("fullTime")}
+              >
+                <View
+                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
+                    activeFilters.fullTime
+                      ? "border-black bg-black"
+                      : "border-gray-400"
+                  }`}
+                >
+                  {activeFilters.fullTime && (
+                    <Icon name="checkmark" size={12} color="#fff" />
+                  )}
+                </View>
+                <Text className="text-base text-gray-700">Full Time</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-row items-center p-3 rounded-lg border ${
+                  activeFilters.senior
+                    ? "border-black bg-black/10"
+                    : "border-gray-200"
+                }`}
+                onPress={() => toggleFilter("senior")}
+              >
+                <View
+                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
+                    activeFilters.senior
+                      ? "border-black bg-black"
+                      : "border-gray-400"
+                  }`}
+                >
+                  {activeFilters.senior && (
+                    <Icon name="checkmark" size={12} color="#fff" />
+                  )}
+                </View>
+                <Text className="text-base text-gray-700">Senior</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-row items-center p-3 rounded-lg border ${
+                  activeFilters.remote
+                    ? "border-black bg-black/10"
+                    : "border-gray-200"
+                }`}
+                onPress={() => toggleFilter("remote")}
+              >
+                <View
+                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
+                    activeFilters.remote
+                      ? "border-black bg-black"
+                      : "border-gray-400"
+                  }`}
+                >
+                  {activeFilters.remote && (
+                    <Icon name="checkmark" size={12} color="#fff" />
+                  )}
+                </View>
+                <Text className="text-base text-gray-700">Remote</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Buttons */}
+            <View className="flex-row mt-6 space-x-3">
+              <TouchableOpacity
+                className="flex-1 py-3 border border-gray-300 rounded-lg"
+                onPress={resetFilters}
+              >
+                <Text className="text-center text-gray-600 font-medium">
+                  Reset
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 py-3 bg-black rounded-lg"
+                onPress={applyFilters}
+              >
+                <Text className="text-center text-white font-medium">
+                  Apply
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
