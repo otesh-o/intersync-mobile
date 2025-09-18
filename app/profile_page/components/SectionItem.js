@@ -14,7 +14,8 @@ const ICON_MAP = {
 };
 
 export default function SectionItem({ label, content, isExpanded, onToggle }) {
-  const iconSource = ICON_MAP[label] || require("../../../assets/images/add.png");
+  const iconSource =
+    ICON_MAP[label] || require("../../../assets/images/add.png");
 
   const openEditPage = () => {
     const routeMap = {
@@ -29,7 +30,9 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
 
     const route = routeMap[label];
     if (route) {
-      router.push(`/profile_page/${route}?section=${encodeURIComponent(label)}`);
+      router.push(
+        `/profile_page/${route}?section=${encodeURIComponent(label)}`
+      );
     }
   };
 
@@ -39,8 +42,14 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
       <View className="flex-row justify-between items-center px-6 py-5 border-b border-gray-100">
         {/* Left Icon + Label */}
         <View className="flex-row items-center">
-          <Image source={iconSource} className="w-7 h-7 mr-3" resizeMode="contain" />
-          <Text className="font-semibold text-base text-gray-900 font-sans">{label}</Text>
+          <Image
+            source={iconSource}
+            className="w-7 h-7 mr-3"
+            resizeMode="contain"
+          />
+          <Text className="font-semibold text-base text-gray-900 font-sans">
+            {label}
+          </Text>
         </View>
 
         {/* Expand/Collapse Toggle */}
@@ -68,7 +77,9 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
           </Pressable>
 
           {/* Work Experience OR Education OR Appreciation */}
-          {label === "Work Experience" || label === "Education" || label === "Appreciation" ? (
+          {label === "Work Experience" ||
+          label === "Education" ||
+          label === "Appreciation" ? (
             <View className="mt-1">
               {Array.isArray(content) && content.length > 0 ? (
                 content.map((item, index) => (
@@ -128,8 +139,13 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
             <View className="flex-row flex-wrap gap-2 mt-1">
               {Array.isArray(content) && content.length > 0 ? (
                 content.map((item) => (
-                  <View key={item} className="bg-gray-200 px-3 py-1.5 rounded-full">
-                    <Text className="text-sm text-gray-800 font-sans">{item}</Text>
+                  <View
+                    key={item}
+                    className="bg-gray-200 px-3 py-1.5 rounded-full"
+                  >
+                    <Text className="text-sm text-gray-800 font-sans">
+                      {item}
+                    </Text>
                   </View>
                 ))
               ) : (
@@ -147,7 +163,9 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
                 <Pressable
                   onPress={() => {
                     Linking.openURL(content.uri).catch(() =>
-                      alert("Cannot open file. It may have been moved or deleted.")
+                      alert(
+                        "Cannot open file. It may have been moved or deleted."
+                      )
                     );
                   }}
                 >
@@ -164,14 +182,20 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
                 </Text>
               )}
             </View>
-          ) : (
-            /* Fallback: About Me */
-            <Text className="text-sm text-gray-600 font-sans mt-1">
-              {typeof content === "string" && content.trim() !== ""
-                ? content
-                : "Tap edit to add"}
-            </Text>
-          )}
+          ) : /* Fallback: About Me */
+          typeof content === "string" ? (
+            content.trim() !== "" ? (
+              <Text className="text-sm text-gray-600 font-sans mt-1">
+                {content}
+              </Text>
+            ) : (
+              <Pressable onPress={openEditPage}>
+                <Text className="text-blue-500 font-medium text-sm mt-1">
+                  + Add About Me
+                </Text>
+              </Pressable>
+            )
+          ) : null}
         </View>
       )}
     </View>

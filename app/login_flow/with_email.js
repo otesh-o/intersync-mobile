@@ -1,158 +1,272 @@
 // app/login_flow/with_email/LoginScreen.js
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View, Image } from "react-native";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Image,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+} from "react-native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Added
 
 export default function LoginScreen() {
-  const [emailOrUsername, setEmailOrUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [secureEntry, setSecureEntry] = useState(true);
 
-  // ✅ Only require email and password — no agreement needed
-  const isValid = emailOrUsername.trim() !== "" && password.trim() !== "";
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    actionText: "Try Again",
+    onAction: () => setModalVisible(false),
+  });
 
-  const handleLogin = () => {
-    if (!isValid) return;
+  const isValid = email.trim() !== "" && password !== "";
 
-    // 🔐 In real app: call Firebase/auth API
-    // For now: mock success
-    router.push("/Homepage/homepage");
+  const togglePasswordVisibility = () => {
+    setSecureEntry(!secureEntry);
+  };
+
+  const showModal = (data) => {
+    setModalData(data);
+    setModalVisible(true);
+  };
+
+  const handleLogin = async () => {
+    if (!isValid || loading) return;
+    setLoading(true);
+
+    try {
+      // Step 1: Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+      const user = userCredential.user;
+
+      console.log("🔐 Logged in:", user.uid);
+
+      // Step 2: Get ID token (proves identity)
+      const idToken = await user.getIdToken();
+
+      // Step 3: Save token for future API calls
+      await AsyncStorage.setItem("authToken", idToken);
+
+      // Step 4: Go to homepage
+      router.replace("../Homepage/homepage"); // Use replace to prevent back-button to login
+    } catch (error) {
+      console.error("Login error:", error.code, error.message);
+
+      let title, message, actionText, onAction;
+
+      // 🔒 Don't reveal whether email or password is wrong
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/invalid-credential"
+      ) {
+        title = "🔐 Couldn’t Sign In";
+        message =
+          "Hmm, those credentials don’t match our records. Double-check your email and password.";
+        actionText = "Try Again";
+        onAction = () => setModalVisible(false);
+      }
+      // 📧 Invalid email format
+      else if (error.code === "auth/invalid-email") {
+        title = "✉️ Invalid Email";
+        message =
+          "Hmm, that email doesn’t look right. Double-check and try again.";
+        actionText = "Got it";
+        onAction = () => setModalVisible(false);
+      }
+      // 📵 No internet
+      else if (error.code === "auth/network-request-failed") {
+        title = "📶 No Connection";
+        message = "Oof, we can’t reach the server. Are you online?";
+        actionText = "Retry";
+        onAction = () => {
+          setModalVisible(false);
+          setTimeout(handleLogin, 500);
+        };
+      }
+      // 🔒 Too many attempts
+      else if (error.code === "auth/too-many-requests") {
+        title = "⏱️ Locked Temporarily";
+        message = "Too many attempts. Reset your password or try again later.";
+        actionText = "Reset Password";
+        onAction = () => {
+          setModalVisible(false);
+          router.push("/login_flow/forgot_password/email");
+        };
+      }
+      // ⚙️ Server/internal issues
+      else if (
+        error.code === "auth/internal-error" ||
+        error.code === "auth/unknown-error"
+      ) {
+        title = "🛠️ Unexpected Glitch";
+        message = "Oof, something went wrong on our end. Try again in a bit.";
+        actionText = "Dismiss";
+        onAction = () => setModalVisible(false);
+      }
+      // 🤷 Everything else
+      else {
+        title = "⚠️ Couldn’t Log In";
+        message = "Something unexpected happened. Please try again.";
+        actionText = "OK";
+        onAction = () => setModalVisible(false);
+      }
+
+      showModal({ title, message, actionText, onAction });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Custom Modal Component
+  const CustomModal = () => {
+    if (!modalVisible) return null;
+
+    return (
+      <View className="absolute inset-0 bg-black/50 justify-center items-center z-10">
+        <View className="bg-white p-6 rounded-2xl w-11/12 max-w-xs shadow-lg">
+          <Text className="text-lg font-bold text-center mb-2">
+            {modalData.title}
+          </Text>
+          <Text className="text-sm text-gray-600 text-center mb-5 leading-relaxed">
+            {modalData.message}
+          </Text>
+
+          <TouchableOpacity
+            onPress={modalData.onAction}
+            className="bg-black py-3 px-6 rounded-full"
+          >
+            <Text className="text-white font-bold text-center">
+              {modalData.actionText}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   };
 
   return (
-    <View className="flex-1 bg-white px-6 pt-24">
-      {/* Header with Back Button */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: 24,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{ position: "absolute", left: 0 }}
-        >
-          <Image
-            source={require("../../assets/images/back.png")}
-            style={{ width: 24, height: 24 }}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <SafeAreaView className="flex-1">
+        {/* Main Container */}
+        <View className="flex-1 px-6 pt-24">
+          {/* Header */}
+          <View className="flex-row items-center justify-center mb-10 relative">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="absolute left-0"
+              accessibilityLabel="Go back"
+            >
+              <Image
+                source={require("../../assets/images/back.png")}
+                className="w-6 h-6"
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <Text
+              className="text-[27.11px] text-black uppercase"
+              style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
+            >
+              INTERNSYNC
+            </Text>
+          </View>
 
-        <Text
-          className="text-[27.11px] text-black uppercase"
-          style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-        >
-          INTERNSYNC
-        </Text>
-      </View>
-
-      {/* Welcome Back */}
-      <Text
-        style={{
-          fontFamily: "Roboto",
-          fontWeight: "700",
-          fontSize: 24,
-          lineHeight: 35,
-          textAlign: "center",
-          marginBottom: 24,
-        }}
-      >
-        Welcome Back!
-      </Text>
-
-      {/* Input Fields */}
-      <View style={{ gap: 16, marginBottom: 24 }}>
-        {/* Email or Username */}
-        <TextInput
-          placeholder="Email or username"
-          placeholderTextColor="#888"
-          value={emailOrUsername}
-          onChangeText={setEmailOrUsername}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={{
-            fontFamily: "Roboto",
-            width: "100%",
-            height: 53,
-            borderRadius: 26.5,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            paddingHorizontal: 16,
-            fontSize: 16,
-            color: "#333",
-          }}
-        />
-
-        {/* Password */}
-        <TextInput
-          placeholder="Password"
-          placeholderTextColor="#888"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={{
-            fontFamily: "Roboto",
-            width: "100%",
-            height: 53,
-            borderRadius: 26.5,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            paddingHorizontal: 16,
-            fontSize: 16,
-            color: "#333",
-          }}
-        />
-
-        {/* Forgot Password Link */}
-        <TouchableOpacity
-          onPress={() => router.push("/login_flow/forgot_password/email")}
-          style={{ alignSelf: "flex-start", marginTop: 8 }}
-        >
-          <Text style={{ color: "#1E40AF", fontWeight: "bold", fontSize: 14 }}>
-            Forgot password?
+          {/* Welcome */}
+          <Text
+            className="text-3xl font-bold text-center mb-8"
+            style={{ fontFamily: "Roboto", lineHeight: 35 }}
+          >
+            Welcome Back!
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Login Button */}
-      <TouchableOpacity
-        onPress={handleLogin}
-        disabled={!isValid}
-        style={{
-          backgroundColor: isValid ? "#000" : "#ccc",
-          width: "100%",
-          height: 56,
-          borderRadius: 9999,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            color: "white",
-            fontSize: 18,
-            fontWeight: "bold",
-          }}
-        >
-          Log in
-        </Text>
-      </TouchableOpacity>
+          {/* Form */}
+          <View className="gap-4 mb-6">
+            {/* Email */}
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#888"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 font-sans"
+            />
 
-      {/* Trouble Logging In */}
-      <Text
-        style={{
-          marginTop: 24,
-          textAlign: "center",
-          color: "#444",
-          fontFamily: "Roboto",
-          fontSize: 14,
-          fontWeight: "bold",
-        }}
-      >
-        Trouble logging in?
-      </Text>
-    </View>
+            {/* Password */}
+            <View className="flex-row items-center w-full h-[53] px-5 border border-gray-300 rounded-full">
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#888"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={secureEntry}
+                autoComplete="password"
+                textContentType="password"
+                className="flex-1 text-base text-gray-700 font-sans"
+              />
+              <TouchableOpacity onPress={togglePasswordVisibility}>
+                <Text className="text-indigo-600 text-xs font-semibold">
+                  {secureEntry ? "SHOW" : "HIDE"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity
+              onPress={() => router.push("/login_flow/forgot_password/email")}
+              className="self-start mt-2"
+            >
+              <Text className="text-indigo-600 font-bold text-sm">
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            onPress={handleLogin}
+            disabled={!isValid || loading}
+            className={`w-full h-[53] rounded-full justify-center items-center ${
+              isValid ? "bg-black" : "bg-gray-300"
+            }`}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white text-lg font-bold">Log in</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Trouble Logging In */}
+          <Text className="text-center mt-6 text-gray-600 font-bold text-sm">
+            Trouble logging in?
+          </Text>
+        </View>
+
+        {/* Custom Modal */}
+        <CustomModal />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

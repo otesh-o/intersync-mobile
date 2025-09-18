@@ -10,19 +10,12 @@ import {
   Animated,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 
-import {
-  TUTORIAL_STEPS,
-  folderIcon,
-  homeIcon,
-  bookmarkIcon,
-} from "../constants/appData";
+import { folderIcon, homeIcon, bookmarkIcon } from "../constants/appData";
 
-import WelcomeOverlay from "../components/WelcomeOverlay";
 import SideMenu from "../components/SideMenu";
 import JobCard from "../components/JobCard";
-import TutorialOverlay from "../components/TutorialOverlay";
 import ProfileSetupModal from "../components/ProfileSetupModal";
 
 import { useProfile } from "../context/ProfileContext";
@@ -31,35 +24,20 @@ import { useSavedJobs } from "../context/SavedJobsContext";
 import { useJobs } from "../context/JobsContext";
 
 const Homepage = () => {
-  const params = useLocalSearchParams();
-
-  const [isWelcomeActive, setWelcomeActive] = useState(false);
-  const [isTutorialActive, setTutorialActive] = useState(false);
-  const [tutorialStep, setTutorialStep] = useState(0);
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
-
-  const { jobs, setJobs } = useJobs(); // Full job list
-  const { savedJobs, setSavedJobs } = useSavedJobs();
-
   const [currentMode, setCurrentMode] = useState("internships"); // Filter mode
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-300)).current;
 
-  const { name: profileName } = useProfile();
+  const { jobs, setJobs } = useJobs(); // Full job list
+  const { savedJobs, setSavedJobs } = useSavedJobs();
+
+  // ✅ Get name and profilePicUrl from context
+  const { name: profileName, profilePicUrl } = useProfile();
   const { token } = useAuth();
 
-  // Filter jobs based on current mode (internships, volunteer, etc.)
+  // Filter jobs based on current mode
   const filteredJobs = jobs.filter((job) => job.category === currentMode);
-
-  // Handle tutorial start from deep link
-  useEffect(() => {
-    if (params.startTutorial === "true") {
-      setWelcomeActive(false);
-      setTutorialActive(true);
-      setTutorialStep(0);
-      router.setParams({ startTutorial: null });
-    }
-  }, [params]);
 
   // Animate sidebar in/out
   useEffect(() => {
@@ -70,24 +48,7 @@ const Homepage = () => {
     }).start();
   }, [isMenuVisible]);
 
-  const handleWelcomeQuickGuide = () => {
-    setWelcomeActive(false);
-    setTutorialActive(true);
-    setTutorialStep(0);
-  };
-
-  const handleWelcomeSkip = () => setWelcomeActive(false);
-
-  const handleTutorialNext = () => {
-    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
-      setTutorialStep(tutorialStep + 1);
-    } else {
-      setTutorialActive(false);
-      setProfileModalVisible(true);
-    }
-  };
-
-  // ✅ Handle swipe: save (if liked) and remove from list
+  // ✅ Handle swipe: save on right, skip on left
   const handleSwipe = (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
@@ -100,7 +61,7 @@ const Homepage = () => {
       }
     }
 
-    // Remove from current jobs list → triggers re-render
+    // Remove from current jobs list
     setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
   };
 
@@ -113,21 +74,6 @@ const Homepage = () => {
 
   const handleModeChange = (mode) => {
     setCurrentMode(mode);
-
-    // 🔽 Optional: Fetch from backend when mode changes
-    // ✅ Commented for now — ready when you have API
-    /*
-    const fetchJobs = async () => {
-      try {
-        const res = await fetch(`https://yourapi.com/jobs?category=${mode}&token=${token}`);
-        const data = await res.json();
-        setJobs(data.jobs);
-      } catch (err) {
-        console.error("Failed to load jobs:", err);
-      }
-    };
-    fetchJobs();
-    */
   };
 
   return (
@@ -135,7 +81,7 @@ const Homepage = () => {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[10px] pb-2.5">
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-2.5">
         <TouchableOpacity className="p-1.5" onPress={handleMenuToggle}>
           <Icon name="menu" size={30} color="#000" />
         </TouchableOpacity>
@@ -152,22 +98,40 @@ const Homepage = () => {
       <View className="flex-1 px-5">
         {/* User Info */}
         <View className="flex-row items-center mt-5">
+          {/* ✅ Profile Picture from Backend */}
           <TouchableOpacity
-            className="w-14 h-14 justify-center items-center rounded-full"
+            className="w-14 h-14 justify-center items-center rounded-full overflow-hidden"
             onPress={() => router.push("../profile_page/MainProfile")}
           >
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                backgroundColor: "#ccc",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Icon name="person-outline" size={24} color="#fff" />
-            </View>
+            {profilePicUrl ? (
+              <Image
+                source={{ uri: profilePicUrl }}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                }}
+                resizeMode="cover"
+              />
+            ) : (
+              // Fallback: Show initials or default avatar
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: "#007AFF",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 18, fontWeight: "bold" }}
+                >
+                  {profileName?.charAt(0).toUpperCase() || "U"}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <View className="flex-1 ml-4 mr-2.5">
@@ -253,29 +217,16 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Overlays */}
+      {/* Side Menu */}
       <SideMenu
         isVisible={isMenuVisible}
         onClose={handleMenuClose}
         slideAnim={slideAnim}
         onModeChange={handleModeChange}
-        currentMode={currentMode} // ✅ Pass current mode for UI feedback
+        currentMode={currentMode}
       />
 
-      {isWelcomeActive && (
-        <WelcomeOverlay
-          onQuickGuide={handleWelcomeQuickGuide}
-          onSkip={handleWelcomeSkip}
-        />
-      )}
-
-      {isTutorialActive && (
-        <TutorialOverlay
-          currentStep={tutorialStep}
-          onNext={handleTutorialNext}
-        />
-      )}
-
+      {/* Profile Setup Modal - Show only if needed */}
       {isProfileModalVisible && (
         <ProfileSetupModal
           isVisible={isProfileModalVisible}

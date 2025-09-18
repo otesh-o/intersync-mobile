@@ -1,5 +1,6 @@
+// app/create_account/verify.js
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -13,21 +14,245 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import backIcon from "../../assets/images/back.png"; // Adjust path if needed
+// ✅ Add this import at the top
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Context
+import { SignupContext } from "../context/SignupContext";
+
+// Firebase
+import { auth } from "../services/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+
+// Assets
+import backIcon from "../../assets/images/back.png";
+
+// 🔧 Fixed: No trailing spaces in URL
+const BASE_URL = "https://internsync-production.up.railway.app"; // ← Corrected
+
+// OTP Config
 const CODE_LENGTH = 6;
 
 export default function VerifyScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams();
+
+  // Get password from context (never passed in route)
+  const { signupData } = useContext(SignupContext);
+  const password = signupData.password;
+
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
+
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    actionText: "OK",
+    onAction: () => setModalVisible(false),
+  });
 
   const isValid = useMemo(() => code.length === CODE_LENGTH, [code]);
 
-  const handleVerify = () => {
-    if (!isValid) return;
-    router.push("/create_account/interest");
+  const showModal = (data) => {
+    setModalData(data);
+    setModalVisible(true);
+  };
+
+  const handleVerify = async () => {
+    if (!isValid || loading) return;
+    setLoading(true);
+
+    try {
+      // Step 1: Verify OTP with backend
+      const otpRes = await fetch(`${BASE_URL}/v1/auth/signup/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: code }),
+      });
+
+      const otpData = await otpRes.json();
+
+      if (otpRes.ok && otpData.success) {
+        console.log("✅ OTP verified — creating Firebase account...");
+
+        try {
+          // Step 2: Create Firebase account
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const { uid, email: firebaseEmail } = userCredential.user;
+
+          console.log("🎉 Firebase account created:", uid);
+
+          // Step 3: Get ID token (proves identity)
+          const idToken = await userCredential.user.getIdToken();
+
+          // Step 4: Finalize with backend using Bearer token
+          const finalizeRes = await fetch(
+            `${BASE_URL}/v1/auth/signup/finalize`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`, // Backend verifies this
+              },
+              body: JSON.stringify({ uid, email: firebaseEmail }),
+            }
+          );
+
+          const finalizeData = await finalizeRes.json();
+
+          if (finalizeRes.status === 201 && finalizeData.success) {
+            console.log("✅ Account finalized in database:", finalizeData.user);
+
+            // ✅ ONLY AFTER SUCCESS: Save token for future API calls
+            await AsyncStorage.setItem("authToken", idToken);
+
+            // Navigate to next screen
+            router.replace("/create_account/interest");
+          } else {
+            // Handle known errors from finalize
+            if (finalizeRes.status === 409) {
+              showModal({
+                title: "🔐 Already Exists",
+                message:
+                  finalizeData.message || "This account was already set up.",
+                actionText: "Continue",
+                onAction: () => {
+                  setModalVisible(false);
+                  router.replace("/create_account/interest");
+                },
+              });
+            } else if (finalizeRes.status === 400) {
+              showModal({
+                title: "📝 Setup Incomplete",
+                message:
+                  finalizeData.message || "Please restart the signup process.",
+                actionText: "Restart",
+                onAction: () => {
+                  setModalVisible(false);
+                  router.replace("/create_account/email");
+                },
+              });
+            } else if (finalizeRes.status === 401) {
+              showModal({
+                title: "🔐 Unauthorized",
+                message:
+                  finalizeData.message || "Authentication failed. Try again.",
+                actionText: "Retry",
+                onAction: handleVerify,
+              });
+            } else {
+              showModal({
+                title: "❌ Save Failed",
+                message:
+                  finalizeData.message ||
+                  "Could not save your account. Please try again.",
+                actionText: "Retry",
+                onAction: handleVerify,
+              });
+            }
+          }
+        } catch (authError) {
+          console.error("Firebase creation error:", authError);
+
+          // Handle Firebase-specific errors
+          if (authError.code === "auth/email-already-in-use") {
+            showModal({
+              title: "📧 Already Used",
+              message: "An account with this email already exists.",
+              actionText: "Sign In",
+              onAction: () => {
+                setModalVisible(false);
+                router.replace("/login");
+              },
+            });
+          } else if (authError.code === "auth/invalid-email") {
+            showModal({
+              title: "✉️ Invalid Email",
+              message: "The email address is not valid.",
+              actionText: "Fix Email",
+              onAction: () => {
+                setModalVisible(false);
+                router.back();
+              },
+            });
+          } else if (authError.code === "auth/network-request-failed") {
+            showModal({
+              title: "📶 No Connection",
+              message: "Check your internet connection and try again.",
+              actionText: "Retry",
+              onAction: handleVerify,
+            });
+          } else {
+            showModal({
+              title: "⚠️ Setup Failed",
+              message: "Could not create your account. Please try again.",
+              actionText: "OK",
+              onAction: () => setModalVisible(false),
+            });
+          }
+        }
+      } else {
+        let title = "🔢 Invalid Code";
+        let actionText = "Try Again";
+
+        if (otpRes.status === 429) {
+          title = "⏳ Too Many Attempts";
+          actionText = "OK";
+        } else if (otpRes.status === 409) {
+          title = "🔐 Account Exists";
+          actionText = "Go to Login";
+        }
+
+        showModal({
+          title,
+          message: otpData.message || "The code is incorrect or has expired.",
+          actionText,
+          onAction: () => {
+            if (otpRes.status === 409) {
+              router.replace("/login");
+            }
+            setModalVisible(false);
+          },
+        });
+      }
+    } catch (error) {
+      console.error("OTP verification error:", error);
+
+      if (error.message.includes("Network request failed")) {
+        showModal({
+          title: "📶 No Connection",
+          message: "We couldn’t reach the server. Are you online?",
+          actionText: "Retry",
+          onAction: handleVerify,
+        });
+      } else if (
+        error.message.includes("JSON Parse error") ||
+        error.message.includes("unexpected token")
+      ) {
+        showModal({
+          title: "🛠️ Server Error",
+          message: "Received an invalid response. The service may be down.",
+          actionText: "Try Again",
+          onAction: handleVerify,
+        });
+      } else {
+        showModal({
+          title: "⚠️ Unexpected Error",
+          message: "Something went wrong. Please try again.",
+          actionText: "OK",
+          onAction: () => setModalVisible(false),
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onChangeCode = (text) => {
@@ -47,6 +272,94 @@ export default function VerifyScreen() {
     );
   });
 
+  const resendOtp = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/v1/auth/signup/resend-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showModal({
+          title: "📨 Code Resent",
+          message: data.message || "A new code has been sent to your email.",
+          actionText: "Got it",
+          onAction: () => setModalVisible(false),
+        });
+      } else {
+        if (res.status === 409) {
+          showModal({
+            title: "🔐 Account Exists",
+            message:
+              data.message || "An account with this email already exists.",
+            actionText: "Sign In",
+            onAction: () => {
+              setModalVisible(false);
+              router.replace("/login");
+            },
+          });
+        } else if (res.status === 429) {
+          showModal({
+            title: "⏳ Wait a Moment",
+            message:
+              data.message ||
+              "Too many requests. Please wait before resending.",
+            actionText: "OK",
+            onAction: () => setModalVisible(false),
+          });
+        } else {
+          showModal({
+            title: "📧 Send Failed",
+            message: data.message || "Could not resend the code.",
+            actionText: "OK",
+            onAction: () => setModalVisible(false),
+          });
+        }
+      }
+    } catch (error) {
+      showModal({
+        title: "📶 No Connection",
+        message: "Couldn’t resend code. Check your internet.",
+        actionText: "OK",
+        onAction: () => setModalVisible(false),
+      });
+    }
+  };
+
+  const CustomModal = () => {
+    if (!modalVisible) return null;
+
+    return (
+      <TouchableOpacity
+        className="absolute inset-0 bg-black/50 justify-center items-center z-10"
+        activeOpacity={1}
+        onPress={() => setModalVisible(false)}
+      >
+        <TouchableOpacity activeOpacity={1} className="w-11/12 max-w-xs">
+          <View className="bg-white p-6 rounded-2xl shadow-lg">
+            <Text className="text-lg font-bold text-center mb-2">
+              {modalData.title}
+            </Text>
+            <Text className="text-sm text-gray-600 text-center mb-5 leading-relaxed">
+              {modalData.message}
+            </Text>
+            <TouchableOpacity
+              onPress={modalData.onAction}
+              className="bg-black py-3 px-6 rounded-full"
+            >
+              <Text className="text-white font-bold text-center">
+                {modalData.actionText}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
@@ -65,7 +378,7 @@ export default function VerifyScreen() {
                   <Image source={backIcon} className="w-6 h-6" />
                 </TouchableOpacity>
                 <Text
-                  className="text-[27.11px] text-black uppercase text-center mb-12"
+                  className="text-[27.11px] text-black uppercase text-center"
                   style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
                 >
                   INTERNSYNC
@@ -78,7 +391,7 @@ export default function VerifyScreen() {
                 Enter Verification Code
               </Text>
 
-              {/* Hidden TextInput for capturing OTP */}
+              {/* Hidden Input */}
               <TextInput
                 ref={inputRef}
                 value={code}
@@ -87,51 +400,49 @@ export default function VerifyScreen() {
                 keyboardType="number-pad"
                 maxLength={CODE_LENGTH}
                 returnKeyType="done"
-                onSubmitEditing={handleVerify} // ✅ trigger verify on "done"
+                onSubmitEditing={handleVerify}
                 blurOnSubmit={false}
                 className="opacity-0 h-0 w-0"
               />
 
-              {/* CENTERED OTP BOXES */}
+              {/* OTP Boxes */}
               <TouchableOpacity
                 activeOpacity={1}
-                onPress={() => {
-                  inputRef.current?.focus(); // ✅ ensure keyboard opens
-                }}
+                onPress={() => inputRef.current?.focus()}
                 className="flex-row mt-8 justify-center"
               >
                 {boxes}
               </TouchableOpacity>
 
-              {/* Info / Links */}
+              {/* Info */}
               <View className="mt-6">
-                <Text className="text-gray-500">
-                  We’ve sent a 6-digit code to your email. Enter it below to
-                  continue.
+                <Text className="text-gray-500 text-center">
+                  We’ve sent a 6-digit code to{"\n"}
+                  <Text className="font-medium">{email}</Text>
                 </Text>
 
-                {/* Resend Code Link */}
+                {/* Resend Link */}
                 <View className="mt-4">
-                  <Text className="text-gray-500">
+                  <Text className="text-gray-500 text-center">
                     Didn’t receive a code?{" "}
                     <Text
-                      className="text-blue-600 underline"
-                      onPress={() => console.log("Resend code pressed")}
+                      className="text-indigo-600 underline font-bold"
+                      onPress={!loading ? resendOtp : null}
                     >
-                      [Resend Code]
+                      Resend Code
                     </Text>
                   </Text>
                 </View>
 
-                {/* Edit Email Link */}
+                {/* Edit Email */}
                 <View className="mt-2">
-                  <Text className="text-gray-500">
+                  <Text className="text-gray-500 text-center">
                     Change email?{" "}
                     <Text
-                      className="text-blue-600 underline"
+                      className="text-indigo-600 underline font-bold"
                       onPress={() => router.back()}
                     >
-                      [Edit Email]
+                      Edit Email
                     </Text>
                   </Text>
                 </View>
@@ -142,23 +453,44 @@ export default function VerifyScreen() {
               {/* Verify Button */}
               <TouchableOpacity
                 onPress={handleVerify}
-                disabled={!isValid}
+                disabled={!isValid || loading}
                 className={`rounded-lg py-4 mb-6 ${
-                  isValid ? "bg-black" : "bg-gray-300"
+                  isValid && !loading ? "bg-black" : "bg-gray-300"
                 }`}
               >
-                <Text
-                  className={`text-center text-lg font-semibold ${
-                    isValid ? "text-white" : "text-gray-500"
-                  }`}
-                >
-                  Verify & Continue
-                </Text>
+                {loading ? (
+                  <Text className="text-center text-lg text-white font-semibold">
+                    Verifying...
+                  </Text>
+                ) : (
+                  <Text
+                    className={`text-center text-lg font-semibold ${
+                      isValid ? "text-white" : "text-gray-500"
+                    }`}
+                  >
+                    Verify & Continue
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
+
+        {/* Custom Modal */}
+        <CustomModal />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+

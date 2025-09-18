@@ -8,38 +8,56 @@ import {
   ScrollView,
   Image,
   Alert,
+  Switch,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditWorkExperience() {
   const router = useRouter();
-  const { section = "Work Experience" } = useLocalSearchParams();
+  const { refreshProfile } = useProfile();
 
   const [jobs, setJobs] = useState([
-    { id: "1", title: "", company: "", startDate: "", endDate: "", description: "" },
+    {
+      id: "new-1",
+      jobTitle: "",
+      company: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+      current: false,
+    },
   ]);
 
-  // Load existing jobs
+  // Load work experience from backend
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const savedJobs = data[section] || [];
+    loadWorkExperience();
+  }, []);
 
-        if (savedJobs.length > 0) {
-          setJobs(savedJobs);
-        }
-      } catch (e) {
-        console.error("Failed to load work experience", e);
+  const loadWorkExperience = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      const serverJobs = response.user.workExperience || [];
+
+      if (serverJobs.length > 0) {
+        const mapped = serverJobs.map((item) => ({
+          id: item._id || Date.now().toString(),
+          jobTitle: item.jobTitle || "",
+          company: item.company || "",
+          startDate: item.startDate?.split("T")[0] || "", // Extract YYYY-MM-DD
+          endDate: item.endDate?.split("T")[0] || "",
+          description: item.description || "",
+          current: !!item.current,
+        }));
+        setJobs(mapped);
       }
-    };
-    load();
-  }, [section]);
+    } catch (error) {
+      console.error("Failed to load work experience:", error);
+      Alert.alert("Error", error.message || "Could not load work history.");
+    }
+  };
 
   const updateJob = (id, field, value) => {
     setJobs((prev) =>
@@ -49,14 +67,15 @@ export default function EditWorkExperience() {
 
   const addNewJob = () => {
     const newJob = {
-      id: Date.now().toString(), // Simple unique ID
-      title: "",
+      id: `new-${Date.now()}`,
+      jobTitle: "",
       company: "",
       startDate: "",
       endDate: "",
       description: "",
+      current: false,
     };
-    setJobs((prev) => [newJob, ...prev]); // Add to top
+    setJobs((prev) => [newJob, ...prev]);
   };
 
   const removeJob = (id) => {
@@ -68,20 +87,86 @@ export default function EditWorkExperience() {
   };
 
   const handleSave = async () => {
-    try {
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
+    // Validate required fields
+    const hasEmptyRequired = jobs.some(
+      (job) => !job.jobTitle.trim() || !job.company.trim()
+    );
 
-      // Save as array
-      data[section] = jobs;
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-
-      console.log("Saved work experiences:", jobs);
-    } catch (e) {
-      console.error("Failed to save", e);
+    if (hasEmptyRequired) {
+      Alert.alert(
+        "Missing Info",
+        "Please fill in job title and company for all roles."
+      );
+      return;
     }
 
-    router.back();
+    try {
+      // ✅ Format for backend: clean & validate each job
+      const formattedJobs = jobs.map(({ id, ...job }) => {
+        // Clean strings
+        const cleaned = {
+          jobTitle: job.jobTitle.trim(),
+          company: job.company.trim(),
+          description: job.description?.trim() || "",
+          current: !!job.current,
+        };
+
+        // ✅ Start Date: must be valid YYYY-MM-DD or empty string
+        if (job.startDate) {
+          const parsed = new Date(job.startDate);
+          if (!isNaN(parsed)) {
+            cleaned.startDate = parsed.toISOString().split("T")[0]; // → "2024-07-06"
+          } else {
+            cleaned.startDate = "";
+          }
+        } else {
+          cleaned.startDate = "";
+        }
+
+        // ✅ End Date: if currently working → null
+        if (job.current) {
+          cleaned.endDate = null;
+        } else if (job.endDate) {
+          const lower = job.endDate.toLowerCase().trim();
+          if (["present", "now", "current"].includes(lower)) {
+            cleaned.current = true;
+            cleaned.endDate = null;
+          } else {
+            const parsed = new Date(job.endDate);
+            if (!isNaN(parsed)) {
+              cleaned.endDate = parsed.toISOString().split("T")[0];
+            } else {
+              cleaned.endDate = "";
+            }
+          }
+        } else {
+          cleaned.endDate = "";
+        }
+
+        return cleaned;
+      });
+
+      console.log(
+        "📤 Sending to backend:",
+        JSON.stringify(formattedJobs, null, 2)
+      );
+
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ workExperience: formattedJobs }),
+      });
+
+      // ✅ Refresh context
+      await refreshProfile();
+
+      // ✅ Show success message
+      Alert.alert("Success", "Work experience updated!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
+    }
   };
 
   return (
@@ -118,9 +203,10 @@ export default function EditWorkExperience() {
               <Text style={styles.label}>Job Title</Text>
               <TextInput
                 style={styles.input}
-                value={job.title}
-                onChangeText={(text) => updateJob(job.id, "title", text)}
-                placeholder="e.g. Manager"
+                value={job.jobTitle}
+                onChangeText={(text) => updateJob(job.id, "jobTitle", text)}
+                placeholder="e.g. UX Designer"
+                maxLength={100}
               />
             </View>
 
@@ -131,7 +217,8 @@ export default function EditWorkExperience() {
                 style={styles.input}
                 value={job.company}
                 onChangeText={(text) => updateJob(job.id, "company", text)}
-                placeholder="e.g. Amazon Inc"
+                placeholder="e.g. Google"
+                maxLength={100}
               />
             </View>
 
@@ -142,20 +229,38 @@ export default function EditWorkExperience() {
                 style={styles.input}
                 value={job.startDate}
                 onChangeText={(text) => updateJob(job.id, "startDate", text)}
-                placeholder="e.g. Jan 2015"
+                placeholder="YYYY-MM-DD"
+                keyboardType="number-pad"
+                maxLength={10}
               />
             </View>
 
-            {/* End Date */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>End Date</Text>
-              <TextInput
-                style={styles.input}
-                value={job.endDate}
-                onChangeText={(text) => updateJob(job.id, "endDate", text)}
-                placeholder="e.g. Feb 2022"
+            {/* Currently Working Toggle */}
+            <View style={styles.checkboxRow}>
+              <Text style={styles.label}>Currently working?</Text>
+              <Switch
+                value={job.current}
+                onValueChange={(val) => {
+                  updateJob(job.id, "current", val);
+                  if (val) updateJob(job.id, "endDate", ""); // Clear end date
+                }}
               />
             </View>
+
+            {/* End Date (only if not current) */}
+            {!job.current && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>End Date</Text>
+                <TextInput
+                  style={styles.input}
+                  value={job.endDate}
+                  onChangeText={(text) => updateJob(job.id, "endDate", text)}
+                  placeholder="YYYY-MM-DD"
+                  keyboardType="number-pad"
+                  maxLength={10}
+                />
+              </View>
+            )}
 
             {/* Description */}
             <View style={styles.inputGroup}>
@@ -167,6 +272,7 @@ export default function EditWorkExperience() {
                 placeholder="Describe your role and achievements..."
                 multiline
                 textAlignVertical="top"
+                maxLength={500}
               />
             </View>
           </View>
@@ -270,6 +376,12 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: "top",
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   addButton: {
     marginTop: 16,

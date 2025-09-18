@@ -7,51 +7,81 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext"; // ← To update context
+import ToastAndroid from "react-native"; // ✅ Correct import
 
 export default function EditAboutMe() {
   const router = useRouter();
-  const { section = "About Me" } = useLocalSearchParams();
+  const { setRole } = useProfile(); // ✅ Update ProfileContext
   const [text, setText] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load existing content
+  // Load aboutMe from backend on mount
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        setText(data[section] || "");
-      } catch (e) {
-        console.error("Failed to load", e);
-      }
-    };
-    load();
-  }, [section]);
+    loadAboutMe();
+  }, []);
+
+  const loadAboutMe = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      setText(response.user.aboutMe || "");
+    } catch (error) {
+      console.error("Failed to load about me:", error);
+      Alert.alert("Error", error.message || "Could not load profile.");
+      setText("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ Show success toast (Android) or alert (iOS)
+  const showSuccess = (message) => {
+    if (ToastAndroid && typeof ToastAndroid.show === "function") {
+      // ✅ Use constants correctly
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Success", message, [{ text: "OK", style: "cancel" }]);
+    }
+  };
 
   const handleSave = async () => {
-    try {
-      // Load current data
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
-
-      // Update only this section
-      data[section] = text;
-
-      // Save back
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-
-      console.log("Saved:", data);
-    } catch (e) {
-      console.error("Failed to save", e);
+    if (!text.trim()) {
+      const confirm = await new Promise((resolve) =>
+        Alert.alert(
+          "Empty Bio",
+          "Are you sure you want to save an empty 'About Me'?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Yes", onPress: () => resolve(true) },
+          ]
+        )
+      );
+      if (!confirm) return;
     }
 
-    // Go back — useFocusEffect will reload data
-    router.back();
+    try {
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ aboutMe: text.trim() }),
+      });
+
+      // ✅ Update context so ProfileCard updates instantly
+      setRole(text.trim());
+
+      // ✅ Show success
+      showSuccess("About Me updated!");
+
+      // ✅ Go back
+      router.back();
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
+    }
   };
 
   return (
@@ -70,27 +100,38 @@ export default function EditAboutMe() {
       </View>
 
       {/* Input */}
-      <ScrollView style={styles.scrollView}>
-        <TextInput
-          style={styles.textInput}
-          value={text}
-          onChangeText={setText}
-          placeholder="Tell us about yourself..."
-          multiline
-          textAlignVertical="top"
-          autoFocus
-        />
-      </ScrollView>
+      {isLoading ? (
+        <View style={styles.loading}>
+          <Text style={{ color: "#666" }}>Loading...</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.scrollView}>
+          <TextInput
+            style={styles.textInput}
+            value={text}
+            onChangeText={setText}
+            placeholder="Tell us about yourself..."
+            multiline
+            textAlignVertical="top"
+            autoFocus
+          />
+        </ScrollView>
+      )}
 
       {/* Save Button */}
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Save</Text>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={handleSave}
+        disabled={isLoading}
+      >
+        <Text style={styles.saveButtonText}>
+          {isLoading ? "Saving..." : "Save"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// ... styles (same as before)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,5 +196,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     fontFamily: "Roboto",
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

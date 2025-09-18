@@ -24,14 +24,14 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 
-  // Card rotation based on horizontal drag
+  // Rotate card slightly during horizontal drag
   const rotate = translateX.interpolate({
     inputRange: [-width / 2, 0, width / 2],
-    outputRange: ["-15deg", "0deg", "15deg"],
+    outputRange: ["-12deg", "0deg", "12deg"],
     extrapolate: "clamp",
   });
 
-  // Handle drag gesture
+  // Handle gesture events
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
     { useNativeDriver: true }
@@ -40,22 +40,22 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const onHandlerStateChange = (event) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
       const { translationX, velocityX } = event.nativeEvent;
-      const swipeThreshold = width * 0.25;
+      const swipeThreshold = width * 0.25; // 25% of screen width
 
       if (
         Math.abs(translationX) > swipeThreshold ||
         Math.abs(velocityX) > 800
       ) {
-        const swipeDirection = translationX > 0 ? "right" : "left";
-        const toValue = swipeDirection === "right" ? width * 1.5 : -width * 1.5;
+        const direction = translationX > 0 ? "right" : "left";
+        const toValue = direction === "right" ? width * 1.5 : -width * 1.5;
 
         Animated.timing(translateX, {
           toValue,
           duration: 300,
           useNativeDriver: true,
-        }).start(() => onSwipe(job.id, swipeDirection));
+        }).start(() => onSwipe(job.id, direction));
       } else {
-        // Reset if not past threshold
+        // Reset position if not swiped far enough
         Animated.parallel([
           Animated.spring(translateX, {
             toValue: 0,
@@ -74,7 +74,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     }
   };
 
-  // Handle button presses
+  // Simulate button press with animation
   const handleButtonPress = (direction) => {
     const toValue = direction === "right" ? width * 1.5 : -width * 1.5;
     Animated.timing(translateX, {
@@ -84,7 +84,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     }).start(() => onSwipe(job.id, direction));
   };
 
-  // Map category to display label
+  // Map category to label
   const getCategoryLabel = (category) => {
     switch (category) {
       case "internships":
@@ -102,13 +102,15 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     <PanGestureHandler
       onGestureEvent={onGestureEvent}
       onHandlerStateChange={onHandlerStateChange}
-      enabled={isTop}
+      enabled={isTop} // Only top card is draggable
     >
       <Animated.View
         className="absolute w-[90%] max-w-sm self-center bg-white rounded-3xl shadow-lg"
         style={[
           style,
-          { transform: [{ translateX }, { translateY }, { rotate }] },
+          {
+            transform: [{ translateX }, { translateY }, { rotate }],
+          },
         ]}
       >
         {/* Job Image */}
@@ -117,6 +119,8 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             source={{ uri: job.image }}
             className="w-full h-40 rounded-t-2xl"
           />
+
+          {/* Decorative icon badge */}
           <View className="absolute -bottom-6 left-5 bg-white p-2 rounded-2xl shadow-md">
             <View
               className="w-12 h-12 bg-slate-600 rounded-xl overflow-hidden"
@@ -129,7 +133,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
 
         {/* Job Details */}
         <View className="p-5 pt-10">
-          {/* Title Row with Category Badge */}
+          {/* Title & Category Badge */}
           <View className="flex-row justify-between items-start mb-1">
             <Text
               className="text-2xl font-bold text-slate-800 flex-1"
@@ -137,12 +141,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             >
               {job.title}
             </Text>
-            {/* ✅ Category Badge */}
+
             <View
               className="px-2.5 py-1 rounded-full ml-2"
-              style={{
-                backgroundColor: "#22C55E", // Vibrant green
-              }}
+              style={{ backgroundColor: "#22C55E" }} // Vibrant green
             >
               <Text className="text-white text-xs font-bold uppercase tracking-wide">
                 {getCategoryLabel(job.category)}
@@ -156,11 +158,11 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           </Text>
 
           {/* Salary */}
-          {job.salary && (
+          {job.salary ? (
             <Text className="text-base font-bold text-slate-700 mt-1">
               {job.salary}
             </Text>
-          )}
+          ) : null}
 
           {/* Tags */}
           <View className="flex-row mt-4 flex-wrap">
@@ -190,10 +192,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           </Text>
         </View>
 
-        {/* Action Buttons (only on top card) */}
+        {/* Action Buttons (only visible on top card) */}
         {isTop && (
           <View className="flex-row justify-evenly pt-2 pb-5">
-            {/* ❌ Nope */}
+            {/* ❌ Dislike / Skip */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-red-400 shadow-md"
               onPress={() => handleButtonPress("left")}
@@ -209,10 +211,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="add" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ✅ Bookmark (replaces checkmark) */}
+            {/* ✅ Save / Bookmark */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full shadow-md"
-              style={{ backgroundColor: "#22C55E" }} // Vibrant green
+              style={{ backgroundColor: "#22C55E" }}
               onPress={() => handleButtonPress("right")}
             >
               <Icon name="bookmark" size={30} color="#fff" />

@@ -7,40 +7,51 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditLanguages() {
   const router = useRouter();
-  const { section = "Languages" } = useLocalSearchParams();
+  const { refreshProfile } = useProfile(); // To reload after save
 
   const [languages, setLanguages] = useState([]);
   const [input, setInput] = useState("");
 
-  // Load saved languages
+  // Load languages from backend on mount
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const savedLanguages = data[section] || [];
-        setLanguages(savedLanguages);
-      } catch (e) {
-        console.error("Failed to load languages", e);
-      }
-    };
-    load();
-  }, [section]);
+    loadLanguages();
+  }, []);
+
+  const loadLanguages = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      const serverLanguages = response.user.languages || [];
+
+      // Filter out empty/null values
+      const validLanguages = serverLanguages.filter(
+        (lang) => lang && lang.trim()
+      );
+      setLanguages(validLanguages);
+    } catch (error) {
+      console.error("Failed to load languages:", error);
+      Alert.alert("Error", error.message || "Could not load languages.");
+      setLanguages([]); // Fallback
+    }
+  };
 
   const addLanguage = () => {
     const trimmed = input.trim();
-    if (trimmed && !languages.includes(trimmed)) {
-      setLanguages((prev) => [...prev, trimmed]);
+    if (!trimmed) return;
+    if (languages.includes(trimmed)) {
+      Alert.alert("Duplicate Language", `${trimmed} is already in your list.`);
+      return;
     }
+
+    setLanguages((prev) => [...prev, trimmed]);
     setInput("");
   };
 
@@ -50,14 +61,27 @@ export default function EditLanguages() {
 
   const handleSave = async () => {
     try {
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
-      data[section] = languages;
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error("Failed to save languages", e);
+      // Clean and dedupe before saving
+      const cleaned = [
+        ...new Set(languages.map((l) => l.trim()).filter(Boolean)),
+      ];
+
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ languages: cleaned }),
+      });
+
+      // ✅ Refresh context so MainProfile sees update
+      await refreshProfile();
+
+      // ✅ Show success
+      Alert.alert("Success", "Languages updated!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
     }
-    router.back();
   };
 
   return (
@@ -83,6 +107,7 @@ export default function EditLanguages() {
           onChangeText={setInput}
           placeholder="e.g. Yoruba"
           onSubmitEditing={addLanguage}
+          autoCapitalize="none"
         />
         <TouchableOpacity style={styles.addButton} onPress={addLanguage}>
           <Text style={styles.addButtonText}>Add</Text>
@@ -90,7 +115,10 @@ export default function EditLanguages() {
       </View>
 
       {/* Scrollable Languages List */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.languagesList}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.languagesList}
+      >
         {languages.length === 0 ? (
           <Text style={styles.placeholder}>No languages added yet</Text>
         ) : (

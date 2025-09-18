@@ -1,106 +1,211 @@
+// app/login_flow/forgot_password/email.js
 import { router } from "expo-router";
 import { useState } from "react";
-import { View, Text, TouchableOpacity, Image, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+} from "react-native";
+
+// Firebase Auth
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../services/firebaseConfig";
 
 export default function ForgotPasswordEmail() {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const isDisabled = email.trim() === "";
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: "",
+    message: "",
+    actionText: "OK",
+    onAction: () => setModalVisible(false),
+  });
+
+  const isValidEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email.trim());
+  };
+
+  const isDisabled = !isValidEmail(email);
+
+  const showModal = (data) => {
+    setModalData(data);
+    setModalVisible(true);
+  };
+
+  const handleReset = async () => {
+    if (!isDisabled && !loading) {
+      setLoading(true);
+
+      try {
+        await sendPasswordResetEmail(auth, email.trim());
+        showModal({
+          title: "📨 Check Your Inbox",
+          message: `We’ve sent a password reset link to ${email}.`,
+          actionText: "Continue",
+          onAction: () => {
+            setModalVisible(false);
+            router.replace("/login_flow/with_email");
+          },
+        });
+      } catch (error) {
+        console.error("Password reset error:", error.code, error.message);
+
+        if (error.code === "auth/user-not-found") {
+          showModal({
+            title: "📧 Account Not Found",
+            message:
+              "No account exists with this email. Did you sign up with a different one?",
+            actionText: "Try Again",
+            onAction: () => setModalVisible(false),
+          });
+        } else if (error.code === "auth/invalid-email") {
+          showModal({
+            title: "✉️ Invalid Email",
+            message: "That email doesn’t look right. Want to fix it?",
+            actionText: "Edit Email",
+            onAction: () => setModalVisible(false),
+          });
+        } else if (error.code === "auth/network-request-failed") {
+          showModal({
+            title: "📶 No Connection",
+            message: "We couldn’t send the reset link. Are you online?",
+            actionText: "Retry",
+            onAction: handleReset,
+          });
+        } else {
+          showModal({
+            title: "⚠️ Something Went Wrong",
+            message: "Could not send reset email. Please try again.",
+            actionText: "OK",
+            onAction: () => setModalVisible(false),
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Custom Modal
+  const CustomModal = () => {
+    if (!modalVisible) return null;
+
+    return (
+      <TouchableOpacity
+        className="absolute inset-0 bg-black/50 justify-center items-center z-10"
+        activeOpacity={1}
+        onPress={() => setModalVisible(false)}
+      >
+        <TouchableOpacity activeOpacity={1} className="w-11/12 max-w-xs">
+          <View className="bg-white p-6 rounded-2xl shadow-lg">
+            <Text className="text-lg font-bold text-center mb-2">
+              {modalData.title}
+            </Text>
+            <Text className="text-sm text-gray-600 text-center mb-5 leading-relaxed">
+              {modalData.message}
+            </Text>
+            <TouchableOpacity
+              onPress={modalData.onAction}
+              className="bg-black py-3 px-6 rounded-full"
+            >
+              <Text className="text-white font-bold text-center">
+                {modalData.actionText}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View className="flex-1 bg-white pt-20 px-5">
-      
-      <View className="items-center mb-10">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="absolute left-0"
-        >
-          <Image
-            source={require("../../../assets/images/back.png")}
-            className="w-6 h-6 tint-gray-500"
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <SafeAreaView className="flex-1">
+        <View className="flex-1 pt-20 px-5">
+          {/* Header */}
+          <View className="items-center mb-10 relative">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="absolute left-0"
+              accessibilityLabel="Go back"
+            >
+              <Image
+                source={require("../../../assets/images/back.png")}
+                className="w-6 h-6"
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <Text
+              className="text-[27.11px] text-black uppercase"
+              style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
+            >
+              INTERNSYNC
+            </Text>
+          </View>
+
+          {/* Title */}
+          <Text
+            className="text-2xl font-bold text-black mb-4"
+            style={{ fontFamily: "Roboto" }}
+          >
+            Forgot Password
+          </Text>
+
+          {/* Subtitle */}
+          <Text
+            className="text-base text-gray-600 mb-8"
+            style={{ fontFamily: "Inter" }}
+          >
+            Please enter your email to reset the password
+          </Text>
+
+          {/* Email Input */}
+          <TextInput
+            placeholder="Enter your email"
+            placeholderTextColor="#A8A8A8"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+            className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 mb-10"
           />
-        </TouchableOpacity>
 
-        <Text
-          className="text-[27.11px] text-black uppercase"
-          style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-        >
-          INTERN SYNC
-        </Text>
-      </View>
+          {/* Reset Button */}
+          <TouchableOpacity
+            disabled={isDisabled || loading}
+            onPress={handleReset}
+            className={`w-full h-14 rounded-full justify-center items-center ${
+              isDisabled ? "bg-gray-300" : "bg-black"
+            }`}
+          >
+            {loading ? (
+              <Text className="text-white text-lg font-bold">Sending...</Text>
+            ) : (
+              <Text className="text-white text-lg font-bold">
+                Reset Password
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-      
-      <Text
-        className="text-[24px] text-black font-bold"
-        style={{
-          width: 318,
-          height: 28,
-          marginBottom: 10,
-          fontFamily: "Roboto",
-        }}
-      >
-        Forgot Password
-      </Text>
-
-      
-      <Text
-        className="text-[16px] text-[#828693] font-semibold"
-        style={{
-          width: 355,
-          height: 20,
-          marginBottom: 20,
-          fontFamily: "Inter",
-          letterSpacing: -0.5,
-        }}
-      >
-        Please enter your email to reset the password
-      </Text>
-
-      
-      <TextInput
-        placeholder="Enter your email"
-        placeholderTextColor="#A8A8A8"
-        value={email}
-        onChangeText={setEmail}
-        style={{
-          width: 336,
-          height: 53,
-          borderColor: "#A8A8A8",
-          borderWidth: 1,
-          borderRadius: 26.5,
-          paddingHorizontal: 20,
-          marginBottom: 40,
-          fontFamily: "Inter",
-        }}
-      />
-
-      
-      <TouchableOpacity
-        disabled={isDisabled}
-        className="items-center justify-center"
-        style={{
-          width: 336,
-          height: 50,
-          borderRadius: 67.18,
-          alignSelf: "center",
-          backgroundColor: isDisabled ? "#ccc" : "#000",
-        }}
-        onPress={() => {
-          if (!isDisabled) {
-            router.push({
-              pathname: "/login_flow/forgot_password/verify_code",
-              params: { email: email },
-            });
-          }
-        }}
-      >
-        <Text
-          className="text-[18px] font-bold"
-          style={{ color: isDisabled ? "#888" : "#fff" }}
-        >
-          Reset Password
-        </Text>
-      </TouchableOpacity>
-    </View>
+        {/* Custom Modal */}
+        <CustomModal />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

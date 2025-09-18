@@ -2,15 +2,16 @@
 
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
 
 // 👇 Import all providers
 import { ProfileProvider } from "./context/ProfileContext";
+import { SignupProvider } from "./context/SignupContext";
 import { AuthProvider } from "./context/AuthContext";
 import { SavedJobsProvider } from "./context/SavedJobsContext";
-import { JobsProvider } from "./context/JobsContext"; // ✅ Add this
+import { JobsProvider } from "./context/JobsContext";
 
 // ✅ Font imports
 const ClaireNewsBold = require("../assets/fonts/ClaireNewsBold.otf");
@@ -30,27 +31,49 @@ export default function RootLayout() {
     "Raleway-Medium": Raleway_500Medium,
   });
 
+  // 🔍 Debug: App starting
+  console.log("🏗️ RootLayout: App starting...");
+
   if (!fontsLoaded) {
+    console.log("🔤 Fonts not loaded yet — showing spinner");
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#000" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: "#555" }}>
+          Loading fonts...
+        </Text>
       </View>
     );
   }
 
+  console.log("✅ Fonts loaded — rendering app layout");
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <ProfileProvider>
-          <SavedJobsProvider>
-            <JobsProvider>
-              {" "}
-              {/* ✅ Wrap here */}
-              <Stack screenOptions={{ headerShown: false }} />
-            </JobsProvider>
-          </SavedJobsProvider>
-        </ProfileProvider>
-      </AuthProvider>
+      {/* Wrap everything in context providers */}
+      <SignupProvider>
+        {/* Manages signup flow (email/password) */}
+        <AuthProvider>
+          {/* Handles login state, auth checks */}
+          <ProfileProvider>
+            {/* Loads user profile on startup */}
+            <SavedJobsProvider>
+              {/* Manages saved jobs list */}
+              <JobsProvider>
+                {/* Provides job listings */}
+                <AppContent />
+              </JobsProvider>
+            </SavedJobsProvider>
+          </ProfileProvider>
+        </AuthProvider>
+      </SignupProvider>
     </GestureHandlerRootView>
   );
+}
+
+// Separate component to avoid re-rendering providers
+function AppContent() {
+  console.log("🎨 AppContent rendered — Stack mounted");
+
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

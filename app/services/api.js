@@ -1,75 +1,58 @@
-// api/api.js
+// app/services/api.js
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "https://api.myapp.com"; // ✅ Fixed: no extra spaces
+// 🔗 Your backend base URL (no trailing slash or spaces!)
+const API_BASE_URL = "https://internsync-production.up.railway.app"; // ✅ No spaces
 
-export async function getJobs(token, type = "internships") {
-  try {
-    const res = await fetch(`${BASE_URL}/jobs?type=${type}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) throw new Error("Failed to fetch jobs");
-    return await res.json();
-  } catch (err) {
-    console.error("API Error [getJobs]:", err.message);
-    return []; // Return empty array on error
+/**
+ * Generic API caller with automatic auth header
+ */
+export const api = async (endpoint, options = {}) => {
+  // 1. Get the stored auth token
+  const token = await AsyncStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("No authentication token found. Please log in.");
   }
-}
 
-export async function getSavedJobs(token) {
-  try {
-    const res = await fetch(`${BASE_URL}/saved-jobs`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) throw new Error("Failed to fetch saved jobs");
-    return await res.json();
-  } catch (err) {
-    console.error("API Error [getSavedJobs]:", err.message);
-    return [];
-  }
-}
+  // 2. Build request config
+  const config = {
+    method: "GET", // default
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // ← This proves who you are
+      ...options.headers,
+    },
+  };
 
-export async function saveJob(jobId, token) {
   try {
-    const res = await fetch(`${BASE_URL}/save-job`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ jobId }),
-    });
-    if (!res.ok) throw new Error("Failed to save job");
-    return await res.json(); // Assume returns { id, title, ...savedJob }
-  } catch (err) {
-    console.error("API Error [saveJob]:", err.message);
-    return null;
-  }
-}
+    // 3. Make the fetch call
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
-export async function getProfile(token) {
-  try {
-    const res = await fetch(`${BASE_URL}/profile`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) throw new Error("Failed to fetch profile");
-    return await res.json();
-  } catch (err) {
-    console.error("API Error [getProfile]:", err.message);
-    return {
-      name: "User",
-      profilePicUrl: null,
-    };
+    // 4. Parse JSON response
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error("JSON parse error:", jsonError);
+      throw new Error("Invalid JSON response from server");
+    }
+
+    // 5. Check if backend returned success: true
+    if (!data.success) {
+      throw new Error(data.message || "Request failed on server");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("API call failed:", error); // 👈 Helps debugging
+
+    // Improve network error message
+    if (error.message.includes("Network request failed")) {
+      throw new Error("No internet connection. Please check your network.");
+    }
+
+    throw error;
   }
-}
+};

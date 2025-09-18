@@ -1,98 +1,46 @@
 // app/profile_page/main_profile.js
 import { ScrollView, View } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
 
 // Components
 import Header from "./components/Header";
 import ProfileCard from "./components/ProfileCard";
 import SectionItem from "./components/SectionItem";
 
-// AsyncStorage
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// Context (real data from backend)
+import { useProfile } from "../context/ProfileContext";
 
-// Default content
-const DEFAULT_CONTENT = {
-  "About Me": "I'm a UX researcher with 5+ years of experience...",
-  "Work Experience": [
-    {
-      id: "1",
-      title: "Senior UX Researcher",
-      company: "Google",
-      startDate: "2020",
-      endDate: "2024",
-      description: "Led user research for flagship products.",
-    },
-  ],
-  Education: [
-    {
-      id: "1",
-      degree: "PhD in HCI",
-      school: "Stanford University",
-      startDate: "2014",
-      endDate: "2018",
-    },
-  ],
-  Skills: ["User Research", "Usability Testing", "Figma"],
-  Languages: ["English", "Yoruba", "French"],
-  Appreciation: [
-    {
-      id: "1",
-      title: "Team Excellence Award 2023",
-      description: "Received for outstanding contribution to UX research",
-      date: "Jan 2023",
-    },
-  ],
-  Resume: null,
-};
-
-const PROFILE_DATA_KEY = "userProfileData";
+// Fallbacks only (not default content)
+const DEFAULT_ABOUT_ME = "Tell us about yourself";
 
 export default function MainProfile() {
   const [expandedSection, setExpandedSection] = useState(null);
-  const [content, setContent] = useState(DEFAULT_CONTENT);
-
   const router = useRouter();
 
-  // ✅ Load & refresh data when screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true; // Prevent state update if unmounted
+  // Get real data from context (loaded from GET /v1/user/profile)
+  const {
+    role: aboutMe,
+    workExperience,
+    education,
+    skills,
+    languages,
+    appreciation,
+    resumeUrl,
+  } = useProfile();
 
-      const loadProfileData = async () => {
-        try {
-          const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-          let savedData = {};
-
-          if (saved) {
-            savedData = JSON.parse(saved);
-          }
-
-          // ✅ Merge saved data into defaults
-          const merged = { ...DEFAULT_CONTENT, ...savedData };
-
-          // ✅ Only update if component is still active
-          if (isActive) {
-            setContent(merged);
-          }
-        } catch (e) {
-          console.error("Failed to load or reload profile data", e);
-          if (isActive) {
-            setContent(DEFAULT_CONTENT); // Fallback
-          }
-        }
-      };
-
-      loadProfileData();
-
-      // ✅ Cleanup: prevents race conditions
-      return () => {
-        isActive = false;
-      };
-    }, [])
-    // ↑ Runs every time screen comes into focus
-  );
+  // Map backend fields to sections
+  const content = {
+    "About Me": aboutMe || DEFAULT_ABOUT_ME,
+    "Work Experience": workExperience || [],
+    Education: education || [],
+    Skills: skills || [],
+    Languages: languages || [],
+    Appreciation: appreciation || [],
+    Resume: resumeUrl
+      ? { uri: resumeUrl, name: "resume.pdf" } // Simplified format
+      : null,
+  };
 
   const toggleExpand = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -123,6 +71,13 @@ export default function MainProfile() {
             content={content[label]}
             isExpanded={expandedSection === label}
             onToggle={() => toggleExpand(label)}
+            onPressEdit={
+              label === "About Me"
+                ? () => router.push("/profile_page/edit-about-me")
+                : label === "Work Experience"
+                ? () => router.push("/profile_page/edit-work-experience")
+                : undefined
+            }
           />
         ))}
       </View>

@@ -7,57 +7,77 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditSkills() {
   const router = useRouter();
-  const { section = "Skills" } = useLocalSearchParams();
+  const { refreshProfile } = useProfile(); // To reload after save
 
   const [skills, setSkills] = useState([]);
   const [input, setInput] = useState("");
 
-  // Load existing skills
+  // Load skills from backend on mount
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const savedSkills = data[section] || [];
-        setSkills(savedSkills);
-      } catch (e) {
-        console.error("Failed to load skills", e);
-      }
-    };
-    load();
-  }, [section]);
+    loadSkills();
+  }, []);
+
+  const loadSkills = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      const serverSkills = response.user.skills || [];
+
+      // Filter out empty/null values
+      const validSkills = serverSkills.filter((s) => s && s.trim());
+      setSkills(validSkills);
+    } catch (error) {
+      console.error("Failed to load skills:", error);
+      Alert.alert("Error", error.message || "Could not load skills.");
+      setSkills([]); // Fallback
+    }
+  };
 
   const addSkill = () => {
     const trimmed = input.trim();
-    if (trimmed && !skills.includes(trimmed)) {
-      setSkills((prev) => [...prev, trimmed]);
+    if (!trimmed) return;
+    if (skills.includes(trimmed)) {
+      Alert.alert("Duplicate Skill", `${trimmed} is already in your list.`);
+      return;
     }
+
+    setSkills((prev) => [...prev, trimmed]);
     setInput("");
   };
 
   const removeSkill = (skillToRemove) => {
-    setSkills((prev) => prev.filter((s) => s !== skillToRemove));
+    setSkills((prev) => prev.filter((skill) => skill !== skillToRemove));
   };
 
   const handleSave = async () => {
     try {
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
-      data[section] = skills;
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error("Failed to save skills", e);
+      // Clean and dedupe before saving
+      const cleaned = [...new Set(skills.map((s) => s.trim()).filter(Boolean))];
+
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ skills: cleaned }),
+      });
+
+      // ✅ Refresh context so MainProfile sees update
+      await refreshProfile();
+
+      // ✅ Show success
+      Alert.alert("Success", "Skills updated!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
     }
-    router.back();
   };
 
   return (
@@ -83,6 +103,7 @@ export default function EditSkills() {
           onChangeText={setInput}
           placeholder="e.g. Figma"
           onSubmitEditing={addSkill}
+          autoCapitalize="none"
         />
         <TouchableOpacity style={styles.addButton} onPress={addSkill}>
           <Text style={styles.addButtonText}>Add</Text>
@@ -90,7 +111,10 @@ export default function EditSkills() {
       </View>
 
       {/* Scrollable Skills List */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.skillsList}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.skillsList}
+      >
         {skills.length === 0 ? (
           <Text style={styles.placeholder}>No skills added yet</Text>
         ) : (
