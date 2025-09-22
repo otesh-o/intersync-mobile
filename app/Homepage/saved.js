@@ -1,23 +1,33 @@
 // app/screens/Saved.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StatusBar,
   Image,
-  ScrollView,
-  TextInput,
   FlatList,
   Modal,
   Pressable,
+  Alert,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useRouter } from "expo-router";
+
+// Services
+import { api } from "../services/api";
+
+// Context
 import { useSavedJobs } from "../context/SavedJobsContext";
 
 const Saved = () => {
-  const { savedJobs, setSavedJobs } = useSavedJobs();
+  const {
+    savedJobs,
+    setSavedJobs,
+    isLoading: loadingFromContext,
+  } = useSavedJobs();
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,18 +39,36 @@ const Saved = () => {
   });
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
 
+  // Combine context loading + local filtering
+  const isLoading = loadingFromContext;
+
   // --- Filter jobs based on search and selected filters ---
   useEffect(() => {
     let filtered = [...savedJobs];
+
+    // 👇 Debug: Check for duplicates before filtering
+    const idCount = {};
+    savedJobs.forEach((job) => {
+      idCount[job.id] = (idCount[job.id] || 0) + 1;
+    });
+    const duplicates = Object.entries(idCount).filter(
+      ([id, count]) => count > 1
+    );
+    if (duplicates.length > 0) {
+      console.warn("❌ Duplicate job IDs in savedJobs:", duplicates);
+    }
 
     // Text search
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (job) =>
-          job.title.toLowerCase().includes(lower) ||
-          job.company.toLowerCase().includes(lower) ||
-          job.location.toLowerCase().includes(lower)
+          job.title?.toLowerCase().includes(lower) ||
+          (typeof job.company === "string" &&
+            job.company.toLowerCase().includes(lower)) ||
+          (typeof job.company === "object" &&
+            job.company?.name?.toLowerCase().includes(lower)) ||
+          job.location?.toLowerCase().includes(lower)
       );
     }
 
@@ -69,9 +97,23 @@ const Saved = () => {
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  // --- Remove job from saved list ---
-  const handleRemoveJob = (jobId) => {
-    setSavedJobs(savedJobs.filter((job) => job.id !== jobId));
+  // --- Remove job from saved list (and backend) ---
+  const handleRemoveJob = async (jobId) => {
+    try {
+      await api(`/v1/bookmark/job/${jobId}`, { method: "DELETE" });
+
+      // ✅ Remove from context/UI
+      setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
+
+      console.log("✅ Job removed from bookmarks");
+    } catch (error) {
+      console.error("Failed to unsave job:", error);
+      Alert.alert(
+        "Remove Failed",
+        error.message || "Could not remove job. Please check your connection.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   // --- Toggle filter ---
@@ -103,14 +145,29 @@ const Saved = () => {
       {/* Top row: Logo + info + remove button */}
       <View className="flex-row items-start mb-4">
         <Image
-          source={{ uri: item.image || "https://picsum.photos/200/300" }}
+          source={{
+            uri:
+              item.image ||
+              (typeof item.company === "object"
+                ? item.company.logoUrl
+                : null) ||
+              "https://via.placeholder.com/200x300.png?text=Job",
+          }}
           className="w-12 h-12 rounded-lg mr-4"
+          resizeMode="cover"
         />
         <View className="flex-1">
           <Text className="text-lg font-bold text-black mb-1" numberOfLines={1}>
             {item.title}
           </Text>
-          <Text className="text-sm text-gray-500 mb-0.5">{item.company}</Text>
+
+          {/* ✅ Safe company rendering */}
+          <Text className="text-sm text-gray-500 mb-0.5">
+            {typeof item.company === "object"
+              ? item.company.name
+              : item.company || "Unknown Organization"}
+          </Text>
+
           <Text className="text-sm text-gray-500">{item.location}</Text>
         </View>
         <TouchableOpacity
@@ -158,13 +215,17 @@ const Saved = () => {
 
       {/* Description */}
       <Text className="text-sm text-gray-500 leading-5 mb-4" numberOfLines={2}>
-        {item.description || "No description available."}
+        {typeof item.description === "string"
+          ? item.description
+          : item.description?.details ||
+            item.description?.summary ||
+            "No description available."}
       </Text>
 
       {/* Apply Button */}
       <TouchableOpacity
         className="bg-black rounded-lg py-3 items-center"
-        onPress={() => router.push("./apply")}
+        onPress={() => router.push(`/jobdescription/${item.id}`)}
       >
         <Text className="text-white text-base font-semibold">Apply Now</Text>
       </TouchableOpacity>
@@ -195,14 +256,12 @@ const Saved = () => {
         <View className="w-10" /> {/* Spacer */}
       </View>
 
-      {/* Search Bar with Icons */}
+      {/* Search Bar */}
       <View className="flex-row items-center bg-white rounded-2xl mx-5 mt-2.5 px-4 shadow-sm">
-        {/* 🔍 Search Icon (functional) */}
         <TouchableOpacity className="p-2">
           <Icon name="search" size={20} color="#888" />
         </TouchableOpacity>
 
-        {/* Search Input */}
         <TextInput
           className="flex-1 h-14 text-base"
           placeholder="Search jobs"
@@ -212,7 +271,6 @@ const Saved = () => {
           returnKeyType="search"
         />
 
-        {/* ❌ Clear or 🔲 Filter Icon */}
         {searchQuery ? (
           <TouchableOpacity className="p-2" onPress={clearSearch}>
             <Icon name="close" size={20} color="#888" />
@@ -232,6 +290,9 @@ const Saved = () => {
         <Text className="text-base font-bold text-black">
           {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"}{" "}
           Saved
+          {Object.values(activeFilters).some(Boolean) && (
+            <Text className="text-blue-500"> · Filters applied</Text>
+          )}
         </Text>
         {Object.values(activeFilters).some(Boolean) && (
           <TouchableOpacity onPress={resetFilters}>
@@ -242,12 +303,17 @@ const Saved = () => {
         )}
       </View>
 
-      {/* Jobs List or Empty State */}
-      {filteredJobs.length > 0 ? (
+      {/* Loading State */}
+      {isLoading ? (
+        <View className="flex-1 justify-center items-center mt-10">
+          <ActivityIndicator size="large" color="#000" />
+          <Text className="text-gray-500 mt-4">Loading saved jobs...</Text>
+        </View>
+      ) : filteredJobs.length > 0 ? (
         <FlatList
           data={filteredJobs}
           renderItem={renderJobCard}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => `saved-job-${item.id}-${index}`} // ✅ Fixed
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 20,
@@ -286,7 +352,6 @@ const Saved = () => {
           >
             <Text className="text-xl font-bold text-black mb-4">Filters</Text>
 
-            {/* Filter Options */}
             <View className="space-y-4">
               <TouchableOpacity
                 className={`flex-row items-center p-3 rounded-lg border ${
@@ -355,7 +420,6 @@ const Saved = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Buttons */}
             <View className="flex-row mt-6 space-x-3">
               <TouchableOpacity
                 className="flex-1 py-3 border border-gray-300 rounded-lg"

@@ -8,6 +8,7 @@ import {
   Image,
   TextInput,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
@@ -25,56 +26,59 @@ import { useJobs } from "../context/JobsContext";
 
 const Homepage = () => {
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
-  const [currentMode, setCurrentMode] = useState("internships"); // Filter mode
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-300)).current;
 
-  const { jobs, setJobs } = useJobs(); // Full job list
+  // ✅ Jobs from context
+  const { jobs, isLoading: jobsLoading, currentMode, changeMode } = useJobs();
+
   const { savedJobs, setSavedJobs } = useSavedJobs();
-
-  // ✅ Get name and profilePicUrl from context
   const { name: profileName, profilePicUrl } = useProfile();
-  const { token } = useAuth();
+  const { token } = useAuth;
 
-  // Filter jobs based on current mode
-  const filteredJobs = jobs.filter((job) => job.category === currentMode);
+  // 🖼️ Local displayed stack
+  const [displayedJobs, setDisplayedJobs] = useState([]);
 
-  // Animate sidebar in/out
+  // Sync displayedJobs when jobs change
+  useEffect(() => {
+    if (!jobsLoading && Array.isArray(jobs)) {
+      setDisplayedJobs([...jobs]);
+    }
+  }, [jobs, jobsLoading]);
+
+  // 🎞️ Animate side menu in/out
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: isMenuVisible ? 0 : -300,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [isMenuVisible]);
+  }, [isMenuVisible]); // ← Only runs on toggle
 
-  // ✅ Handle swipe: save on right, skip on left
+  // ✅ Handle swipe
   const handleSwipe = (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
-    if (direction === "right" && jobToSave) {
-      if (!savedJobs.find((saved) => saved.id === jobId)) {
-        setSavedJobs((prev) => [
-          ...prev,
-          { ...jobToSave, savedAt: new Date().toISOString(), status: "saved" },
-        ]);
-      }
+    if (
+      direction === "right" &&
+      jobToSave &&
+      !savedJobs.some((s) => s.id === jobId)
+    ) {
+      setSavedJobs((prev) => [
+        ...prev,
+        { ...jobToSave, savedAt: new Date().toISOString() },
+      ]);
     }
 
-    // Remove from current jobs list
-    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+    setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
   };
 
   const handleBookmarkPress = () => {
     router.push("/Homepage/saved");
   };
 
-  const handleMenuToggle = () => setMenuVisible(!isMenuVisible);
+  const handleMenuToggle = () => setMenuVisible((prev) => !prev);
   const handleMenuClose = () => setMenuVisible(false);
-
-  const handleModeChange = (mode) => {
-    setCurrentMode(mode);
-  };
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -98,7 +102,6 @@ const Homepage = () => {
       <View className="flex-1 px-5">
         {/* User Info */}
         <View className="flex-row items-center mt-5">
-          {/* ✅ Profile Picture from Backend */}
           <TouchableOpacity
             className="w-14 h-14 justify-center items-center rounded-full overflow-hidden"
             onPress={() => router.push("../profile_page/MainProfile")}
@@ -114,7 +117,6 @@ const Homepage = () => {
                 resizeMode="cover"
               />
             ) : (
-              // Fallback: Show initials or default avatar
               <View
                 style={{
                   width: 48,
@@ -162,20 +164,27 @@ const Homepage = () => {
 
         {/* Job Stack */}
         <View className="flex-1 justify-center items-center mt-5 mb-5">
-          {filteredJobs.length === 0 ? (
+          {jobsLoading ? (
             <View className="flex-1 justify-center items-center pb-12">
-              <Icon name="alert-circle-outline" size={60} color="#ccc" />
-              <Text className="text-xl font-bold text-gray-500 mt-5 text-center capitalize">
-                No {currentMode} found
+              <ActivityIndicator size="large" color="#000" />
+              <Text className="text-lg text-gray-600 mt-4">
+                Loading {currentMode}...
+              </Text>
+            </View>
+          ) : displayedJobs.length === 0 ? (
+            <View className="flex-1 justify-center items-center pb-12">
+              <Icon name="refresh" size={60} color="#ccc" />
+              <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
+                No more jobs
               </Text>
               <Text className="text-base text-gray-400 mt-2.5 text-center">
-                Try another category or check back later
+                Check back later for new opportunities
               </Text>
             </View>
           ) : (
-            filteredJobs.map((job, index) => {
-              const isTop = index === filteredJobs.length - 1;
-              const cardStackIndex = filteredJobs.length - 1 - index;
+            displayedJobs.map((job, index) => {
+              const isTop = index === displayedJobs.length - 1;
+              const cardStackIndex = displayedJobs.length - 1 - index;
               return (
                 <JobCard
                   key={job.id}
@@ -222,11 +231,11 @@ const Homepage = () => {
         isVisible={isMenuVisible}
         onClose={handleMenuClose}
         slideAnim={slideAnim}
-        onModeChange={handleModeChange}
+        onModeChange={changeMode}
         currentMode={currentMode}
       />
 
-      {/* Profile Setup Modal - Show only if needed */}
+      {/* Profile Setup Modal */}
       {isProfileModalVisible && (
         <ProfileSetupModal
           isVisible={isProfileModalVisible}

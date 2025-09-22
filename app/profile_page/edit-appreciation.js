@@ -6,43 +6,55 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditAppreciation() {
   const router = useRouter();
-  const { section = "Appreciation" } = useLocalSearchParams();
+  const { refreshProfile } = useProfile(); // To update context after save
 
   const [items, setItems] = useState([
     {
-      id: "1",
+      id: "new-1",
       title: "",
-      description: "",
+      issuer: "",
       date: "",
+      description: "",
+      url: "",
     },
   ]);
 
-  // Load saved data
+  // Load appreciation data from backend
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const savedItems = data[section] || [];
+    loadAppreciation();
+  }, []);
 
-        if (savedItems.length > 0) {
-          setItems(savedItems);
-        }
-      } catch (e) {
-        console.error("Failed to load appreciation", e);
+  const loadAppreciation = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      const serverData = response.user.appreciation || [];
+
+      if (serverData.length > 0) {
+        const mapped = serverData.map((item) => ({
+          id: item._id || Date.now().toString(),
+          title: item.title || "",
+          issuer: item.issuer || "",
+          date: item.date?.split("T")[0] || "", // Format: YYYY-MM-DD
+          description: item.description || "",
+          url: item.url || "",
+        }));
+        setItems(mapped);
       }
-    };
-    load();
-  }, [section]);
+    } catch (error) {
+      console.error("Failed to load appreciation:", error);
+      Alert.alert("Error", error.message || "Could not load appreciation.");
+      // Keep empty form
+    }
+  };
 
   const updateItem = (id, field, value) => {
     setItems((prev) =>
@@ -52,29 +64,59 @@ export default function EditAppreciation() {
 
   const addNewItem = () => {
     const newItem = {
-      id: Date.now().toString(),
+      id: `new-${Date.now()}`,
       title: "",
-      description: "",
+      issuer: "",
       date: "",
+      description: "",
+      url: "",
     };
     setItems((prev) => [newItem, ...prev]);
   };
 
   const removeItem = (id) => {
-    if (items.length <= 1) return;
+    if (items.length <= 1) {
+      Alert.alert("At least one entry required");
+      return;
+    }
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleSave = async () => {
-    try {
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
-      data[section] = items;
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error("Failed to save appreciation", e);
+    // Validate required fields
+    const hasEmptyRequired = items.some((item) => !item.title.trim());
+    if (hasEmptyRequired) {
+      Alert.alert("Missing Info", "Please fill in the title for all entries.");
+      return;
     }
-    router.back();
+
+    try {
+      // Format for backend
+      const formatted = items.map(({ id, ...item }) => ({
+        title: item.title.trim(),
+        issuer: item.issuer?.trim() || "",
+        date: item.date || "",
+        description: item.description?.trim() || "",
+        url: item.url?.trim() || "",
+      }));
+
+      // Save to backend
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ appreciation: formatted }),
+      });
+
+      // ✅ Refresh context so UI updates
+      await refreshProfile();
+
+      // ✅ Show success
+      Alert.alert("Success", "Appreciation updated!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
+    }
   };
 
   return (
@@ -96,7 +138,10 @@ export default function EditAppreciation() {
       </View>
 
       {/* Scrollable Form */}
-      <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView
+        className="flex-1 px-6"
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
         {items.map((item) => (
           <View
             key={item.id}
@@ -114,49 +159,97 @@ export default function EditAppreciation() {
 
             {/* Title Input */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-1">Title</Text>
+              <Text className="text-sm font-medium text-gray-700 mb-1">
+                Title *
+              </Text>
               <TextInput
                 value={item.title}
                 onChangeText={(text) => updateItem(item.id, "title", text)}
                 placeholder="e.g. Team Excellence Award 2023"
                 className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-base font-sans"
+                maxLength={100}
+              />
+            </View>
+
+            {/* Issuer Input */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-gray-700 mb-1">
+                Issuer
+              </Text>
+              <TextInput
+                value={item.issuer}
+                onChangeText={(text) => updateItem(item.id, "issuer", text)}
+                placeholder="e.g. Young Scientists"
+                className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-base font-sans"
+                maxLength={80}
+              />
+            </View>
+
+            {/* Date Input */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-gray-700 mb-1">
+                Date
+              </Text>
+              <TextInput
+                value={item.date}
+                onChangeText={(text) => updateItem(item.id, "date", text)}
+                placeholder="YYYY-MM-DD"
+                className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-base font-sans"
+                keyboardType="number-pad"
               />
             </View>
 
             {/* Description Input */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-1">Description</Text>
+              <Text className="text-sm font-medium text-gray-700 mb-1">
+                Description
+              </Text>
               <TextInput
                 value={item.description}
-                onChangeText={(text) => updateItem(item.id, "description", text)}
+                onChangeText={(text) =>
+                  updateItem(item.id, "description", text)
+                }
                 placeholder="Received for outstanding contribution..."
                 multiline
                 textAlignVertical="top"
                 className="border border-gray-300 rounded-lg px-3 py-2 bg-white min-h-[80] text-base font-sans"
+                maxLength={300}
               />
             </View>
 
-            {/* Date Input */}
+            {/* URL Input */}
             <View className="mb-0">
-              <Text className="text-sm font-medium text-gray-700 mb-1">Date</Text>
+              <Text className="text-sm font-medium text-gray-700 mb-1">
+                Certificate URL
+              </Text>
               <TextInput
-                value={item.date}
-                onChangeText={(text) => updateItem(item.id, "date", text)}
-                placeholder="e.g. Jan 2023"
+                value={item.url}
+                onChangeText={(text) => updateItem(item.id, "url", text)}
+                placeholder="https://example.com/cert"
                 className="border border-gray-300 rounded-lg px-3 py-2 bg-white text-base font-sans"
+                keyboardType="url"
+                autoCapitalize="none"
               />
             </View>
           </View>
         ))}
 
         {/* Add New Button */}
-        <TouchableOpacity className="bg-gray-100 py-3 px-4 rounded-lg self-start" onPress={addNewItem}>
-          <Text className="text-black font-medium text-sm">+ Add Another Appreciation</Text>
+        <TouchableOpacity
+          className="bg-gray-100 py-3 px-4 rounded-lg self-start"
+          onPress={addNewItem}
+        >
+          <Text className="text-black font-medium text-sm">
+            + Add Another Appreciation
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Save Button */}
-      <TouchableOpacity className="w-80 h-12 bg-black rounded-full justify-center items-center self-center mb-6 mt-2" onPress={handleSave}>
+      <TouchableOpacity
+        className="w-80 h-12 bg-black rounded-full justify-center items-center self-center mb-6 mt-2"
+        onPress={handleSave}
+      >
         <Text className="text-white font-semibold text-base">Save</Text>
       </TouchableOpacity>
     </View>

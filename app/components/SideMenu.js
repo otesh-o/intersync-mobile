@@ -28,7 +28,11 @@ const SideMenu = ({
 
   const menuItems = [
     { id: "internships", icon: "wifi-outline", title: "Internships" },
-    { id: "volunteer", icon: "heart-outline", title: "Volunteer" },
+    {
+      id: "Extracurriculars",
+      icon: "heart-outline",
+      title: "Extracurriculars",
+    },
     { id: "scholarships", icon: "school-outline", title: "Scholarships" }, // ✅ Added
   ];
 

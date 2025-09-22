@@ -7,38 +7,77 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Alert,
+  Switch,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const PROFILE_DATA_KEY = "userProfileData";
+import { api } from "../services/api";
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditEducation() {
   const router = useRouter();
-  const { section = "Education" } = useLocalSearchParams();
+  const { refreshProfile } = useProfile(); // To reload after save
 
   const [entries, setEntries] = useState([
-    { id: "1", degree: "", school: "", startDate: "", endDate: "" },
+    {
+      id: "new-1",
+      institution: "",
+      degree: "",
+      fieldOfStudy: "",
+      startDate: "",
+      endDate: "",
+      current: false,
+      grade: "",
+      location: "",
+      description: "",
+    },
   ]);
 
-  // Load saved data
+  // Load education from backend
   useEffect(() => {
-    const load = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const savedEntries = data[section] || [];
+    loadEducation();
+  }, []);
 
-        if (savedEntries.length > 0) {
-          setEntries(savedEntries);
-        }
-      } catch (e) {
-        console.error("Failed to load education", e);
+  const loadEducation = async () => {
+    try {
+      const response = await api("/v1/user/profile");
+      const serverData = response.user.education || [];
+
+      if (serverData.length > 0) {
+        const mapped = serverData.map((item) => ({
+          id: item._id || Date.now().toString(),
+          institution: item.institution || "",
+          degree: item.degree || "",
+          fieldOfStudy: item.fieldOfStudy || "",
+          startDate: item.startDate?.split("T")[0] || "", // "2024-01-01"
+          endDate: item.endDate?.split("T")[0] || "",
+          current: !!item.current,
+          grade: item.grade || "",
+          location: item.location || "",
+          description: item.description || "",
+        }));
+        setEntries(mapped);
       }
-    };
-    load();
-  }, [section]);
+    } catch (error) {
+      console.error("Failed to load education:", error);
+      Alert.alert("Error", error.message || "Could not load education.");
+      setEntries([
+        {
+          id: "new-1",
+          institution: "",
+          degree: "",
+          fieldOfStudy: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          grade: "",
+          location: "",
+          description: "",
+        },
+      ]);
+    }
+  };
 
   const updateEntry = (id, field, value) => {
     setEntries((prev) =>
@@ -48,30 +87,91 @@ export default function EditEducation() {
 
   const addNewEntry = () => {
     const newEntry = {
-      id: Date.now().toString(),
+      id: `new-${Date.now()}`,
+      institution: "",
       degree: "",
-      school: "",
+      fieldOfStudy: "",
       startDate: "",
       endDate: "",
+      current: false,
+      grade: "",
+      location: "",
+      description: "",
     };
     setEntries((prev) => [newEntry, ...prev]);
   };
 
   const removeEntry = (id) => {
-    if (entries.length <= 1) return;
+    if (entries.length <= 1) {
+      Alert.alert("At least one entry required");
+      return;
+    }
     setEntries((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleSave = async () => {
-    try {
-      const saved = await AsyncStorage.getItem(PROFILE_DATA_KEY);
-      const data = saved ? JSON.parse(saved) : {};
-      data[section] = entries;
-      await AsyncStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error("Failed to save education", e);
+    // Validate required fields
+    const hasEmptyRequired = entries.some(
+      (item) => !item.institution.trim() || !item.degree.trim()
+    );
+
+    if (hasEmptyRequired) {
+      Alert.alert(
+        "Missing Info",
+        "Please fill in institution and degree for all entries."
+      );
+      return;
     }
-    router.back();
+
+    try {
+      // Format for backend
+      const formatted = entries.map(({ id, ...item }) => {
+        // Clean dates
+        let startDate = null;
+        if (item.startDate && !item.current) {
+          const d = new Date(item.startDate);
+          if (!isNaN(d)) startDate = d.toISOString().split("T")[0];
+        }
+
+        let endDate = null;
+        if (item.current) {
+          // Still studying
+          item.endDate = null;
+        } else if (item.endDate) {
+          const d = new Date(item.endDate);
+          if (!isNaN(d)) endDate = d.toISOString().split("T")[0];
+        }
+
+        return {
+          institution: item.institution.trim(),
+          degree: item.degree.trim(),
+          fieldOfStudy: item.fieldOfStudy.trim(),
+          startDate: startDate,
+          endDate: endDate,
+          current: !!item.current,
+          grade: item.grade.trim(),
+          location: item.location.trim(),
+          description: item.description.trim(),
+        };
+      });
+
+      // Save to backend
+      await api("/v1/user/profile", {
+        method: "PUT",
+        body: JSON.stringify({ education: formatted }),
+      });
+
+      // ✅ Refresh context
+      await refreshProfile();
+
+      // ✅ Show success
+      Alert.alert("Success", "Education updated!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error("Save failed:", error);
+      Alert.alert("Save Failed", error.message || "Could not save. Try again.");
+    }
   };
 
   return (
@@ -103,6 +203,19 @@ export default function EditEducation() {
               </TouchableOpacity>
             )}
 
+            {/* Institution */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Institution</Text>
+              <TextInput
+                style={styles.input}
+                value={item.institution}
+                onChangeText={(text) =>
+                  updateEntry(item.id, "institution", text)
+                }
+                placeholder="e.g. Stanford University"
+              />
+            </View>
+
             {/* Degree */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Degree</Text>
@@ -110,18 +223,20 @@ export default function EditEducation() {
                 style={styles.input}
                 value={item.degree}
                 onChangeText={(text) => updateEntry(item.id, "degree", text)}
-                placeholder="e.g. PhD in HCI"
+                placeholder="e.g. BSc, PhD"
               />
             </View>
 
-            {/* School */}
+            {/* Field of Study */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>School</Text>
+              <Text style={styles.label}>Field of Study</Text>
               <TextInput
                 style={styles.input}
-                value={item.school}
-                onChangeText={(text) => updateEntry(item.id, "school", text)}
-                placeholder="e.g. Stanford University"
+                value={item.fieldOfStudy}
+                onChangeText={(text) =>
+                  updateEntry(item.id, "fieldOfStudy", text)
+                }
+                placeholder="e.g. Computer Science"
               />
             </View>
 
@@ -132,18 +247,71 @@ export default function EditEducation() {
                 style={styles.input}
                 value={item.startDate}
                 onChangeText={(text) => updateEntry(item.id, "startDate", text)}
-                placeholder="e.g. Sep 2010"
+                placeholder="YYYY-MM-DD"
+                keyboardType="number-pad"
               />
             </View>
 
-            {/* End Date */}
+            {/* Currently Studying? */}
+            <View style={styles.checkboxRow}>
+              <Text style={styles.label}>Currently Studying?</Text>
+              <Switch
+                value={item.current}
+                onValueChange={(val) => {
+                  updateEntry(item.id, "current", val);
+                  if (val) updateEntry(item.id, "endDate", ""); // Clear end date
+                }}
+              />
+            </View>
+
+            {/* End Date (only if not current) */}
+            {!item.current && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>End Date</Text>
+                <TextInput
+                  style={styles.input}
+                  value={item.endDate}
+                  onChangeText={(text) => updateEntry(item.id, "endDate", text)}
+                  placeholder="YYYY-MM-DD"
+                  keyboardType="number-pad"
+                />
+              </View>
+            )}
+
+            {/* Grade */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>End Date</Text>
+              <Text style={styles.label}>Grade / GPA</Text>
               <TextInput
                 style={styles.input}
-                value={item.endDate}
-                onChangeText={(text) => updateEntry(item.id, "endDate", text)}
-                placeholder="e.g. Jun 2014"
+                value={item.grade}
+                onChangeText={(text) => updateEntry(item.id, "grade", text)}
+                placeholder="e.g. 3.8 GPA"
+              />
+            </View>
+
+            {/* Location */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Location</Text>
+              <TextInput
+                style={styles.input}
+                value={item.location}
+                onChangeText={(text) => updateEntry(item.id, "location", text)}
+                placeholder="e.g. Oxford, UK"
+              />
+            </View>
+
+            {/* Description */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={item.description}
+                onChangeText={(text) =>
+                  updateEntry(item.id, "description", text)
+                }
+                placeholder="Relevant coursework, achievements..."
+                multiline
+                textAlignVertical="top"
               />
             </View>
           </View>
@@ -243,6 +411,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#fff",
     fontFamily: "Roboto",
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: "top",
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   addButton: {
     marginTop: 16,
