@@ -197,7 +197,6 @@ export default function SetNewPasswordScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* SUCCESS MODAL */}
       <Modal visible={showSuccessModal} transparent animationType="fade">
         <View
           className="flex-1 items-center justify-center"
@@ -244,7 +243,7 @@ export default function SetNewPasswordScreen() {
 
             
             <Text
-              className="text-black mb-6" // ✅ Black text
+              className="text-black mb-6" 
               style={{
                 width: 200, 
                 height: 69, 

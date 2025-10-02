@@ -12,7 +12,6 @@ import {
   SafeAreaView,
 } from "react-native";
 
-// Firebase Auth
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../services/firebaseConfig";
 
@@ -203,7 +202,6 @@ export default function ForgotPasswordEmail() {
           </TouchableOpacity>
         </View>
 
-        {/* Custom Modal */}
         <CustomModal />
       </SafeAreaView>
     </KeyboardAvoidingView>

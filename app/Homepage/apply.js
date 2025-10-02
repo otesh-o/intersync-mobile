@@ -15,25 +15,19 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
 import * as DocumentPicker from "expo-document-picker";
-
-// ✅ Import context
 import { useJobs } from "../context/JobsContext";
 
-// ✅ Icons
+
 const uploadIcon = require("../../assets/images/upload.png");
 const checkIcon = require("../../assets/images/check.png");
-
 const Apply = () => {
   const [fullName, setFullName] = useState("");
   const [portfolio, setPortfolio] = useState("");
   const [resume, setResume] = useState(null);
   const [message, setMessage] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
   const router = useRouter();
   const params = useLocalSearchParams();
-
-  // ✅ Access removeJob
   const { removeJob } = useJobs();
 
   const pickDocument = async () => {
@@ -42,19 +36,23 @@ const Apply = () => {
         type: "*/*",
         copyToCacheDirectory: true,
       });
-      if (!result.canceled) setResume(result.assets[0]);
+      if (!result.canceled) {
+        setResume(result.assets[0]);
+      }
     } catch (err) {
       Alert.alert("Error", "Failed to pick document.");
     }
   };
 
   const handleSubmit = () => {
-    if (!fullName || !resume) {
-      Alert.alert("Missing Info", "Please enter name and upload resume.");
+    if (!fullName.trim() || !resume) {
+      Alert.alert(
+        "Missing Info",
+        "Please enter your name and upload a resume."
+      );
       return;
     }
 
-    // ✅ Remove job from global list
     if (params.jobId) {
       removeJob(parseInt(params.jobId, 10));
     }
@@ -67,15 +65,27 @@ const Apply = () => {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[50px] pb-4">
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
         <TouchableOpacity onPress={() => router.back()} className="p-1">
-          <Icon name="chevron-back" size={28} color="#000" />
+          <Icon
+            name="chevron-back"
+            size={28}
+            color="#000"
+            style={{
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: 1,
+              textShadowColor: "#000",
+            }}
+          />
         </TouchableOpacity>
-        <Text className="text-xl font-bold">APPLICATION</Text>
-        <View className="w-10" />
+
+        <Text className="text-2xl font-bold flex-1 text-center">
+          APPLICATION
+        </Text>
+
+        <View className="w-16" />
       </View>
 
-      {/* Form */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1 justify-between"
@@ -85,18 +95,24 @@ const Apply = () => {
             placeholder="Enter Full Name"
             value={fullName}
             onChangeText={setFullName}
+            placeholderTextColor="#6B7280"
             className="bg-white px-4 rounded-xl mb-4 border border-slate-300 w-full"
             style={{ height: 58 }}
-          />
-          <TextInput
-            placeholder="Portfolio Link"
-            value={portfolio}
-            onChangeText={setPortfolio}
-            className="bg-white px-4 rounded-xl mb-4 border border-slate-300 w-full"
-            style={{ height: 58 }}
+            autoCapitalize="words"
+            autoComplete="name"
           />
 
-          {/* Upload */}
+          <TextInput
+            placeholder="Portfolio Link (optional)"
+            value={portfolio}
+            onChangeText={setPortfolio}
+            placeholderTextColor="#6B7280"
+            className="bg-white px-4 rounded-xl mb-4 border border-slate-300 w-full"
+            style={{ height: 58 }}
+            keyboardType="url"
+            autoCapitalize="none"
+          />
+
           <TouchableOpacity
             className="bg-white px-4 rounded-xl mb-4 border border-slate-300 w-full h-44 justify-center items-center"
             onPress={pickDocument}
@@ -111,7 +127,7 @@ const Apply = () => {
                   Uploaded Resume
                 </Text>
                 <Text
-                  className="text-base text-black font-medium text-center"
+                  className="text-base text-black font-medium text-center max-w-60"
                   numberOfLines={2}
                 >
                   {resume.name}
@@ -133,17 +149,20 @@ const Apply = () => {
             )}
           </TouchableOpacity>
 
+          
           <TextInput
-            placeholder="Write something"
+            placeholder="Tell us why you'd be a great fit for this role..."
             value={message}
             onChangeText={setMessage}
+            placeholderTextColor="#6B7280"
             className="bg-white px-4 rounded-xl mb-6 border border-slate-300 w-full h-44"
             textAlignVertical="top"
             multiline
+            style={{ paddingTop: 12 }}
           />
         </View>
 
-        {/* Submit */}
+        
         <View className="px-5 pb-8">
           <TouchableOpacity
             className="bg-black py-4 rounded-2xl items-center"
@@ -156,7 +175,7 @@ const Apply = () => {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Success Modal */}
+      
       <Modal transparent visible={modalVisible} animationType="fade">
         <View className="flex-1 bg-black/50 justify-center items-center p-6">
           <View className="bg-white w-full max-w-md rounded-2xl p-6 items-center shadow-xl">
@@ -175,7 +194,7 @@ const Apply = () => {
               className="bg-slate-800 py-3 px-8 rounded-xl"
               onPress={() => {
                 setModalVisible(false);
-                router.replace("/Homepage/homepage"); // ✅ Correct route
+                router.replace("/Homepage/homepage"); 
               }}
             >
               <Text className="text-white text-base font-semibold">

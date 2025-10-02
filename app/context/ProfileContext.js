@@ -1,19 +1,15 @@
 // app/context/ProfileContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "../services/api";
-
-// 🔗 Your backend base URL (NO TRAILING SPACES!)
-const BASE_URL = "https://internsync-production.up.railway.app"; // ✅ Fixed
-
-// 🔐 Firebase
 import { auth } from "../services/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const BASE_URL = "https://internsync-production.up.railway.app";
 const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
   const [name, setName] = useState("");
-  const [role, setRole] = useState(""); // aboutMe
+  const [role, setRole] = useState("");
   const [profilePicUrl, setProfilePicUrl] = useState(null);
   const [workExperience, setWorkExperience] = useState([]);
   const [education, setEducation] = useState([]);
@@ -25,18 +21,17 @@ export const ProfileProvider = ({ children }) => {
 
   const loadProfile = async () => {
     console.log("🔍 Starting profile load...");
-    setIsLoading(true); // Ensure loading state is on
+    setIsLoading(true);
 
     try {
       const response = await api("/v1/user/profile");
-      console.log("✅ Raw API Response:", JSON.stringify(response, null, 2));
+      console.log("Raw API Response:", JSON.stringify(response, null, 2));
 
       const user = response.user;
       if (!user) {
         throw new Error("No user object in response");
       }
 
-      // ✅ Build full profile picture URL
       let fullProfilePicUrl = null;
       if (user.profilePicture) {
         const cleanPath = user.profilePicture.startsWith("/")
@@ -45,7 +40,6 @@ export const ProfileProvider = ({ children }) => {
         fullProfilePicUrl = `${BASE_URL}${cleanPath}`;
       }
 
-      // ✅ Build full resume URL
       let fullResumeUrl = null;
       if (user.resumeUrl) {
         const cleanPath = user.resumeUrl.startsWith("/")
@@ -62,7 +56,6 @@ export const ProfileProvider = ({ children }) => {
         resumeUrl: fullResumeUrl,
       });
 
-      // ✅ Update all state with real data
       setName(user.firstName || "");
       setRole(user.aboutMe || "Looking for opportunities");
       setProfilePicUrl(fullProfilePicUrl);
@@ -73,7 +66,6 @@ export const ProfileProvider = ({ children }) => {
       setAppreciation(user.appreciation || []);
       setResumeUrl(fullResumeUrl);
 
-      // ✅ SUCCESS LOG: Everything is now synced
       console.log("🎉 FULL PROFILE LOADED AND SYNCED TO CONTEXT", {
         name: user.firstName,
         role: user.aboutMe,
@@ -82,9 +74,8 @@ export const ProfileProvider = ({ children }) => {
         workExpCount: user.workExperience?.length,
       });
     } catch (error) {
-      console.warn("❌ Failed to load profile:", error.message);
+      console.warn("Failed to load profile:", error.message);
 
-      // 🧾 Log full error details
       if (error.response) {
         console.error("Backend Error Response:", error.response);
       } else if (error.request) {
@@ -93,7 +84,6 @@ export const ProfileProvider = ({ children }) => {
         console.error("Unexpected Error:", error);
       }
 
-      // Still allow app to run with fallbacks
       setName("");
       setRole("Looking for opportunities");
       setProfilePicUrl(null);
@@ -109,28 +99,25 @@ export const ProfileProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    let isActive = true; // Prevent state update if unmounted
+    let isActive = true; 
 
-    // 🔁 Listen for Firebase auth state changes
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (isActive) {
         if (user) {
           console.log("🔐 Firebase user detected:", user.uid);
 
           try {
-            // Get fresh token
-            const idToken = await user.getIdToken(true); // Force refresh
+            const idToken = await user.getIdToken(true); 
             await AsyncStorage.setItem("authToken", idToken);
             console.log("🔑 Auth token saved");
 
-            // ✅ Now load profile
             await loadProfile();
           } catch (tokenError) {
             console.error("Failed to get or save ID token:", tokenError);
             setIsLoading(false);
           }
         } else {
-          // No user → reset profile
+          
           console.log("👤 No logged-in user found at startup");
           setName("");
           setRole("Looking for opportunities");
@@ -146,7 +133,7 @@ export const ProfileProvider = ({ children }) => {
       }
     });
 
-    // Cleanup listener on unmount
+    
     return () => {
       isActive = false;
     };
@@ -177,7 +164,7 @@ export const ProfileProvider = ({ children }) => {
         resumeUrl,
         setResumeUrl,
 
-        // Meta
+        
         isLoading,
         refreshProfile: loadProfile,
       }}

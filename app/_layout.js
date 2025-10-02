@@ -5,20 +5,17 @@ import { useFonts } from "expo-font";
 import { View, ActivityIndicator, Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
-
-// 👇 Import all providers
 import { ProfileProvider } from "./context/ProfileContext";
 import { SignupProvider } from "./context/SignupContext";
 import { AuthProvider } from "./context/AuthContext";
 import { SavedJobsProvider } from "./context/SavedJobsContext";
 import { JobsProvider } from "./context/JobsContext";
 
-// ✅ Font imports
-const ClaireNewsBold = require("../assets/fonts/ClaireNewsBold.otf");
 
+
+const ClaireNewsBold = require("../assets/fonts/ClaireNewsBold.otf");
 const Raleway_400Regular = require("../node_modules/@expo-google-fonts/raleway/400Regular/Raleway_400Regular.ttf");
 const Raleway_500Medium = require("../node_modules/@expo-google-fonts/raleway/500Medium/Raleway_500Medium.ttf");
-
 const Roboto_400Regular = require("../node_modules/@expo-google-fonts/roboto/400Regular/Roboto_400Regular.ttf");
 const Roboto_700Bold = require("../node_modules/@expo-google-fonts/roboto/700Bold/Roboto_700Bold.ttf");
 
@@ -31,7 +28,8 @@ export default function RootLayout() {
     "Raleway-Medium": Raleway_500Medium,
   });
 
-  // 🔍 Debug: App starting
+
+
   console.log("🏗️ RootLayout: App starting...");
 
   if (!fontsLoaded) {
@@ -71,7 +69,7 @@ export default function RootLayout() {
   );
 }
 
-// Separate component to avoid re-rendering providers
+
 function AppContent() {
   console.log("🎨 AppContent rendered — Stack mounted");
 

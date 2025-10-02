@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { router } from "expo-router";
 
-const backIcon = require("../../assets/images/back.png"); // make sure this path is correct
+const backIcon = require("../../assets/images/back.png"); 
 
 export default function Plan() {
   const [selectedPlan, setSelectedPlan] = useState("");
@@ -22,7 +22,7 @@ export default function Plan() {
 
   return (
     <View className="flex-1 bg-black px-6 pt-14">
-      {/* Back Icon */}
+      
       <TouchableOpacity onPress={() => router.back()}>
         <Image
           source={backIcon}
@@ -31,7 +31,7 @@ export default function Plan() {
         />
       </TouchableOpacity>
 
-      {/* Heading */}
+      
       <Text
         style={{
           fontFamily: "Roboto",
@@ -87,7 +87,7 @@ export default function Plan() {
         );
       })}
 
-      {/* Continue Button */}
+      
       <TouchableOpacity
         onPress={() => {
           if (selectedPlan)

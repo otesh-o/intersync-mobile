@@ -2,15 +2,14 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 
-// Import images
+
 const logo = require("../../assets/images/logo.png");
-const googleIcon = require("../../assets/images/google.png"); // Ensure this exists
-const emailIcon = require("../../assets/images/email.png"); // Ensure this exists
+const googleIcon = require("../../assets/images/google.png");
+const emailIcon = require("../../assets/images/email.png"); 
 
 export default function Login() {
   return (
     <View className="flex-1 bg-black px-6 justify-center items-center">
-      {/* Logo & Welcome Text */}
       <View className="items-center mb-8">
         <Image
           source={logo}
@@ -34,9 +33,7 @@ export default function Login() {
         </Text>
       </View>
 
-      {/* Action Buttons */}
       <View className="w-full items-center mt-6">
-        {/* Login with Email */}
         <TouchableOpacity
           className="flex-row bg-white w-[304px] h-[53px] rounded-full justify-center items-center mb-4"
           onPress={() => router.push("/login_flow/with_email")}
@@ -68,7 +65,6 @@ export default function Login() {
         </TouchableOpacity>
       </View>
 
-      {/* Sign Up Link */}
       <TouchableOpacity
         className="mt-10"
         onPress={() => router.push("/create_account/email")}

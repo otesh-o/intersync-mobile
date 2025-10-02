@@ -6,21 +6,22 @@ import {
   RefreshControl,
   StatusBar,
   Text,
-  TouchableOpacity, // ✅ Added here
+  TouchableOpacity,
   Alert,
   Image,
 } from "react-native";
 import { router } from "expo-router";
-
 import { api } from "../services/api";
 import NotificationCard from "../components/NotificationCard";
+import Icon from "react-native-vector-icons/Ionicons";
+
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedOnce = useRef(false);
 
-  // Fetch notifications from backend
+  
   const fetchNotifications = async () => {
     if (!hasFetchedOnce.current) setIsRefreshing(true);
     setIsRefreshing(true);
@@ -48,20 +49,16 @@ const Notifications = () => {
       });
 
       if (!hasFetchedOnce.current) {
-        // Optionally show alert on initial load failure
-        // Alert.alert("Error", "Could not load notifications.");
       }
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  // Mark all as read
   const handleReadAll = async () => {
     try {
       await api("/v1/notifications/read-all", { method: "POST" });
       console.log("[Notifications] Marked all as read");
-      // Optionally refetch to update any "unread" indicators
       fetchNotifications();
     } catch (error) {
       console.error("Failed to mark all as read:", error);
@@ -69,7 +66,6 @@ const Notifications = () => {
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -85,34 +81,31 @@ const Notifications = () => {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-2.5">
-        {/* Back Button - Left */}
-        <TouchableOpacity onPress={() => router.back()}>
-          <Image
-            source={require("../../assets/images/back.png")}
-            className="w-6 h-6"
-            resizeMode="contain"
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Icon
+            name="chevron-back"
+            size={28}
+            color="#000"
+            style={{
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: 1,
+              textShadowColor: "#000",
+            }}
           />
         </TouchableOpacity>
 
-        {/* Title - Center */}
-        <Text className="text-2xl font-bold tracking-wider flex-1 text-center">
-          NOTIFICATIONS
+        <Text className="text-2xl font-bold flex-1 text-center">
+          NOTIFICATION
         </Text>
 
-        {/* Read All - Right */}
         <TouchableOpacity onPress={handleReadAll}>
-          <Text
-            className="text-sm font-semibold"
-            style={{ color: "#2563EB" }} // blue-600
-          >
+          <Text className="text-sm font-semibold" style={{ color: "#2563EB" }}>
             Read All
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Count */}
       <View className="px-5 mt-4 mb-2">
         <Text className="text-base font-bold text-black">
           {notifications.length} notification
@@ -120,14 +113,13 @@ const Notifications = () => {
         </Text>
       </View>
 
-      {/* List */}
       <FlatList
         data={notifications}
         keyExtractor={(item) => item._id || item.id}
         renderItem={({ item }) => (
           <NotificationCard
             item={item}
-            onRemove={() => fetchNotifications()} // Refetch after delete
+            onRemove={() => fetchNotifications()}
           />
         )}
         showsVerticalScrollIndicator={false}

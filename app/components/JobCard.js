@@ -11,20 +11,16 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
-
-// Services
 import { api } from "../services/api";
-import { useSavedJobs } from "../context/SavedJobsContext"; // We'll use refreshSavedJobs now
+import { useSavedJobs } from "../context/SavedJobsContext"; 
 
 const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const { width } = useWindowDimensions();
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-
-  // ✅ We no longer use addSavedJob — we use refreshSavedJobs
   const { refreshSavedJobs } = useSavedJobs();
 
-  // Rotate card slightly during drag
+  
   const rotate = translateX.interpolate({
     inputRange: [-width / 2, 0, width / 2],
     outputRange: ["-12deg", "0deg", "12deg"],
@@ -55,26 +51,19 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
         }).start(async () => {
           if (direction === "right") {
             try {
-              // ✅ Save to backend
+              //  Save to backend
               await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
 
-              // ✅ Instead of adding to context — REFRESH from backend
-              // This ensures no duplicates and always reflects server truth
+              
               refreshSavedJobs();
 
-              // Optional: Add small delay before removing card for smoother UX
-              // setTimeout(() => {
-              //   onSwipe(job.id, direction);
-              // }, 300);
             } catch (error) {
               console.error("Failed to bookmark:", error);
             }
           }
-          // Always remove from current jobs list
           onSwipe(job.id, direction);
         });
       } else {
-        // Reset position if not swiped far enough
         Animated.parallel([
           Animated.spring(translateX, {
             toValue: 0,
@@ -104,13 +93,12 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
         try {
           await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
 
-          // ✅ Refresh saved jobs from backend — no more duplicates!
           refreshSavedJobs();
         } catch (error) {
           console.error("Bookmark failed:", error);
         }
       }
-      onSwipe(job.id, direction); // Remove from current list regardless
+      onSwipe(job.id, direction);
     });
   };
 
@@ -144,24 +132,33 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
       >
         {/* Job Image */}
         <View className="relative">
+          {/* Banner  */}
           <Image
             source={{
               uri:
-                job.image ||
-                (typeof job.company === "object" && job.company?.logoUrl) ||
-                "https://via.placeholder.com/300x200?text=Program",
+                job.bannerImageUrl?.trim() ||
+                (typeof job.company === "object" &&
+                  job.company?.logoUrl?.trim()) ||
+                "https://i.pinimg.com/736x/b3/c8/31/b3c831ecff785cbb3e3ec2969ec16f7e.jpg",
             }}
             className="w-full h-40 rounded-t-2xl"
             resizeMode="cover"
           />
 
-          {/* Decorative icon badge */}
-          <View className="absolute -bottom-6 left-5 bg-white p-2 rounded-2xl shadow-md">
-            <View
-              className="w-12 h-12 bg-slate-600 rounded-xl overflow-hidden"
-              style={{ transform: [{ rotate: "45deg" }] }}
-            >
-              <View className="absolute top-[23px] -left-2.5 w-[70px] h-1 bg-white" />
+          <View className="absolute -bottom-6 left-5 bg-white p-1.5 rounded-2xl shadow-md border border-slate-200">
+           
+            <View className="w-12 h-12 overflow-hidden rounded-lg">
+              <Image
+                source={{
+                  uri:
+                    (typeof job.company === "object" &&
+                      job.company?.logoUrl?.trim()) ||
+                    job.bannerImageUrl?.trim() ||
+                    "https://i.pinimg.com/736x/ff/87/1b/ff871ba4673c93bc12b092c8ae23e546.jpg",
+                }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
             </View>
           </View>
         </View>
@@ -247,23 +244,19 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           </Text>
         </View>
 
-        {/* Action Buttons - Floating & Highly Defined */}
+        {/* Action Buttons*/}
         {isTop && (
           <View className="flex-row justify-evenly pt-2 pb-5">
-            {/* ❌ Skip - Floating Red */}
+            {/* ❌ icon*/}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-red-400 border-0"
               style={{
-                // Strong shadow for iOS
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.4,
                 shadowRadius: 8,
-                // Strong elevation for Android
                 elevation: 12,
-                // Optional: slight lift from parent
                 transform: [{ translateY: 4 }],
-                // Crisp edge
                 borderWidth: 1.5,
                 borderColor: "rgba(255, 255, 255, 0.3)",
               }}
@@ -272,7 +265,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ➕ View Details - Floating Dark */}
+            {/* ➕ icon*/}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-slate-800"
               style={{
@@ -295,7 +288,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="add" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ✅ Bookmark - Floating Green */}
+            {/* bookmark */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full"
               style={{

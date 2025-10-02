@@ -8,20 +8,20 @@ import {
   ScrollView,
   Image,
   Alert,
+  ToastAndroid,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { api } from "../services/api";
-import { useProfile } from "../context/ProfileContext"; // ← To update context
-import ToastAndroid from "react-native"; // ✅ Correct import
+import { useProfile } from "../context/ProfileContext";
 
 export default function EditAboutMe() {
   const router = useRouter();
-  const { setRole } = useProfile(); // ✅ Update ProfileContext
+  const { setRole } = useProfile(); 
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load aboutMe from backend on mount
+  
   useEffect(() => {
     loadAboutMe();
   }, []);
@@ -39,10 +39,9 @@ export default function EditAboutMe() {
     }
   };
 
-  // ✅ Show success toast (Android) or alert (iOS)
   const showSuccess = (message) => {
     if (ToastAndroid && typeof ToastAndroid.show === "function") {
-      // ✅ Use constants correctly
+      
       ToastAndroid.show(message, ToastAndroid.SHORT);
     } else {
       Alert.alert("Success", message, [{ text: "OK", style: "cancel" }]);
@@ -70,13 +69,13 @@ export default function EditAboutMe() {
         body: JSON.stringify({ aboutMe: text.trim() }),
       });
 
-      // ✅ Update context so ProfileCard updates instantly
+      
       setRole(text.trim());
 
-      // ✅ Show success
+      
       showSuccess("About Me updated!");
 
-      // ✅ Go back
+      
       router.back();
     } catch (error) {
       console.error("Save failed:", error);

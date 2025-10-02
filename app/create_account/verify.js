@@ -13,31 +13,20 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// ✅ Add this import at the top
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// Context
 import { SignupContext } from "../context/SignupContext";
-
-// Firebase
 import { auth } from "../services/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-
-// Assets
 import backIcon from "../../assets/images/back.png";
 
-// 🔧 Fixed: No trailing spaces in URL
-const BASE_URL = "https://internsync-production.up.railway.app"; // ← Corrected
 
-// OTP Config
+const BASE_URL = "https://internsync-production.up.railway.app"; 
 const CODE_LENGTH = 6;
 
 export default function VerifyScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams();
 
-  // Get password from context (never passed in route)
   const { signupData } = useContext(SignupContext);
   const password = signupData.password;
 
@@ -45,7 +34,6 @@ export default function VerifyScreen() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     title: "",
@@ -66,7 +54,6 @@ export default function VerifyScreen() {
     setLoading(true);
 
     try {
-      // Step 1: Verify OTP with backend
       const otpRes = await fetch(`${BASE_URL}/v1/auth/signup/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,7 +66,6 @@ export default function VerifyScreen() {
         console.log("✅ OTP verified — creating Firebase account...");
 
         try {
-          // Step 2: Create Firebase account
           const userCredential = await createUserWithEmailAndPassword(
             auth,
             email,
@@ -89,17 +75,15 @@ export default function VerifyScreen() {
 
           console.log("🎉 Firebase account created:", uid);
 
-          // Step 3: Get ID token (proves identity)
           const idToken = await userCredential.user.getIdToken();
 
-          // Step 4: Finalize with backend using Bearer token
           const finalizeRes = await fetch(
             `${BASE_URL}/v1/auth/signup/finalize`,
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`, // Backend verifies this
+                Authorization: `Bearer ${idToken}`, 
               },
               body: JSON.stringify({ uid, email: firebaseEmail }),
             }
@@ -110,13 +94,10 @@ export default function VerifyScreen() {
           if (finalizeRes.status === 201 && finalizeData.success) {
             console.log("✅ Account finalized in database:", finalizeData.user);
 
-            // ✅ ONLY AFTER SUCCESS: Save token for future API calls
             await AsyncStorage.setItem("authToken", idToken);
 
-            // Navigate to next screen
             router.replace("/create_account/interest");
           } else {
-            // Handle known errors from finalize
             if (finalizeRes.status === 409) {
               showModal({
                 title: "🔐 Already Exists",
@@ -149,7 +130,7 @@ export default function VerifyScreen() {
               });
             } else {
               showModal({
-                title: "❌ Save Failed",
+                title: "Save Failed",
                 message:
                   finalizeData.message ||
                   "Could not save your account. Please try again.",
@@ -161,10 +142,9 @@ export default function VerifyScreen() {
         } catch (authError) {
           console.error("Firebase creation error:", authError);
 
-          // Handle Firebase-specific errors
           if (authError.code === "auth/email-already-in-use") {
             showModal({
-              title: "📧 Already Used",
+              title: "Already Used",
               message: "An account with this email already exists.",
               actionText: "Sign In",
               onAction: () => {
@@ -174,7 +154,7 @@ export default function VerifyScreen() {
             });
           } else if (authError.code === "auth/invalid-email") {
             showModal({
-              title: "✉️ Invalid Email",
+              title: "Invalid Email",
               message: "The email address is not valid.",
               actionText: "Fix Email",
               onAction: () => {
@@ -184,14 +164,14 @@ export default function VerifyScreen() {
             });
           } else if (authError.code === "auth/network-request-failed") {
             showModal({
-              title: "📶 No Connection",
+              title: "No Connection",
               message: "Check your internet connection and try again.",
               actionText: "Retry",
               onAction: handleVerify,
             });
           } else {
             showModal({
-              title: "⚠️ Setup Failed",
+              title: "Setup Failed",
               message: "Could not create your account. Please try again.",
               actionText: "OK",
               onAction: () => setModalVisible(false),
@@ -199,14 +179,14 @@ export default function VerifyScreen() {
           }
         }
       } else {
-        let title = "🔢 Invalid Code";
+        let title = "Invalid Code";
         let actionText = "Try Again";
 
         if (otpRes.status === 429) {
-          title = "⏳ Too Many Attempts";
+          title = "Too Many Attempts";
           actionText = "OK";
         } else if (otpRes.status === 409) {
-          title = "🔐 Account Exists";
+          title = "Account Exists";
           actionText = "Go to Login";
         }
 
@@ -227,7 +207,7 @@ export default function VerifyScreen() {
 
       if (error.message.includes("Network request failed")) {
         showModal({
-          title: "📶 No Connection",
+          title: "No Connection",
           message: "We couldn’t reach the server. Are you online?",
           actionText: "Retry",
           onAction: handleVerify,
@@ -237,14 +217,14 @@ export default function VerifyScreen() {
         error.message.includes("unexpected token")
       ) {
         showModal({
-          title: "🛠️ Server Error",
+          title: "Server Error",
           message: "Received an invalid response. The service may be down.",
           actionText: "Try Again",
           onAction: handleVerify,
         });
       } else {
         showModal({
-          title: "⚠️ Unexpected Error",
+          title: "Unexpected Error",
           message: "Something went wrong. Please try again.",
           actionText: "OK",
           onAction: () => setModalVisible(false),
@@ -284,7 +264,7 @@ export default function VerifyScreen() {
 
       if (res.ok) {
         showModal({
-          title: "📨 Code Resent",
+          title: "Code Resent",
           message: data.message || "A new code has been sent to your email.",
           actionText: "Got it",
           onAction: () => setModalVisible(false),
@@ -292,7 +272,7 @@ export default function VerifyScreen() {
       } else {
         if (res.status === 409) {
           showModal({
-            title: "🔐 Account Exists",
+            title: "Account Exists",
             message:
               data.message || "An account with this email already exists.",
             actionText: "Sign In",
@@ -303,7 +283,7 @@ export default function VerifyScreen() {
           });
         } else if (res.status === 429) {
           showModal({
-            title: "⏳ Wait a Moment",
+            title: "Wait a Moment",
             message:
               data.message ||
               "Too many requests. Please wait before resending.",
@@ -312,7 +292,7 @@ export default function VerifyScreen() {
           });
         } else {
           showModal({
-            title: "📧 Send Failed",
+            title: "Send Failed",
             message: data.message || "Could not resend the code.",
             actionText: "OK",
             onAction: () => setModalVisible(false),
@@ -372,7 +352,6 @@ export default function VerifyScreen() {
               className="flex-1 w-full px-5"
               style={{ maxWidth: 420, alignSelf: "center" }}
             >
-              {/* Header */}
               <View className="flex-row items-center justify-between mt-2">
                 <TouchableOpacity onPress={() => router.back()}>
                   <Image source={backIcon} className="w-6 h-6" />
@@ -386,12 +365,11 @@ export default function VerifyScreen() {
                 <View className="w-6" />
               </View>
 
-              {/* Title */}
               <Text className="mt-10 text-2xl font-semibold text-gray-800">
                 Enter Verification Code
               </Text>
 
-              {/* Hidden Input */}
+             
               <TextInput
                 ref={inputRef}
                 value={code}
@@ -405,7 +383,6 @@ export default function VerifyScreen() {
                 className="opacity-0 h-0 w-0"
               />
 
-              {/* OTP Boxes */}
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => inputRef.current?.focus()}
@@ -414,14 +391,12 @@ export default function VerifyScreen() {
                 {boxes}
               </TouchableOpacity>
 
-              {/* Info */}
               <View className="mt-6">
                 <Text className="text-gray-500 text-center">
                   We’ve sent a 6-digit code to{"\n"}
                   <Text className="font-medium">{email}</Text>
                 </Text>
 
-                {/* Resend Link */}
                 <View className="mt-4">
                   <Text className="text-gray-500 text-center">
                     Didn’t receive a code?{" "}
@@ -434,7 +409,6 @@ export default function VerifyScreen() {
                   </Text>
                 </View>
 
-                {/* Edit Email */}
                 <View className="mt-2">
                   <Text className="text-gray-500 text-center">
                     Change email?{" "}
@@ -450,7 +424,6 @@ export default function VerifyScreen() {
 
               <View className="flex-1" />
 
-              {/* Verify Button */}
               <TouchableOpacity
                 onPress={handleVerify}
                 disabled={!isValid || loading}
@@ -476,7 +449,6 @@ export default function VerifyScreen() {
           </View>
         </TouchableWithoutFeedback>
 
-        {/* Custom Modal */}
         <CustomModal />
       </KeyboardAvoidingView>
     </SafeAreaView>

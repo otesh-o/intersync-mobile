@@ -94,7 +94,6 @@ export default function BirthdayScreen() {
               className="flex-1 w-full px-5"
               style={{ maxWidth: 420, alignSelf: "center" }}
             >
-              {/* Header (X close) */}
               <View className="flex-row items-center justify-between mt-2">
                 <TouchableOpacity onPress={() => router.back()}>
                   <Text className="text-3xl text-gray-700">{'\u00D7'}</Text>
@@ -102,12 +101,10 @@ export default function BirthdayScreen() {
                 <View className="w-6" />
               </View>
 
-              {/* Title */}
               <Text className="mt-10 text-3xl font-semibold text-gray-800">
                 My birthday is
               </Text>
 
-              {/* Hidden input */}
               <TextInput
                 ref={inputRef}
                 value={digits}
@@ -118,7 +115,6 @@ export default function BirthdayScreen() {
                 className="opacity-0 h-0 w-0"
               />
 
-              {/* CENTERED DOB BOXES */}
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => inputRef.current?.focus()}
@@ -133,7 +129,6 @@ export default function BirthdayScreen() {
 
               <View className="flex-1" />
 
-              {/* Continue button */}
               <TouchableOpacity
                 onPress={handleContinue}
                 disabled={!isValid}

@@ -10,11 +10,9 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-
-// Services
 import { api } from "../services/api";
 
-// Format how long ago job was saved
+
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "";
   const now = new Date();
@@ -31,8 +29,8 @@ const formatTimeAgo = (dateString) => {
 const SavedJobCard = ({ item, onRemove }) => {
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
 
-  // Extract job details from `item.jobId` or fallback to root fields
-  const job = item.jobId || item; // Fallback: some versions store full job here
+  
+  const job = item.jobId || item; 
   const company = typeof job.company === "object" ? job.company : {};
 
   const companyName = company.name || "Unknown Company";
@@ -48,11 +46,11 @@ const SavedJobCard = ({ item, onRemove }) => {
     : "Learn more about this organization and their mission.";
   const logoUrl = (company.logoUrl || "").trim();
 
-  // Handle delete request
+  
   const handleDelete = async () => {
     const jobId = job._id || job.id;
     if (!jobId) {
-      console.warn("❌ Missing job ID for deletion");
+      console.warn("Missing job ID for deletion");
       return;
     }
 
@@ -79,9 +77,8 @@ const SavedJobCard = ({ item, onRemove }) => {
           })
         }
       >
-        {/* Logo + Content Row */}
+        {/* Logo */}
         <View className="flex-row">
-          {/* Logo Box (40x40) */}
           <View className="w-10 h-10 bg-slate-200 rounded-lg mr-4 justify-center items-center overflow-hidden">
             {logoUrl ? (
               <Image
@@ -104,7 +101,7 @@ const SavedJobCard = ({ item, onRemove }) => {
               {companyName}
             </Text>
 
-            {/* Job Title */}
+            {/* Title */}
             <Text
               className="text-base font-bold text-black mt-1"
               numberOfLines={2}
@@ -112,7 +109,7 @@ const SavedJobCard = ({ item, onRemove }) => {
               {title}
             </Text>
 
-            {/* About Us Snippet */}
+            {/* About Us  */}
             <Text
               className="text-sm text-gray-600 mt-1.5 leading-tight"
               numberOfLines={2}
@@ -120,7 +117,6 @@ const SavedJobCard = ({ item, onRemove }) => {
               {aboutUsSnippet}
             </Text>
 
-            {/* Details Row */}
             <View className="flex-row flex-wrap items-center gap-y-1 mt-2">
               <View className="flex-row items-center mr-3">
                 <Icon name="location-outline" size={12} color="#666" />
@@ -140,7 +136,7 @@ const SavedJobCard = ({ item, onRemove }) => {
               </View>
             </View>
 
-            {/* Time Ago */}
+            {/* Time  */}
             <Text className="text-xs text-gray-500 mt-2">
               {formatTimeAgo(item.createdAt || item.savedAt)}
             </Text>

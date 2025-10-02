@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Added
+import AsyncStorage from "@react-native-async-storage/async-storage"; 
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -22,7 +22,6 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [secureEntry, setSecureEntry] = useState(true);
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     title: "",
@@ -47,7 +46,6 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      // Step 1: Sign in with Firebase
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -57,20 +55,17 @@ export default function LoginScreen() {
 
       console.log("🔐 Logged in:", user.uid);
 
-      // Step 2: Get ID token (proves identity)
       const idToken = await user.getIdToken();
 
-      // Step 3: Save token for future API calls
       await AsyncStorage.setItem("authToken", idToken);
 
-      // Step 4: Go to homepage
-      router.replace("../Homepage/homepage"); // Use replace to prevent back-button to login
+      router.replace("../Homepage/homepage"); 
     } catch (error) {
       console.error("Login error:", error.code, error.message);
 
       let title, message, actionText, onAction;
 
-      // 🔒 Don't reveal whether email or password is wrong
+     
       if (
         error.code === "auth/user-not-found" ||
         error.code === "auth/wrong-password" ||
@@ -82,7 +77,7 @@ export default function LoginScreen() {
         actionText = "Try Again";
         onAction = () => setModalVisible(false);
       }
-      // 📧 Invalid email format
+
       else if (error.code === "auth/invalid-email") {
         title = "✉️ Invalid Email";
         message =
@@ -90,7 +85,7 @@ export default function LoginScreen() {
         actionText = "Got it";
         onAction = () => setModalVisible(false);
       }
-      // 📵 No internet
+      
       else if (error.code === "auth/network-request-failed") {
         title = "📶 No Connection";
         message = "Oof, we can’t reach the server. Are you online?";
@@ -100,7 +95,7 @@ export default function LoginScreen() {
           setTimeout(handleLogin, 500);
         };
       }
-      // 🔒 Too many attempts
+      
       else if (error.code === "auth/too-many-requests") {
         title = "⏱️ Locked Temporarily";
         message = "Too many attempts. Reset your password or try again later.";
@@ -110,7 +105,7 @@ export default function LoginScreen() {
           router.push("/login_flow/forgot_password/email");
         };
       }
-      // ⚙️ Server/internal issues
+      
       else if (
         error.code === "auth/internal-error" ||
         error.code === "auth/unknown-error"
@@ -120,7 +115,7 @@ export default function LoginScreen() {
         actionText = "Dismiss";
         onAction = () => setModalVisible(false);
       }
-      // 🤷 Everything else
+      
       else {
         title = "⚠️ Couldn’t Log In";
         message = "Something unexpected happened. Please try again.";
@@ -134,7 +129,7 @@ export default function LoginScreen() {
     }
   };
 
-  // Custom Modal Component
+  
   const CustomModal = () => {
     if (!modalVisible) return null;
 
@@ -167,7 +162,6 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView className="flex-1">
-        {/* Main Container */}
         <View className="flex-1 px-6 pt-24">
           {/* Header */}
           <View className="flex-row items-center justify-center mb-10 relative">
@@ -198,9 +192,7 @@ export default function LoginScreen() {
             Welcome Back!
           </Text>
 
-          {/* Form */}
           <View className="gap-4 mb-6">
-            {/* Email */}
             <TextInput
               placeholder="Email"
               placeholderTextColor="#888"
@@ -232,7 +224,6 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Forgot Password */}
             <TouchableOpacity
               onPress={() => router.push("/login_flow/forgot_password/email")}
               className="self-start mt-2"
@@ -243,7 +234,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Login Button */}
           <TouchableOpacity
             onPress={handleLogin}
             disabled={!isValid || loading}
@@ -258,13 +248,11 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Trouble Logging In */}
           <Text className="text-center mt-6 text-gray-600 font-bold text-sm">
             Trouble logging in?
           </Text>
         </View>
 
-        {/* Custom Modal */}
         <CustomModal />
       </SafeAreaView>
     </KeyboardAvoidingView>

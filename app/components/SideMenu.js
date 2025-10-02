@@ -2,8 +2,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image, Animated } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-
-// Use Profile Context for live data
 import { useProfile } from "../context/ProfileContext";
 
 const SideMenu = ({
@@ -32,7 +30,6 @@ const SideMenu = ({
 
   return (
     <>
-      {/* Backdrop */}
       {isVisible && (
         <TouchableOpacity
           className="absolute inset-0 bg-black/50 z-[99]"
@@ -41,12 +38,10 @@ const SideMenu = ({
         />
       )}
 
-      {/* Main Menu */}
       <Animated.View
         className="absolute top-0 left-0 h-full w-[280px] bg-slate-800 z-[100] pt-[60px]"
         style={[{ transform: [{ translateX: slideAnim }] }]}
       >
-        {/* Header */}
         <View className="flex-row items-center px-5 pb-5 mb-5">
           <TouchableOpacity className="mr-3 p-1" onPress={onClose}>
             <Icon name="chevron-back" size={24} color="#fff" />
@@ -56,9 +51,7 @@ const SideMenu = ({
           </Text>
         </View>
 
-        {/* User Info */}
         <View className="flex-row items-center px-5 pb-[30px] mb-[30px] border-b border-white/10">
-          {/* Only show image if profilePicUrl exists */}
           {profilePicUrl ? (
             <Image
               source={{ uri: profilePicUrl }}
@@ -66,7 +59,6 @@ const SideMenu = ({
               resizeMode="cover"
             />
           ) : (
-            // Optional: Render empty space to keep layout stable
             <View className="w-12 h-12 rounded-full mr-3" />
           )}
 
@@ -78,7 +70,6 @@ const SideMenu = ({
           </View>
         </View>
 
-        {/* Menu Items */}
         <View className="flex-1 bg-white rounded-t-2xl p-2.5">
           {menuItems.map((item) => {
             const isActive = currentMode === item.id;

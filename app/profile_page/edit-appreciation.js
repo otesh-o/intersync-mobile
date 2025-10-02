@@ -15,7 +15,7 @@ import { useProfile } from "../context/ProfileContext";
 
 export default function EditAppreciation() {
   const router = useRouter();
-  const { refreshProfile } = useProfile(); // To update context after save
+  const { refreshProfile } = useProfile(); 
 
   const [items, setItems] = useState([
     {
@@ -28,7 +28,6 @@ export default function EditAppreciation() {
     },
   ]);
 
-  // Load appreciation data from backend
   useEffect(() => {
     loadAppreciation();
   }, []);
@@ -43,7 +42,7 @@ export default function EditAppreciation() {
           id: item._id || Date.now().toString(),
           title: item.title || "",
           issuer: item.issuer || "",
-          date: item.date?.split("T")[0] || "", // Format: YYYY-MM-DD
+          date: item.date?.split("T")[0] || "", 
           description: item.description || "",
           url: item.url || "",
         }));
@@ -52,7 +51,7 @@ export default function EditAppreciation() {
     } catch (error) {
       console.error("Failed to load appreciation:", error);
       Alert.alert("Error", error.message || "Could not load appreciation.");
-      // Keep empty form
+      
     }
   };
 
@@ -83,7 +82,7 @@ export default function EditAppreciation() {
   };
 
   const handleSave = async () => {
-    // Validate required fields
+    
     const hasEmptyRequired = items.some((item) => !item.title.trim());
     if (hasEmptyRequired) {
       Alert.alert("Missing Info", "Please fill in the title for all entries.");
@@ -91,7 +90,6 @@ export default function EditAppreciation() {
     }
 
     try {
-      // Format for backend
       const formatted = items.map(({ id, ...item }) => ({
         title: item.title.trim(),
         issuer: item.issuer?.trim() || "",
@@ -100,16 +98,13 @@ export default function EditAppreciation() {
         url: item.url?.trim() || "",
       }));
 
-      // Save to backend
       await api("/v1/user/profile", {
         method: "PUT",
         body: JSON.stringify({ appreciation: formatted }),
       });
 
-      // ✅ Refresh context so UI updates
       await refreshProfile();
 
-      // ✅ Show success
       Alert.alert("Success", "Appreciation updated!", [
         { text: "OK", onPress: () => router.back() },
       ]);
@@ -134,7 +129,7 @@ export default function EditAppreciation() {
         <Text className="flex-1 text-xl font-bold text-center text-gray-900 uppercase font-sans">
           Appreciation
         </Text>
-        <View className="w-6" /> {/* Spacer */}
+        <View className="w-6" />
       </View>
 
       {/* Scrollable Form */}
@@ -147,7 +142,6 @@ export default function EditAppreciation() {
             key={item.id}
             className="bg-gray-50 p-4 rounded-lg mb-5 border border-gray-200 relative"
           >
-            {/* Remove Button */}
             {items.length > 1 && (
               <TouchableOpacity
                 className="absolute top-3 right-3 w-6 h-6 bg-red-500 rounded-full justify-center items-center z-10"
@@ -157,7 +151,6 @@ export default function EditAppreciation() {
               </TouchableOpacity>
             )}
 
-            {/* Title Input */}
             <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-1">
                 Title *
@@ -171,7 +164,6 @@ export default function EditAppreciation() {
               />
             </View>
 
-            {/* Issuer Input */}
             <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-1">
                 Issuer
@@ -185,7 +177,6 @@ export default function EditAppreciation() {
               />
             </View>
 
-            {/* Date Input */}
             <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-1">
                 Date
@@ -199,7 +190,6 @@ export default function EditAppreciation() {
               />
             </View>
 
-            {/* Description Input */}
             <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-1">
                 Description
@@ -217,7 +207,6 @@ export default function EditAppreciation() {
               />
             </View>
 
-            {/* URL Input */}
             <View className="mb-0">
               <Text className="text-sm font-medium text-gray-700 mb-1">
                 Certificate URL
@@ -234,7 +223,6 @@ export default function EditAppreciation() {
           </View>
         ))}
 
-        {/* Add New Button */}
         <TouchableOpacity
           className="bg-gray-100 py-3 px-4 rounded-lg self-start"
           onPress={addNewItem}
@@ -245,7 +233,6 @@ export default function EditAppreciation() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Save Button */}
       <TouchableOpacity
         className="w-80 h-12 bg-black rounded-full justify-center items-center self-center mb-6 mt-2"
         onPress={handleSave}

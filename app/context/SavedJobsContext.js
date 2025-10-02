@@ -8,7 +8,7 @@ export const SavedJobsProvider = ({ children }) => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved jobs from backend
+  // Load saved jobs
   const loadSavedJobs = async () => {
     console.log("🔍 Loading saved jobs from backend...");
     try {
@@ -20,12 +20,12 @@ export const SavedJobsProvider = ({ children }) => {
 
       const serverJobs = response.data || [];
 
-      // Map to internal format and deduplicate by jobId
+      
       const idSet = new Set();
       const mapped = [];
 
       for (const item of serverJobs) {
-        // ✅ SAFETY: Try both jobId and id
+        
         const jobId = item.jobId || item.id;
 
         if (!jobId) {
@@ -57,20 +57,19 @@ export const SavedJobsProvider = ({ children }) => {
           image: item.image || "https://via.placeholder.com/300",
           savedAt: item.createdAt
             ? new Date(item.createdAt).toISOString()
-            : new Date().toISOString(), // ✅ Normalize date
+            : new Date().toISOString(), 
         });
       }
 
       setSavedJobs(mapped);
     } catch (error) {
-      console.warn("❌ Failed to load saved jobs:", error.message);
+      console.warn("Failed to load saved jobs:", error.message);
       setSavedJobs([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ We keep addSavedJob for flexibility, but JobCard no longer uses it
   const addSavedJob = (job) => {
     setSavedJobs((prev) => {
       if (prev.some((j) => j.id === job.id)) {
@@ -81,7 +80,6 @@ export const SavedJobsProvider = ({ children }) => {
     });
   };
 
-  // Remove a job + delete from backend
   const removeSavedJob = async (jobId) => {
     try {
       await api(`/v1/bookmark/job/${jobId}`, {
@@ -94,7 +92,6 @@ export const SavedJobsProvider = ({ children }) => {
     }
   };
 
-  // Expose refresh function
   const refreshSavedJobs = loadSavedJobs;
 
   useEffect(() => {
@@ -106,10 +103,10 @@ export const SavedJobsProvider = ({ children }) => {
       value={{
         savedJobs,
         setSavedJobs,
-        addSavedJob, // kept for other components if needed
+        addSavedJob, 
         removeSavedJob,
         isLoading,
-        refreshSavedJobs, // ✅ This is what JobCard now uses
+        refreshSavedJobs, 
       }}
     >
       {children}

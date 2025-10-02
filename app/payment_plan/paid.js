@@ -116,11 +116,10 @@ export default function PaymentSuccess() {
 
         <TouchableOpacity
           onPress={() => {
-            // 🔥 Fixed: Use correct path based on real file location
+            
             router.push({
-              pathname: "/Homepage/homepage", // Only if folder is literally named "Homepage"
-              // OR:
-              // pathname: "/homepage",       // If file is app/homepage.js
+              pathname: "/Homepage/homepage", 
+              
               params: { startTutorial: "true" },
             });
           }}

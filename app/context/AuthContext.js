@@ -6,7 +6,6 @@ import * as SecureStore from "expo-secure-store";
 
 const AuthContext = createContext(null);
 
-// Optional: Helper to store token securely
 const TOKEN_KEY = "auth-token";
 
 export const saveToken = async (token) => {
@@ -21,12 +20,10 @@ export const removeToken = async () => {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 };
 
-// Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On app start, check if token exists
   useEffect(() => {
     const loadToken = async () => {
       const savedToken = await getToken();

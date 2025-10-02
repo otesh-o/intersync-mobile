@@ -9,7 +9,7 @@ export const JobsProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("internships"); // Default mode
 
-  // Map mode to endpoint
+ 
   const getEndpoint = (mode) => {
     switch (mode) {
       case "internships":
@@ -19,7 +19,7 @@ export const JobsProvider = ({ children }) => {
       case "extracurriculars":
         return "/v1/job/extracurriculars";
       default:
-        return "/v1/job"; // All jobs
+        return "/v1/job";
     }
   };
 
@@ -33,7 +33,7 @@ export const JobsProvider = ({ children }) => {
 
       const response = await api(endpoint);
 
-      console.log("✅ Raw API Response:", JSON.stringify(response, null, 2));
+      console.log("Raw API Response:", JSON.stringify(response, null, 2));
 
       // Validate structure
       if (!response || !response.data) {
@@ -74,33 +74,30 @@ export const JobsProvider = ({ children }) => {
         stack: error.stack,
       });
 
-      // Still allow UI to show empty state
       setJobs([]);
 
-      // Optional: Alert user in production
-      // Alert.alert("Error", "Could not load jobs. Please check your connection.");
+    
     } finally {
       setIsLoading(false);
       console.log("🏁 Job loading complete. isLoading = false");
     }
   };
 
-  // 🔁 Change mode + reload jobs
   const changeMode = (mode) => {
     console.log(`🔄 Changing mode from '${currentMode}' to '${mode}'`);
     setCurrentMode(mode);
     loadJobs(mode);
   };
 
-  // 🔄 Manual refresh (e.g., pull-to-refresh)
+
   const refreshJobs = () => {
     console.log("🔁 Refreshing jobs for current mode:", currentMode);
     loadJobs(currentMode);
   };
 
-  // 🚀 Load on app start
+ 
   useEffect(() => {
-    console.log("📱 App started — initializing job load...");
+    console.log(" App started — initializing job load...");
     loadJobs();
   }, []);
 

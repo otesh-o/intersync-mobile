@@ -13,13 +13,10 @@ import {
 
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
-
 import { folderIcon, homeIcon, bookmarkIcon } from "../constants/appData";
-
 import SideMenu from "../components/SideMenu";
 import JobCard from "../components/JobCard";
 import ProfileSetupModal from "../components/ProfileSetupModal";
-
 import { useProfile } from "../context/ProfileContext";
 import { useAuth } from "../context/AuthContext";
 import { useSavedJobs } from "../context/SavedJobsContext";
@@ -29,34 +26,27 @@ const Homepage = () => {
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-300)).current;
-
-  // ✅ Jobs from context
   const { jobs, isLoading: jobsLoading, currentMode, changeMode } = useJobs();
-
   const { savedJobs, setSavedJobs } = useSavedJobs();
   const { name: profileName, profilePicUrl } = useProfile();
   const { token } = useAuth;
-
-  // 🖼️ Local displayed stack
   const [displayedJobs, setDisplayedJobs] = useState([]);
 
-  // Sync displayedJobs when jobs change
   useEffect(() => {
     if (!jobsLoading && Array.isArray(jobs)) {
       setDisplayedJobs([...jobs]);
     }
   }, [jobs, jobsLoading]);
 
-  // 🎞️ Animate side menu in/out
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: isMenuVisible ? 0 : -300,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [isMenuVisible]); // ← Only runs on toggle
+  }, [isMenuVisible]); 
 
-  // ✅ Handle swipe
+  
   const handleSwipe = (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
@@ -77,7 +67,13 @@ const Homepage = () => {
 
     const handlenotificationsPress = () => {
       router.push("/Homepage/notifications");
+    };  
+
+
+    const handleApplicationTrackerPress = () => {
+      router.push("/Homepage/ApplicationTracker");
     };
+
 
   const handleBookmarkPress = () => {
     router.push("/Homepage/saved");
@@ -90,7 +86,7 @@ const Homepage = () => {
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
+      
       <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-2.5">
         <TouchableOpacity className="p-1.5" onPress={handleMenuToggle}>
           <Icon name="menu" size={30} color="#000" />
@@ -104,9 +100,9 @@ const Homepage = () => {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Body */}
+      
       <View className="flex-1 px-5">
-        {/* User Info */}
+        
         <View className="flex-row items-center mt-5">
           <TouchableOpacity
             className="w-14 h-14 justify-center items-center rounded-full overflow-hidden"
@@ -149,13 +145,16 @@ const Homepage = () => {
             </Text>
           </View>
 
-          <TouchableOpacity className="relative w-10 h-10 justify-center items-center">
+          <TouchableOpacity
+            className="relative w-10 h-10 justify-center items-center"
+            onPress={handlenotificationsPress}
+          >
             <Icon name="notifications-outline" size={28} color="#000" />
             <View className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-[1.5px] border-slate-50" />
           </TouchableOpacity>
         </View>
 
-        {/* Search */}
+        
         <View className="flex-row items-center bg-slate-50 rounded-3xl mt-6 px-4 border border-gray-300">
           <Icon name="search" size={20} color="#888" />
           <TextInput
@@ -168,7 +167,7 @@ const Homepage = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Job Stack */}
+        
         <View className="flex-1 justify-center items-center mt-5 mb-5">
           {jobsLoading ? (
             <View className="flex-1 justify-center items-center pb-12">
@@ -212,11 +211,11 @@ const Homepage = () => {
         </View>
       </View>
 
-      {/* Bottom Navigation */}
+      
       <View className="flex-row justify-around items-center bg-white h-[75px] border-t border-slate-200 pb-2.5">
         <TouchableOpacity
           className="flex-1 items-center justify-center"
-          onPress={handlenotificationsPress}
+          onPress={handleApplicationTrackerPress}
         >
           <Image source={folderIcon} className="w-7 h-7" resizeMode="contain" />
         </TouchableOpacity>
@@ -237,7 +236,6 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Side Menu */}
       <SideMenu
         isVisible={isMenuVisible}
         onClose={handleMenuClose}
@@ -246,7 +244,6 @@ const Homepage = () => {
         currentMode={currentMode}
       />
 
-      {/* Profile Setup Modal */}
       {isProfileModalVisible && (
         <ProfileSetupModal
           isVisible={isProfileModalVisible}

@@ -15,15 +15,14 @@ import { useRouter } from "expo-router";
 export default function Creat() {
   const router = useRouter();
 
-  // Selected job type (only one)
-  const [jobType, setJobType] = useState("Remote"); // default
+  const [jobType, setJobType] = useState("Remote"); 
 
-  // List of locations (user can add)
+  
   const [locations, setLocations] = useState([]);
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [locationInput, setLocationInput] = useState("");
 
-  // Add location
+  
   const addLocation = () => {
     if (locationInput.trim()) {
       setLocations([...locations, locationInput.trim()]);
@@ -32,7 +31,7 @@ export default function Creat() {
     }
   };
 
-  // Remove location
+  
   const removeLocation = (loc) => {
     setLocations(locations.filter((l) => l !== loc));
   };
@@ -44,12 +43,12 @@ export default function Creat() {
         className="flex-1"
       >
         <ScrollView contentContainerClassName="px-6 py-8">
-          {/* Title */}
+          
           <Text className="text-2xl font-bold text-gray-900 pt-20 mb-8">
             What kind of jobs are you looking for?
           </Text>
 
-          {/* Job Type Selection */}
+          
           <Text className="text-base font-semibold text-gray-800 mb-4">
             What type of job fits you better?
           </Text>
@@ -65,7 +64,7 @@ export default function Creat() {
                     : "border-gray-200"
                 }`}
               >
-                {/* Radio Indicator */}
+                
                 <View
                   className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
                     jobType === type
@@ -90,7 +89,7 @@ export default function Creat() {
             ))}
           </View>
 
-          {/* Location Section */}
+          
           <Text className="text-base font-semibold text-gray-800 mb-4">
             Where do you wish to work?
           </Text>
@@ -131,7 +130,7 @@ export default function Creat() {
             </TouchableOpacity>
           )}
 
-          {/* Action Buttons */}
+          
           <View className="flex-row space-x-4">
             <TouchableOpacity
               className="flex-1 bg-gray-100 py-4 rounded-lg items-center"

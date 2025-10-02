@@ -1,24 +1,9 @@
-// ========================================================================
-// FILE: app/constants/appData.js
-//
-// PURPOSE:
-// This file centralizes all static data, mock data, and asset imports
-// for the application. Exporting this data from a single location makes
-// it easier to manage and import into various components without
-// cluttering them.
-// ========================================================================
-
-import { Dimensions } from 'react-native';
-
-// --- Asset Imports ---
-// Centralizing asset imports makes it easy to update paths if they change.
 export const arrowVector = require('../../assets/images/Vector.png');
 export const folderIcon = require('../../assets/images/foldericon.png');
 export const homeIcon = require('../../assets/images/homeicon.png');
 export const bookmarkIcon = require('../../assets/images/bookmark.png');
 
-// --- Mock Data ---
-// In a real application, this data would likely come from an API.
+
 export const JOBS_DATA = [
   { id: 1, title: 'Software Engineer', company: 'Linear', location: 'Jakarta, ID', salary: '$50 - $75 / Mo', image: 'https://images.unsplash.com/photo-1504253163759-c23fccaebb55?q=80&w=2070&auto=format&fit=crop' },
   { id: 2, title: 'Product Manager', company: 'Stripe', location: 'San Francisco, CA', salary: '$120 - $150 / k', image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1932&auto=format&fit=crop' },
@@ -28,14 +13,11 @@ export const JOBS_DATA = [
   { id: 6, title: 'Data Scientist', company: 'OpenAI', location: 'San Francisco, CA', salary: '$130 - $160 / k', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop' },
 ];
 
-// --- Static URLs ---
-// URLs for profile pictures, backgrounds, etc.
+
 export const PROFILE_PIC_URL = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1886&auto=format&fit=crop';
 export const CARD_BACKGROUND_URL = 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop';
 
-// --- Tutorial Steps Configuration ---
-// An array of objects defining each step of the user tutorial.
-// This includes text, positioning, and the component to highlight.
+
 export const TUTORIAL_STEPS = [
     { title: '👋 Hey There!', text: "Let's Personalize Your Journey.\nTap \"View Your Profile Here!\" To Update Your Details And Unlock A Tailored Experience.", modalPosition: { top: 180, alignSelf: 'center' }, spotlight: { top: 118, left: 18, width: 60, height: 60 }, highlightedComponent: { type: 'image', source: { uri: PROFILE_PIC_URL } } },
     { icon: 'menu-outline', title: 'Explore More', text: 'Discover Internship, Volunteer And Club Activity Opportunities.', modalPosition: { top: 75, left: 70 }, arrowStyle: { top: 1, left: -25, transform: [{ rotate: '180deg' }] }, spotlight: { top: 52, left: 18, width: 45, height: 45 }, highlightedComponent: { type: 'icon', name: 'menu', size: 30, color: '#000' } },

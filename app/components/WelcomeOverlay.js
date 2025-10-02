@@ -5,17 +5,14 @@ const WelcomeOverlay = ({ onQuickGuide, onSkip }) => {
   return (
     <View className="absolute inset-0 bg-black/75 z-10">
       <View className="flex-1 justify-around items-center px-5">
-        {/* Title near the top */}
         <Text className="text-3xl font-bold text-white text-center mt-20">
           Let{"'"}s get you ready!
         </Text>
 
-        {/* Subtitle in the middle */}
         <Text className="text-lg text-white text-center">
           Find Your Perfect Opportunity!
         </Text>
 
-        {/* Buttons at the bottom */}
         <View className="items-center w-full mb-10">
           <TouchableOpacity
             className="bg-black py-3 px-10 rounded-full mb-4"

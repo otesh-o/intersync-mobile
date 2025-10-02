@@ -1,4 +1,4 @@
-// app/Homepage/saved.js
+// app/Homepage/ApplicationTracker.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -7,106 +7,86 @@ import {
   StatusBar,
   Text,
   TextInput,
-  Alert,
   TouchableOpacity,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import { api } from "../services/api";
-import SavedJobCard from "../components/SavedJobCard";
+import ApplicationCard from "../components/ApplicationCard";
 
-const Saved = () => {
-  const [savedJobs, setSavedJobs] = useState([]);
+const ApplicationTracker = () => {
+  const [applications, setApplications] = useState([]);
+  const [filteredApplications, setFilteredApplications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredJobs, setFilteredJobs] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
   const hasFetchedOnce = useRef(false);
-
- 
-  const fetchSavedJobs = async () => {
-    if (!hasFetchedOnce.current) setIsLoading(true);
+  const fetchApplications = async () => {
+    if (!hasFetchedOnce.current) setIsRefreshing(true);
     setIsRefreshing(true);
 
     try {
-      console.log("[Saved] Fetching saved jobs from backend...");
-      const response = await api("/v1/bookmark/user");
+      console.log("[ApplicationTracker] Fetching from backend...");
+      const response = await api("/v1/application/user/applications");
 
-      if (!response?.data || !Array.isArray(response.data)) {
-        throw new Error("Invalid response format: expected array");
+      if (!response?.success || !Array.isArray(response.data)) {
+        throw new Error("Invalid response format or failed request");
       }
 
-      console.log("[Saved] Fetched jobs count:", response.data.length);
-      setSavedJobs(response.data);
+      console.log("[ApplicationTracker] Fetched count:", response.data.length);
+      setApplications(response.data);
       hasFetchedOnce.current = true;
     } catch (error) {
       const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "Unknown error occurred";
+        error.response?.data?.message || error.message || "Unknown error";
 
-      console.error("[Saved] Failed to fetch saved jobs:", {
+      console.error("[ApplicationTracker] Fetch failed:", {
         message: errorMsg,
         status: error.response?.status,
-        url: "/v1/bookmark/user",
+        url: "/v1/application/user/applications",
         timestamp: new Date().toISOString(),
       });
-
-      if (isRefreshing && !hasFetchedOnce.current) {
-        Alert.alert("Load Failed", "Could not load saved jobs. Please retry.");
-      }
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchSavedJobs();
+    fetchApplications();
   }, []);
 
   const handleRefresh = () => {
     if (isRefreshing) return;
-    fetchSavedJobs();
+    fetchApplications();
   };
 
   useEffect(() => {
-    let filtered = [...savedJobs];
+    let filtered = [...applications];
 
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          (item.jobTitle || item.title || "").toLowerCase().includes(lower) ||
-          (typeof item.company === "string"
-            ? item.company
-            : item.company?.name || ""
-          )
-            .toLowerCase()
-            .includes(lower) ||
-          (item.location || "").toLowerCase().includes(lower)
-      );
+      filtered = filtered.filter((app) => {
+        const jobTitle = (app.jobTitle || "").toLowerCase();
+        const companyName = (app.companyName || "").toLowerCase();
+        const applicantName = (app.applicantName || "").toLowerCase();
+
+        return (
+          jobTitle.includes(lower) ||
+          companyName.includes(lower) ||
+          applicantName.includes(lower)
+        );
+      });
     }
 
-    setFilteredJobs(filtered);
-  }, [searchQuery, savedJobs]);
-
-  if (isLoading && !isRefreshing) {
-    return (
-      <View className="flex-1 bg-slate-50 justify-center items-center">
-        <StatusBar barStyle="dark-content" />
-        <Text className="text-lg text-slate-600">Loading saved jobs...</Text>
-      </View>
-    );
-  }
+    setFilteredApplications(filtered);
+  }, [searchQuery, applications]);
 
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
+      
       <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
+        
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Icon
             name="chevron-back"
@@ -120,7 +100,9 @@ const Saved = () => {
           />
         </TouchableOpacity>
 
-        <Text className="text-2xl font-bold flex-1 text-center">SAVED</Text>
+        <Text className="text-2xl font-bold flex-1 text-center">
+          APPLICATION TRACKER
+        </Text>
 
         <View className="w-16" />
       </View>
@@ -129,7 +111,7 @@ const Saved = () => {
         <View className="flex-row items-center bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
           <TextInput
             className="flex-1 h-10 text-base ml-2"
-            placeholder="Search jobs"
+            placeholder="Search applications"
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -139,17 +121,15 @@ const Saved = () => {
 
       <View className="px-5 mt-4 mb-2">
         <Text className="text-base font-bold text-black">
-          {filteredJobs.length} job{filteredJobs.length !== 1 ? "s" : ""}{" "}
-          available
+          {filteredApplications.length} application
+          {filteredApplications.length !== 1 ? "s" : ""} tracked
         </Text>
       </View>
 
       <FlatList
-        data={filteredJobs}
-        keyExtractor={(item, index) => `${item._id || item.id || index}`}
-        renderItem={({ item }) => (
-          <SavedJobCard item={item} onRemove={() => fetchSavedJobs()} />
-        )}
+        data={filteredApplications}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => <ApplicationCard application={item} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
         refreshControl={
@@ -163,7 +143,7 @@ const Saved = () => {
         ListEmptyComponent={
           <View className="items-center mt-10">
             <Text className="text-slate-500 text-base">
-              {searchQuery ? "No matches found" : "No saved jobs yet"}
+              {searchQuery ? "No matches found" : "No applications yet"}
             </Text>
           </View>
         }
@@ -172,4 +152,4 @@ const Saved = () => {
   );
 };
 
-export default Saved;
+export default ApplicationTracker;

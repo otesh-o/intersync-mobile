@@ -22,7 +22,6 @@ export default function Agreement() {
         className="flex-1"
         style={{ maxWidth: 420, alignSelf: "center", width: "100%" }}
       >
-        {/* Header Row: Back Button + INTERNSYNC */}
         <View className="flex-row items-center justify-between w-full mb-10">
           <TouchableOpacity onPress={() => router.back()}>
             <Image
@@ -36,10 +35,9 @@ export default function Agreement() {
           >
             INTERNSYNC
           </Text>
-          <View className="w-6" /> {/* Spacer for alignment */}
+          <View className="w-6" />
         </View>
 
-        {/* Welcome Text */}
         <Text className="text-2xl font-bold text-gray-900 mb-2 text-left self-start">
           Welcome to Intern Sync
         </Text>
@@ -72,7 +70,7 @@ export default function Agreement() {
               ✓ No spamming.
             </Text>
             <Text className="text-sm text-gray-700">
-              Apply only to roles you're genuinely interested in.
+              Apply only to roles you&apos;uinely interested in.
             </Text>
           </View>
 

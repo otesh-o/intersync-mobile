@@ -1,5 +1,4 @@
 // app/components/NotificationCard.js
-import { router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -10,10 +9,8 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-
 import { api } from "../services/api";
 
-// Reuse time formatter
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "";
   const now = new Date();
@@ -30,14 +27,14 @@ const formatTimeAgo = (dateString) => {
 const NotificationCard = ({ item, onRemove }) => {
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
 
-  // Extract notification fields
+
   const title = item.title || "No Title";
   const description =
     item.description || item.body || "No description available.";
-  const logoUrl = (item.icon || item.logoUrl || "").trim(); // Use icon/logo field
+  const logoUrl = (item.icon || item.logoUrl || "").trim(); 
   const createdAt = item.createdAt || item.created_at || item.timestamp;
 
-  // Handle deletion
+  
   const handleDelete = async () => {
     const notificationId = item._id || item.id;
     if (!notificationId) {
@@ -62,13 +59,12 @@ const NotificationCard = ({ item, onRemove }) => {
       <TouchableOpacity
         className="bg-white border border-gray-300 rounded-lg p-3 mb-3"
         onPress={() => {
-          // Optional: navigate when tapping notification
-          // e.g., open detail page based on type
+        
           console.log("Tapped notification:", item);
         }}
       >
         <View className="flex-row">
-          {/* Logo Box (40x40) */}
+          
           <View className="w-10 h-10 bg-slate-200 rounded-lg mr-4 justify-center items-center overflow-hidden">
             {logoUrl ? (
               <Image
@@ -96,13 +92,12 @@ const NotificationCard = ({ item, onRemove }) => {
               {description}
             </Text>
 
-            {/* Time Ago */}
+            {/* Time */}
             <Text className="text-xs text-gray-500 mt-2">
               {formatTimeAgo(createdAt)}
             </Text>
           </View>
 
-          {/* Delete Text Button (Bottom Right Corner) */}
           <TouchableOpacity
             className="absolute right-2 bottom-2"
             onPress={() => setConfirmModalVisible(true)}

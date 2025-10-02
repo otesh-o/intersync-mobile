@@ -13,7 +13,6 @@ import {
   Keyboard,
 } from "react-native";
 
-// 👇 Updated import
 import { SignupContext } from "../context/SignupContext";
 
 const BASE_URL = "https://internsync-production.up.railway.app";
@@ -76,7 +75,6 @@ export default function EmailScreen() {
       }
 
       if (response.ok) {
-        // ✅ Store in SignupContext
         setSignupData({ email, password });
 
         router.push({
@@ -85,7 +83,7 @@ export default function EmailScreen() {
         });
       } else {
         showModal({
-          title: "📧 Verification Failed",
+          title: "Verification Failed",
           message:
             data.message || "Could not send OTP. Please check your email.",
           actionText: "Try Again",
@@ -97,15 +95,15 @@ export default function EmailScreen() {
       let title, message, onAction;
 
       if (error.message.includes("Network request failed")) {
-        title = "📶 No Connection";
+        title = "No Connection";
         message = "We couldn’t reach the server. Are you online?";
         onAction = sendOtp;
       } else if (error.message.includes("JSON Parse error")) {
-        title = "⚠️ Server Error";
+        title = "Server Error";
         message = "Received invalid response from server.";
         onAction = () => setModalVisible(false);
       } else {
-        title = "⚠️ Unexpected Error";
+        title = "Unexpected Error";
         message = "Something went wrong. Please try again.";
         onAction = () => setModalVisible(false);
       }
