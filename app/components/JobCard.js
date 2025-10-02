@@ -247,29 +247,68 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           </Text>
         </View>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Floating & Highly Defined */}
         {isTop && (
           <View className="flex-row justify-evenly pt-2 pb-5">
-            {/* ❌ Skip */}
+            {/* ❌ Skip - Floating Red */}
             <TouchableOpacity
-              className="w-14 h-14 justify-center items-center rounded-full bg-red-400 shadow-md"
+              className="w-14 h-14 justify-center items-center rounded-full bg-red-400 border-0"
+              style={{
+                // Strong shadow for iOS
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.4,
+                shadowRadius: 8,
+                // Strong elevation for Android
+                elevation: 12,
+                // Optional: slight lift from parent
+                transform: [{ translateY: 4 }],
+                // Crisp edge
+                borderWidth: 1.5,
+                borderColor: "rgba(255, 255, 255, 0.3)",
+              }}
               onPress={() => handleButtonPress("left")}
             >
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ➕ View Details */}
+            {/* ➕ View Details - Floating Dark */}
             <TouchableOpacity
-              className="w-14 h-14 justify-center items-center rounded-full bg-slate-800 shadow-md"
-              onPress={() => router.push(`/jobdescription/${job.id}`)}
+              className="w-14 h-14 justify-center items-center rounded-full bg-slate-800"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 7 },
+                shadowOpacity: 0.45,
+                shadowRadius: 10,
+                elevation: 14,
+                transform: [{ translateY: 4 }],
+                borderWidth: 1.5,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+              }}
+              onPress={() =>
+                router.push({
+                  pathname: "/Homepage/jobdescription",
+                  params: { id: job.id },
+                })
+              }
             >
               <Icon name="add" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ✅ Bookmark */}
+            {/* ✅ Bookmark - Floating Green */}
             <TouchableOpacity
-              className="w-14 h-14 justify-center items-center rounded-full shadow-md"
-              style={{ backgroundColor: "#22C55E" }}
+              className="w-14 h-14 justify-center items-center rounded-full"
+              style={{
+                backgroundColor: "#22C55E",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.4,
+                shadowRadius: 9,
+                elevation: 13,
+                transform: [{ translateY: 4 }],
+                borderWidth: 1.5,
+                borderColor: "rgba(255, 255, 255, 0.3)",
+              }}
               onPress={() => handleButtonPress("right")}
             >
               <Icon name="bookmark" size={30} color="#fff" />

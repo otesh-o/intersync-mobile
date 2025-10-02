@@ -12,7 +12,7 @@ export const SavedJobsProvider = ({ children }) => {
   const loadSavedJobs = async () => {
     console.log("🔍 Loading saved jobs from backend...");
     try {
-      const response = await api("/v1/bookmarks");
+      const response = await api("/v1/bookmark/user");
       console.log(
         "✅ Raw saved jobs response:",
         JSON.stringify(response, null, 2)

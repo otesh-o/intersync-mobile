@@ -1,446 +1,167 @@
-// app/screens/Saved.js
-import React, { useState, useEffect } from "react";
+// app/Homepage/saved.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  Image,
   FlatList,
-  Modal,
-  Pressable,
-  Alert,
+  RefreshControl,
+  StatusBar,
+  Text,
   TextInput,
-  ActivityIndicator,
+  Alert,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { useRouter } from "expo-router";
 
-// Services
-import { api } from "../services/api";
-
-// Context
-import { useSavedJobs } from "../context/SavedJobsContext";
+import { api } from "../services/api"; // Assuming `api` handles auth/errors
+import SavedJobCard from "../components/SavedJobCard";
 
 const Saved = () => {
-  const {
-    savedJobs,
-    setSavedJobs,
-    isLoading: loadingFromContext,
-  } = useSavedJobs();
-  const router = useRouter();
-
+  const [savedJobs, setSavedJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredJobs, setFilteredJobs] = useState([]);
-  const [activeFilters, setActiveFilters] = useState({
-    fullTime: false,
-    senior: false,
-    remote: false,
-  });
-  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Separate initial load
 
-  // Combine context loading + local filtering
-  const isLoading = loadingFromContext;
+  const hasFetchedOnce = useRef(false);
 
-  // --- Filter jobs based on search and selected filters ---
+  // Fetch from backend
+  const fetchSavedJobs = async () => {
+    if (!hasFetchedOnce.current) setIsLoading(true);
+    setIsRefreshing(true);
+
+    try {
+      console.log("[Saved] Fetching saved jobs from backend...");
+      const response = await api("/v1/bookmark/user");
+
+      // Validate structure
+      if (!response?.data || !Array.isArray(response.data)) {
+        throw new Error("Invalid response format: expected array");
+      }
+
+      console.log("[Saved] Fetched jobs count:", response.data.length);
+      setSavedJobs(response.data);
+      hasFetchedOnce.current = true;
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Unknown error occurred";
+
+      console.error("[Saved] Failed to fetch saved jobs:", {
+        message: errorMsg,
+        status: error.response?.status,
+        url: "/v1/bookmark/user",
+        timestamp: new Date().toISOString(),
+      });
+
+      // Show user-friendly alert only if needed
+      if (isRefreshing && !hasFetchedOnce.current) {
+        Alert.alert("Load Failed", "Could not load saved jobs. Please retry.");
+      }
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchSavedJobs();
+  }, []);
+
+  // Pull-to-refresh handler
+  const handleRefresh = () => {
+    if (isRefreshing) return; // Prevent duplicate calls
+    fetchSavedJobs();
+  };
+
+  // Filter jobs based on search query
   useEffect(() => {
     let filtered = [...savedJobs];
 
-    // 👇 Debug: Check for duplicates before filtering
-    const idCount = {};
-    savedJobs.forEach((job) => {
-      idCount[job.id] = (idCount[job.id] || 0) + 1;
-    });
-    const duplicates = Object.entries(idCount).filter(
-      ([id, count]) => count > 1
-    );
-    if (duplicates.length > 0) {
-      console.warn("❌ Duplicate job IDs in savedJobs:", duplicates);
-    }
-
-    // Text search
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (job) =>
-          job.title?.toLowerCase().includes(lower) ||
-          (typeof job.company === "string" &&
-            job.company.toLowerCase().includes(lower)) ||
-          (typeof job.company === "object" &&
-            job.company?.name?.toLowerCase().includes(lower)) ||
-          job.location?.toLowerCase().includes(lower)
+        (item) =>
+          (item.jobTitle || item.title || "").toLowerCase().includes(lower) ||
+          (typeof item.company === "string"
+            ? item.company
+            : item.company?.name || ""
+          )
+            .toLowerCase()
+            .includes(lower) ||
+          (item.location || "").toLowerCase().includes(lower)
       );
-    }
-
-    // Apply filters
-    if (activeFilters.fullTime) {
-      filtered = filtered.filter((job) => job.type === "Full Time");
-    }
-    if (activeFilters.senior) {
-      filtered = filtered.filter((job) => job.level === "Senior");
-    }
-    if (activeFilters.remote) {
-      filtered = filtered.filter((job) => job.workMode === "Remote");
     }
 
     setFilteredJobs(filtered);
-  }, [searchQuery, activeFilters, savedJobs]);
+  }, [searchQuery, savedJobs]);
 
-  // --- Format "time ago" ---
-  const formatTimeAgo = (dateString) => {
-    const now = new Date();
-    const savedDate = new Date(dateString);
-    const diffInMinutes = Math.floor((now - savedDate) / (1000 * 60));
-    if (diffInMinutes < 1) return "Just now";
-    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
-  };
-
-  // --- Remove job from saved list (and backend) ---
-  const handleRemoveJob = async (jobId) => {
-    try {
-      await api(`/v1/bookmark/job/${jobId}`, { method: "DELETE" });
-
-      // ✅ Remove from context/UI
-      setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
-
-      console.log("✅ Job removed from bookmarks");
-    } catch (error) {
-      console.error("Failed to unsave job:", error);
-      Alert.alert(
-        "Remove Failed",
-        error.message || "Could not remove job. Please check your connection.",
-        [{ text: "OK" }]
-      );
-    }
-  };
-
-  // --- Toggle filter ---
-  const toggleFilter = (filterKey) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [filterKey]: !prev[filterKey],
-    }));
-  };
-
-  // --- Reset all filters ---
-  const resetFilters = () => {
-    setActiveFilters({ fullTime: false, senior: false, remote: false });
-  };
-
-  // --- Apply filters and close modal ---
-  const applyFilters = () => {
-    setFilterModalVisible(false);
-  };
-
-  // --- Clear search ---
-  const clearSearch = () => {
-    setSearchQuery("");
-  };
-
-  // --- Render job card ---
-  const renderJobCard = ({ item }) => (
-    <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
-      {/* Top row: Logo + info + remove button */}
-      <View className="flex-row items-start mb-4">
-        <Image
-          source={{
-            uri:
-              item.image ||
-              (typeof item.company === "object"
-                ? item.company.logoUrl
-                : null) ||
-              "https://via.placeholder.com/200x300.png?text=Job",
-          }}
-          className="w-12 h-12 rounded-lg mr-4"
-          resizeMode="cover"
-        />
-        <View className="flex-1">
-          <Text className="text-lg font-bold text-black mb-1" numberOfLines={1}>
-            {item.title}
-          </Text>
-
-          {/* ✅ Safe company rendering */}
-          <Text className="text-sm text-gray-500 mb-0.5">
-            {typeof item.company === "object"
-              ? item.company.name
-              : item.company || "Unknown Organization"}
-          </Text>
-
-          <Text className="text-sm text-gray-500">{item.location}</Text>
-        </View>
-        <TouchableOpacity
-          className="w-8 h-8 justify-center items-center"
-          onPress={() => handleRemoveJob(item.id)}
-        >
-          <Icon name="close" size={20} color="#999" />
-        </TouchableOpacity>
+  // Loading placeholder
+  if (isLoading && !isRefreshing) {
+    return (
+      <View className="flex-1 bg-slate-50 justify-center items-center">
+        <StatusBar barStyle="dark-content" />
+        <Text className="text-lg text-slate-600">Loading saved jobs...</Text>
       </View>
-
-      {/* Salary + saved time */}
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-base font-bold text-black">
-          {item.salary || "—"}
-        </Text>
-        <Text className="text-xs text-gray-400">
-          {formatTimeAgo(item.savedAt)}
-        </Text>
-      </View>
-
-      {/* Tags */}
-      <View className="flex-row flex-wrap mb-4">
-        {item.type && (
-          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
-            <Text className="text-xs text-gray-600 font-medium">
-              {item.type}
-            </Text>
-          </View>
-        )}
-        {item.level && (
-          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
-            <Text className="text-xs text-gray-600 font-medium">
-              {item.level}
-            </Text>
-          </View>
-        )}
-        {item.workMode && (
-          <View className="bg-gray-100 rounded-full px-3 py-1.5 mr-2 mb-2">
-            <Text className="text-xs text-gray-600 font-medium">
-              {item.workMode}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Description */}
-      <Text className="text-sm text-gray-500 leading-5 mb-4" numberOfLines={2}>
-        {typeof item.description === "string"
-          ? item.description
-          : item.description?.details ||
-            item.description?.summary ||
-            "No description available."}
-      </Text>
-
-      {/* Apply Button */}
-      <TouchableOpacity
-        className="bg-black rounded-lg py-3 items-center"
-        onPress={() => router.push(`/jobdescription/${item.id}`)}
-      >
-        <Text className="text-white text-base font-semibold">Apply Now</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  }
 
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[10px] pb-2.5">
-        <TouchableOpacity
-          className="w-10 h-10 justify-center items-center"
-          onPress={() => router.back()}
-        >
-          <Image
-            source={require("../../assets/images/back.png")}
-            style={{
-              width: 24,
-              height: 24,
-              resizeMode: "contain",
-              tintColor: "#000",
-            }}
-          />
-        </TouchableOpacity>
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-2.5">
+        <View style={{ width: 24 }} />
         <Text className="text-2xl font-bold tracking-wider">SAVED</Text>
-        <View className="w-10" /> {/* Spacer */}
+        <View style={{ width: 24 }} />
       </View>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-white rounded-2xl mx-5 mt-2.5 px-4 shadow-sm">
-        <TouchableOpacity className="p-2">
-          <Icon name="search" size={20} color="#888" />
-        </TouchableOpacity>
-
-        <TextInput
-          className="flex-1 h-14 text-base"
-          placeholder="Search jobs"
-          placeholderTextColor="#888"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          returnKeyType="search"
-        />
-
-        {searchQuery ? (
-          <TouchableOpacity className="p-2" onPress={clearSearch}>
-            <Icon name="close" size={20} color="#888" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            className="p-2"
-            onPress={() => setFilterModalVisible(true)}
-          >
-            <Icon name="options-outline" size={20} color="#888" />
-          </TouchableOpacity>
-        )}
+      <View className="mx-5 mt-2.5">
+        <View className="flex-row items-center bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
+          <TextInput
+            className="flex-1 h-10 text-base ml-2"
+            placeholder="Search jobs"
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
       {/* Jobs Count */}
-      <View className="px-5 mt-6 flex-row justify-between items-center">
+      <View className="px-5 mt-4 mb-2">
         <Text className="text-base font-bold text-black">
-          {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"}{" "}
-          Saved
-          {Object.values(activeFilters).some(Boolean) && (
-            <Text className="text-blue-500"> · Filters applied</Text>
-          )}
+          {filteredJobs.length} job{filteredJobs.length !== 1 ? "s" : ""}{" "}
+          available
         </Text>
-        {Object.values(activeFilters).some(Boolean) && (
-          <TouchableOpacity onPress={resetFilters}>
-            <Text className="text-sm text-blue-500 underline">
-              Clear Filters
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <View className="flex-1 justify-center items-center mt-10">
-          <ActivityIndicator size="large" color="#000" />
-          <Text className="text-gray-500 mt-4">Loading saved jobs...</Text>
-        </View>
-      ) : filteredJobs.length > 0 ? (
-        <FlatList
-          data={filteredJobs}
-          renderItem={renderJobCard}
-          keyExtractor={(item, index) => `saved-job-${item.id}-${index}`} // ✅ Fixed
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingTop: 10,
-            paddingBottom: 20,
-          }}
-        />
-      ) : (
-        <View className="flex-1 justify-center items-center px-10 mt-10">
-          <Icon name="bookmark-outline" size={80} color="#ccc" />
-          <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
-            No Saved Jobs Found
-          </Text>
-          <Text className="text-base text-gray-400 mt-2.5 text-center leading-6">
-            {savedJobs.length === 0
-              ? "Start liking jobs to save them!"
-              : "Try adjusting your search or filters"}
-          </Text>
-        </View>
-      )}
-
-      {/* Filter Modal */}
-      <Modal
-        visible={isFilterModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFilterModalVisible(false)}
-      >
-        <Pressable
-          className="flex-1 bg-black/50 justify-center items-center p-5"
-          onPress={() => setFilterModalVisible(false)}
-        >
-          <Pressable
-            className="bg-white rounded-2xl w-full max-w-sm p-6"
-            onPress={() => {}}
-          >
-            <Text className="text-xl font-bold text-black mb-4">Filters</Text>
-
-            <View className="space-y-4">
-              <TouchableOpacity
-                className={`flex-row items-center p-3 rounded-lg border ${
-                  activeFilters.fullTime
-                    ? "border-black bg-black/10"
-                    : "border-gray-200"
-                }`}
-                onPress={() => toggleFilter("fullTime")}
-              >
-                <View
-                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
-                    activeFilters.fullTime
-                      ? "border-black bg-black"
-                      : "border-gray-400"
-                  }`}
-                >
-                  {activeFilters.fullTime && (
-                    <Icon name="checkmark" size={12} color="#fff" />
-                  )}
-                </View>
-                <Text className="text-base text-gray-700">Full Time</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className={`flex-row items-center p-3 rounded-lg border ${
-                  activeFilters.senior
-                    ? "border-black bg-black/10"
-                    : "border-gray-200"
-                }`}
-                onPress={() => toggleFilter("senior")}
-              >
-                <View
-                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
-                    activeFilters.senior
-                      ? "border-black bg-black"
-                      : "border-gray-400"
-                  }`}
-                >
-                  {activeFilters.senior && (
-                    <Icon name="checkmark" size={12} color="#fff" />
-                  )}
-                </View>
-                <Text className="text-base text-gray-700">Senior</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className={`flex-row items-center p-3 rounded-lg border ${
-                  activeFilters.remote
-                    ? "border-black bg-black/10"
-                    : "border-gray-200"
-                }`}
-                onPress={() => toggleFilter("remote")}
-              >
-                <View
-                  className={`w-5 h-5 border-2 rounded mr-3 flex items-center justify-center ${
-                    activeFilters.remote
-                      ? "border-black bg-black"
-                      : "border-gray-400"
-                  }`}
-                >
-                  {activeFilters.remote && (
-                    <Icon name="checkmark" size={12} color="#fff" />
-                  )}
-                </View>
-                <Text className="text-base text-gray-700">Remote</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="flex-row mt-6 space-x-3">
-              <TouchableOpacity
-                className="flex-1 py-3 border border-gray-300 rounded-lg"
-                onPress={resetFilters}
-              >
-                <Text className="text-center text-gray-600 font-medium">
-                  Reset
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 py-3 bg-black rounded-lg"
-                onPress={applyFilters}
-              >
-                <Text className="text-center text-white font-medium">
-                  Apply
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      {/* Job List */}
+      <FlatList
+        data={filteredJobs}
+        keyExtractor={(item, index) => `${item._id || item.id || index}`}
+        renderItem={({ item }) => (
+          <SavedJobCard item={item} onRemove={() => fetchSavedJobs()} />
+        )}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={["#000"]}
+            tintColor="#000"
+          />
+        }
+        ListEmptyComponent={
+          <View className="items-center mt-10">
+            <Text className="text-slate-500 text-base">
+              {searchQuery ? "No matches found" : "No saved jobs yet"}
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 };

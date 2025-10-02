@@ -10,6 +10,7 @@ import {
   Animated,
   ActivityIndicator,
 } from "react-native";
+
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 
@@ -72,6 +73,11 @@ const Homepage = () => {
 
     setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
   };
+
+
+    const handlenotificationsPress = () => {
+      router.push("/Homepage/notifications");
+    };
 
   const handleBookmarkPress = () => {
     router.push("/Homepage/saved");
@@ -208,12 +214,17 @@ const Homepage = () => {
 
       {/* Bottom Navigation */}
       <View className="flex-row justify-around items-center bg-white h-[75px] border-t border-slate-200 pb-2.5">
-        <TouchableOpacity className="flex-1 items-center justify-center">
+        <TouchableOpacity
+          className="flex-1 items-center justify-center"
+          onPress={handlenotificationsPress}
+        >
           <Image source={folderIcon} className="w-7 h-7" resizeMode="contain" />
         </TouchableOpacity>
+
         <TouchableOpacity className="flex-1 items-center justify-center">
           <Image source={homeIcon} className="w-7 h-7" resizeMode="contain" />
         </TouchableOpacity>
+
         <TouchableOpacity
           className="flex-1 items-center justify-center"
           onPress={handleBookmarkPress}

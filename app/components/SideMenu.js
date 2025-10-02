@@ -3,20 +3,9 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image, Animated } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
-// Import profile picture URL
-import { PROFILE_PIC_URL } from "../constants/appData";
-
-// Context for dynamic user name
+// Use Profile Context for live data
 import { useProfile } from "../context/ProfileContext";
 
-/**
- * Slide-in side menu with category selection.
- * @param {boolean} isVisible
- * @param {() => void} onClose
- * @param {Animated.Value} slideAnim
- * @param {(mode: string) => void} onModeChange
- * @param {string} currentMode - For active tab highlighting
- */
 const SideMenu = ({
   isVisible,
   onClose,
@@ -24,16 +13,16 @@ const SideMenu = ({
   onModeChange,
   currentMode,
 }) => {
-  const { name: profileName } = useProfile();
+  const { name: profileName, profilePicUrl } = useProfile();
 
   const menuItems = [
     { id: "internships", icon: "wifi-outline", title: "Internships" },
     {
-      id: "Extracurriculars",
+      id: "extracurriculars",
       icon: "heart-outline",
       title: "Extracurriculars",
     },
-    { id: "scholarships", icon: "school-outline", title: "Scholarships" }, // ✅ Added
+    { id: "scholarships", icon: "school-outline", title: "Scholarships" },
   ];
 
   const handleMenuItemPress = (itemId) => {
@@ -69,10 +58,18 @@ const SideMenu = ({
 
         {/* User Info */}
         <View className="flex-row items-center px-5 pb-[30px] mb-[30px] border-b border-white/10">
-          <Image
-            source={{ uri: PROFILE_PIC_URL }}
-            className="w-12 h-12 rounded-full mr-3"
-          />
+          {/* Only show image if profilePicUrl exists */}
+          {profilePicUrl ? (
+            <Image
+              source={{ uri: profilePicUrl }}
+              className="w-12 h-12 rounded-full mr-3"
+              resizeMode="cover"
+            />
+          ) : (
+            // Optional: Render empty space to keep layout stable
+            <View className="w-12 h-12 rounded-full mr-3" />
+          )}
+
           <View className="flex-1">
             <Text className="text-slate-400 text-sm mb-0.5">Hello</Text>
             <Text className="text-white text-base font-semibold">
