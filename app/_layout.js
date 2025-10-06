@@ -54,11 +54,11 @@ export default function RootLayout() {
         <AuthProvider>
           {/* Handles login state, auth checks */}
           <ProfileProvider>
-            {/* Loads user profile on startup */}
+            {/* Load user profile on startup */}
             <SavedJobsProvider>
-              {/* Manages saved jobs list */}
+              {/* to manage saved jobs list */}
               <JobsProvider>
-                {/* Provides job listings */}
+                {/* for job listings */}
                 <AppContent />
               </JobsProvider>
             </SavedJobsProvider>

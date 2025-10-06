@@ -66,7 +66,7 @@ export const ProfileProvider = ({ children }) => {
       setAppreciation(user.appreciation || []);
       setResumeUrl(fullResumeUrl);
 
-      console.log("🎉 FULL PROFILE LOADED AND SYNCED TO CONTEXT", {
+      console.log("FULL PROFILE LOADED AND SYNCED TO CONTEXT", {
         name: user.firstName,
         role: user.aboutMe,
         hasPfp: !!fullProfilePicUrl,

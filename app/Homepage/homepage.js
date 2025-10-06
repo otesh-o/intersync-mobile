@@ -86,23 +86,25 @@ const Homepage = () => {
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
-      
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-2.5">
-        <TouchableOpacity className="p-1.5" onPress={handleMenuToggle}>
+      {/* Header */}
+      <View className="flex-row items-center bg-slate-50 px-5 pt-[30px] pb-2.5 relative">
+        {/* Menu Button - Left */}
+        <TouchableOpacity className="p-1.5 z-10" onPress={handleMenuToggle}>
           <Icon name="menu" size={30} color="#000" />
         </TouchableOpacity>
-        <Text
-          className="text-[24px] tracking-wider"
-          style={{ fontFamily: "ClaireNewsBold" }}
-        >
-          INTERN SYNC
-        </Text>
-        <View style={{ width: 40 }} />
+
+        {/* Logo - Centered */}
+        <Image
+          source={require("../../assets/images/Internsync-black.png")}
+          className="absolute left-0 right-0 w-40 h-10 mx-auto"
+          resizeMode="contain"
+        />
+
+        {/* Empty view for layout balance */}
+        <View className="w-10" />
       </View>
 
-      
       <View className="flex-1 px-5">
-        
         <View className="flex-row items-center mt-5">
           <TouchableOpacity
             className="w-14 h-14 justify-center items-center rounded-full overflow-hidden"
@@ -154,7 +156,6 @@ const Homepage = () => {
           </TouchableOpacity>
         </View>
 
-        
         <View className="flex-row items-center bg-slate-50 rounded-3xl mt-6 px-4 border border-gray-300">
           <Icon name="search" size={20} color="#888" />
           <TextInput
@@ -167,7 +168,6 @@ const Homepage = () => {
           </TouchableOpacity>
         </View>
 
-        
         <View className="flex-1 justify-center items-center mt-5 mb-5">
           {jobsLoading ? (
             <View className="flex-1 justify-center items-center pb-12">
@@ -211,7 +211,6 @@ const Homepage = () => {
         </View>
       </View>
 
-      
       <View className="flex-row justify-around items-center bg-white h-[75px] border-t border-slate-200 pb-2.5">
         <TouchableOpacity
           className="flex-1 items-center justify-center"
