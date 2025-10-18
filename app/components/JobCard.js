@@ -7,20 +7,31 @@ import {
   Image,
   useWindowDimensions,
   Animated,
+  Alert,
+  Linking,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { api } from "../services/api";
-import { useSavedJobs } from "../context/SavedJobsContext"; 
+import { useSavedJobs } from "../context/SavedJobsContext";
+import { useProfile } from "../context/ProfileContext";
 
 const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const { width } = useWindowDimensions();
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const { refreshSavedJobs } = useSavedJobs();
+  const {
+    name: profileName,
+    role: aboutMe,
+    workExperience,
+    education,
+    skills,
+    languages,
+    resumeUrl,
+  } = useProfile();
 
-  
   const rotate = translateX.interpolate({
     inputRange: [-width / 2, 0, width / 2],
     outputRange: ["-12deg", "0deg", "12deg"],
@@ -31,6 +42,49 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
     { useNativeDriver: true }
   );
+
+  const buildApplyPayload = () => {
+    return {
+      fullName: profileName || "",
+      role: aboutMe || "",
+      aboutMe: aboutMe || "",
+      workExperience: workExperience || [],
+      education: education || [],
+      skills: Array.isArray(skills) ? skills : [],
+      languages: Array.isArray(languages) ? languages : [],
+      resumeUrl: resumeUrl || "",
+      portfolioUrl: "",
+      message: `I'm excited to apply for the ${job.title} role at ${
+        typeof job.company === "object"
+          ? job.company.name
+          : job.company || "this organization"
+      }.`,
+    };
+  };
+
+  const applyToJob = async (jobId) => {
+    try {
+      const payload = buildApplyPayload();
+      await api.post(`/v1/apply/job/${jobId}`, payload);
+    } catch (error) {
+      console.error("Apply failed:", error);
+      Alert.alert(
+        "Application Failed",
+        "Could not submit your application. Please try again."
+      );
+      throw error;
+    }
+  };
+
+  const toggleBookmark = async () => {
+    try {
+      await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
+      refreshSavedJobs();
+    } catch (error) {
+      console.error("Bookmark failed:", error);
+      Alert.alert("Error", "Could not save this job.");
+    }
+  };
 
   const onHandlerStateChange = async (event) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
@@ -49,19 +103,32 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           duration: 300,
           useNativeDriver: true,
         }).start(async () => {
-          if (direction === "right") {
-            try {
-              //  Save to backend
-              await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
-
-              
-              refreshSavedJobs();
-
-            } catch (error) {
-              console.error("Failed to bookmark:", error);
+          try {
+            if (direction === "right") {
+              if (job.sourceType === "website") {
+                await applyToJob(job.id);
+              } else {
+                await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
+                refreshSavedJobs();
+              }
             }
+            onSwipe(job.id, direction);
+          } catch (error) {
+            Animated.parallel([
+              Animated.spring(translateX, {
+                toValue: 0,
+                useNativeDriver: true,
+                tension: 100,
+                friction: 8,
+              }),
+              Animated.spring(translateY, {
+                toValue: 0,
+                useNativeDriver: true,
+                tension: 100,
+                friction: 8,
+              }),
+            ]).start();
           }
-          onSwipe(job.id, direction);
         });
       } else {
         Animated.parallel([
@@ -89,16 +156,22 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
       duration: 300,
       useNativeDriver: true,
     }).start(async () => {
-      if (direction === "right") {
-        try {
-          await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
-
-          refreshSavedJobs();
-        } catch (error) {
-          console.error("Bookmark failed:", error);
+      try {
+        if (direction === "right") {
+          if (job.sourceType === "website") {
+            await applyToJob(job.id);
+          } else {
+            await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
+            refreshSavedJobs();
+          }
         }
+        onSwipe(job.id, direction);
+      } catch (error) {
+        Animated.parallel([
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
+        ]).start();
       }
-      onSwipe(job.id, direction);
     });
   };
 
@@ -113,6 +186,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
       default:
         return "Opportunity";
     }
+  };
+
+  const getActionIcon = () => {
+    return job.sourceType === "website" ? "checkmark" : "bookmark";
   };
 
   return (
@@ -132,7 +209,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
       >
         {/* Job Image */}
         <View className="relative">
-          {/* Banner  */}
           <Image
             source={{
               uri:
@@ -145,27 +221,23 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             resizeMode="cover"
           />
 
+          {/* Top-right Bookmark (website jobs only) */}
+          {job.sourceType === "website" && (
+            <TouchableOpacity
+              className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 rounded-full justify-center items-center shadow-sm"
+              onPress={toggleBookmark}
+            >
+              <Icon name="bookmark" size={18} color="#22C55E" />
+            </TouchableOpacity>
+          )}
+
           <View className="absolute -bottom-6 left-5 bg-white p-1.5 rounded-2xl shadow-md border border-slate-200">
-           
-            <View className="w-12 h-12 overflow-hidden rounded-lg">
-              <Image
-                source={{
-                  uri:
-                    (typeof job.company === "object" &&
-                      job.company?.logoUrl?.trim()) ||
-                    job.bannerImageUrl?.trim() ||
-                    "https://i.pinimg.com/736x/ff/87/1b/ff871ba4673c93bc12b092c8ae23e546.jpg",
-                }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            </View>
+            {/* Company logo */}
           </View>
         </View>
 
         {/* Job Details */}
         <View className="p-5 pt-10">
-          {/* Title & Category Badge */}
           <View className="flex-row justify-between items-start mb-1">
             <Text
               className="text-2xl font-bold text-slate-800 flex-1"
@@ -184,7 +256,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             </View>
           </View>
 
-          {/* Company & Location */}
           <Text className="text-base text-slate-500 mt-1">
             {(typeof job.company === "object"
               ? job.company.name
@@ -192,7 +263,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             - {job.location}
           </Text>
 
-          {/* Salary / Stipend */}
           {job.description?.stipend?.amount > 0 && (
             <Text className="text-base font-bold text-slate-700 mt-1">
               ${job.description.stipend.amount}{" "}
@@ -200,7 +270,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             </Text>
           )}
 
-          {/* Tags */}
           <View className="flex-row mt-4 flex-wrap">
             {job.type && (
               <Text className="bg-slate-100 text-slate-600 text-xs font-semibold mr-2 mb-2 px-4 py-1.5 rounded-full">
@@ -229,7 +298,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
             )}
           </View>
 
-          {/* Description Preview */}
           <Text
             className="text-sm text-slate-600 mt-4 leading-relaxed"
             numberOfLines={2}
@@ -244,10 +312,10 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           </Text>
         </View>
 
-        {/* Action Buttons*/}
+        {/* Action Buttons */}
         {isTop && (
           <View className="flex-row justify-evenly pt-2 pb-5">
-            {/* ❌ icon*/}
+            {/* ❌ Dismiss */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-red-400 border-0"
               style={{
@@ -265,7 +333,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ➕ icon*/}
+            {/* ➕ View Details (website) OR Open External Link (csv) */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-slate-800"
               style={{
@@ -278,17 +346,32 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
                 borderWidth: 1.5,
                 borderColor: "rgba(255, 255, 255, 0.2)",
               }}
-              onPress={() =>
-                router.push({
-                  pathname: "/Homepage/jobdescription",
-                  params: { id: job.id },
-                })
-              }
+              onPress={() => {
+                if (job.sourceType === "csv") {
+                  const url =
+                    job.sourceUrl?.trim() ||
+                    (typeof job.company === "object"
+                      ? job.company.website?.trim()
+                      : null);
+                  if (url) {
+                    Linking.openURL(url).catch(() =>
+                      Alert.alert("Error", "Could not open link.")
+                    );
+                  } else {
+                    Alert.alert("No Link", "This job has no external URL.");
+                  }
+                } else {
+                  router.push({
+                    pathname: "/Homepage/jobdescription",
+                    params: { id: job.id },
+                  });
+                }
+              }}
             >
               <Icon name="add" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* bookmark */}
+            {/* ✅ Apply or 🔖 Bookmark */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full"
               style={{
@@ -304,7 +387,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               }}
               onPress={() => handleButtonPress("right")}
             >
-              <Icon name="bookmark" size={30} color="#fff" />
+              <Icon name={getActionIcon()} size={30} color="#fff" />
             </TouchableOpacity>
           </View>
         )}

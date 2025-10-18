@@ -7,9 +7,11 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
-  Image
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+
+const logo = require("../../assets/images/logo.png"); // Adjust path if needed
 
 export default function Agreement() {
   const router = useRouter();
@@ -22,20 +24,21 @@ export default function Agreement() {
         className="flex-1"
         style={{ maxWidth: 420, alignSelf: "center", width: "100%" }}
       >
-        <View className="flex-row items-center justify-between w-full mb-10">
+        {/* Header with back button and logo */}
+        <View className="pt-6 px-5 w-full flex-row items-center justify-between mb-8">
           <TouchableOpacity onPress={() => router.back()}>
             <Image
               source={require("../../assets/images/back.png")}
               className="w-6 h-6"
             />
           </TouchableOpacity>
-          <Text
-            className="text-[27.11px] text-black uppercase text-center flex-1"
-            style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-          >
-            INTERNSYNC
-          </Text>
-          <View className="w-6" />
+          {/* Logo instead of "INTERNSYNC" text */}
+          <Image
+            source={logo}
+            className="w-[120px] h-[120px]" // Adjust size as needed
+            resizeMode="contain"
+          />
+          <View className="w-6" /> {/* Spacer to balance layout */}
         </View>
 
         <Text className="text-2xl font-bold text-gray-900 mb-2 text-left self-start">
@@ -70,7 +73,7 @@ export default function Agreement() {
               ✓ No spamming.
             </Text>
             <Text className="text-sm text-gray-700">
-              Apply only to roles you&apos;uinely interested in.
+              Apply only to roles you&apos;re genuinely interested in.
             </Text>
           </View>
 
@@ -97,7 +100,9 @@ export default function Agreement() {
         {/* I Agree Button */}
         <TouchableOpacity
           className="bg-black py-4 rounded-lg w-full mt-6"
-          onPress={() => router.push("/payment_plan/access")}
+          onPress={() =>
+            router.push("/create_account/profile_page/MainProfile")
+          }
         >
           <Text className="text-white text-lg font-semibold text-center">
             I Agree

@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -59,13 +59,12 @@ export default function LoginScreen() {
 
       await AsyncStorage.setItem("authToken", idToken);
 
-      router.replace("../Homepage/homepage"); 
+      router.replace("../Homepage/homepage");
     } catch (error) {
       console.error("Login error:", error.code, error.message);
 
       let title, message, actionText, onAction;
 
-     
       if (
         error.code === "auth/user-not-found" ||
         error.code === "auth/wrong-password" ||
@@ -76,17 +75,13 @@ export default function LoginScreen() {
           "Hmm, those credentials don’t match our records. Double-check your email and password.";
         actionText = "Try Again";
         onAction = () => setModalVisible(false);
-      }
-
-      else if (error.code === "auth/invalid-email") {
+      } else if (error.code === "auth/invalid-email") {
         title = "✉️ Invalid Email";
         message =
           "Hmm, that email doesn’t look right. Double-check and try again.";
         actionText = "Got it";
         onAction = () => setModalVisible(false);
-      }
-      
-      else if (error.code === "auth/network-request-failed") {
+      } else if (error.code === "auth/network-request-failed") {
         title = "📶 No Connection";
         message = "Oof, we can’t reach the server. Are you online?";
         actionText = "Retry";
@@ -94,9 +89,7 @@ export default function LoginScreen() {
           setModalVisible(false);
           setTimeout(handleLogin, 500);
         };
-      }
-      
-      else if (error.code === "auth/too-many-requests") {
+      } else if (error.code === "auth/too-many-requests") {
         title = "⏱️ Locked Temporarily";
         message = "Too many attempts. Reset your password or try again later.";
         actionText = "Reset Password";
@@ -104,9 +97,7 @@ export default function LoginScreen() {
           setModalVisible(false);
           router.push("/login_flow/forgot_password/email");
         };
-      }
-      
-      else if (
+      } else if (
         error.code === "auth/internal-error" ||
         error.code === "auth/unknown-error"
       ) {
@@ -114,9 +105,7 @@ export default function LoginScreen() {
         message = "Oof, something went wrong on our end. Try again in a bit.";
         actionText = "Dismiss";
         onAction = () => setModalVisible(false);
-      }
-      
-      else {
+      } else {
         title = "⚠️ Couldn’t Log In";
         message = "Something unexpected happened. Please try again.";
         actionText = "OK";
@@ -129,7 +118,6 @@ export default function LoginScreen() {
     }
   };
 
-  
   const CustomModal = () => {
     if (!modalVisible) return null;
 
@@ -162,12 +150,13 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView className="flex-1">
-        <View className="flex-1 px-6 pt-24">
-          {/* Header */}
-          <View className="flex-row items-center justify-center mb-10 relative">
+        <View className="flex-1 px-6 pt-8">
+          {" "}
+          {/* Reduced top padding */}
+          {/* Back button — minimal, top-left */}
+          <View className="self-start mb-2">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="absolute left-0"
               accessibilityLabel="Go back"
             >
               <Image
@@ -176,14 +165,15 @@ export default function LoginScreen() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <Text
-              className="text-[27.11px] text-black uppercase"
-              style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-            >
-              INTERNSYNC
-            </Text>
           </View>
-
+          {/* Logo — EXACTLY like in EmailScreen.js */}
+          <View className="items-center mb-8">
+            <Image
+              source={require("../../assets/images/Internsync-black.png")} // 👈 Use the same logo!
+              className="w-48 h-16"
+              resizeMode="contain"
+            />
+          </View>
           {/* Welcome */}
           <Text
             className="text-3xl font-bold text-center mb-8"
@@ -191,7 +181,6 @@ export default function LoginScreen() {
           >
             Welcome Back!
           </Text>
-
           <View className="gap-4 mb-6">
             <TextInput
               placeholder="Email"
@@ -233,7 +222,6 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-
           <TouchableOpacity
             onPress={handleLogin}
             disabled={!isValid || loading}
@@ -247,7 +235,6 @@ export default function LoginScreen() {
               <Text className="text-white text-lg font-bold">Log in</Text>
             )}
           </TouchableOpacity>
-
           <Text className="text-center mt-6 text-gray-600 font-bold text-sm">
             Trouble logging in?
           </Text>

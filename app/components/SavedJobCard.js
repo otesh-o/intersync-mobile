@@ -79,7 +79,7 @@ const SavedJobCard = ({ item, onRemove }) => {
       >
         {/* Logo */}
         <View className="flex-row">
-          <View className="w-10 h-10 bg-slate-200 rounded-lg mr-4 justify-center items-center overflow-hidden">
+          {/* <View className="w-10 h-10 bg-slate-200 rounded-lg mr-4 justify-center items-center overflow-hidden">
             {logoUrl ? (
               <Image
                 source={{ uri: logoUrl }}
@@ -89,17 +89,17 @@ const SavedJobCard = ({ item, onRemove }) => {
             ) : (
               <Icon name="business-outline" size={24} color="#999" />
             )}
-          </View>
+          </View> */}
 
           {/* Main Content */}
           <View className="flex-1">
             {/* Company Name */}
-            <Text
+            {/* <Text
               className="text-xs text-gray-500 font-medium"
               numberOfLines={1}
             >
               {companyName}
-            </Text>
+            </Text> */}
 
             {/* Title */}
             <Text
@@ -128,18 +128,18 @@ const SavedJobCard = ({ item, onRemove }) => {
                 <Text className="text-xs text-gray-600 ml-1">{type}</Text>
               </View>
 
-              <View className="flex-row items-center">
+              {/* <View className="flex-row items-center">
                 <Icon name="cash-outline" size={12} color="#666" />
                 <Text className="text-xs text-gray-600 ml-1">
                   {compensation}
                 </Text>
-              </View>
+              </View> */}
+              <Text className="text-xs text-gray-500 mt-2">
+                {formatTimeAgo(item.createdAt || item.savedAt)}
+              </Text>
             </View>
 
-            {/* Time  */}
-            <Text className="text-xs text-gray-500 mt-2">
-              {formatTimeAgo(item.createdAt || item.savedAt)}
-            </Text>
+           
           </View>
 
           {/* Delete Button */}

@@ -11,14 +11,16 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  Image,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 👈 added
 
 import { SignupContext } from "../context/SignupContext";
 
 const BASE_URL = "https://internsync-production.up.railway.app";
 
 export default function EmailScreen() {
-  // 👇 Now using SignupContext
+  const insets = useSafeAreaInsets(); // 👈 safe area
   const { setSignupData } = useContext(SignupContext);
 
   const [email, setEmail] = useState("");
@@ -26,7 +28,6 @@ export default function EmailScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     title: "",
@@ -57,15 +58,12 @@ export default function EmailScreen() {
     try {
       const response = await fetch(`${BASE_URL}/v1/auth/signup/send-otp`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
 
       let data;
       const contentType = response.headers.get("content-type");
-
       if (contentType?.includes("application/json")) {
         data = await response.json();
       } else {
@@ -76,7 +74,6 @@ export default function EmailScreen() {
 
       if (response.ok) {
         setSignupData({ email, password });
-
         router.push({
           pathname: "/create_account/verify",
           params: { email: email.trim() },
@@ -93,7 +90,6 @@ export default function EmailScreen() {
     } catch (error) {
       console.error("Send OTP error:", error);
       let title, message, onAction;
-
       if (error.message.includes("Network request failed")) {
         title = "No Connection";
         message = "We couldn’t reach the server. Are you online?";
@@ -107,7 +103,6 @@ export default function EmailScreen() {
         message = "Something went wrong. Please try again.";
         onAction = () => setModalVisible(false);
       }
-
       showModal({ title, message, actionText: "OK", onAction });
     } finally {
       setLoading(false);
@@ -116,7 +111,6 @@ export default function EmailScreen() {
 
   const CustomModal = () => {
     if (!modalVisible) return null;
-
     return (
       <TouchableOpacity
         className="absolute inset-0 bg-black/50 justify-center items-center z-10"
@@ -152,92 +146,101 @@ export default function EmailScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerClassName="flex-grow px-6 pt-10 pb-8"
+          contentContainerClassName="flex-grow items-center px-4 pb-8"
           keyboardShouldPersistTaps="handled"
+          style={{ paddingTop: insets.top + 16 }}
         >
-          {/* Logo */}
-          <Text
-            className="text-[27.11px] text-black uppercase text-center mb-12"
-            style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-          >
-            INTERNSYNC
-          </Text>
+          {/* Max-width container for tablets */}
+          <View className="w-full max-w-md">
+            {/* Logo */}
+            <View className="items-center mb-10">
+              <Image
+                source={require("../../assets/images/Internsync-black.png")}
+                className="w-40 h-14" // responsive size
+                resizeMode="contain"
+              />
+            </View>
 
-          <View className="mt-10">
-            <Text className="text-black text-2xl font-bold mb-6">
-              Let’s Get You Started
-            </Text>
+            <View>
+              <Text className="text-black text-2xl font-bold mb-5 text-center">
+                Let’s Get You Started
+              </Text>
 
-            {/* Email */}
-            <Text className="text-gray-700 mb-2">Email</Text>
-            <TextInput
-              placeholder="Enter your email"
-              placeholderTextColor="#888"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              textContentType="emailAddress"
-              className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 mb-4"
-            />
-
-            {/* Password */}
-            <Text className="text-gray-700 mb-2">Password</Text>
-            <View className="w-full h-[53] px-5 border border-gray-300 rounded-full flex-row items-center mb-2">
+              {/* Email */}
+              <Text className="text-gray-700 mb-2">Email</Text>
               <TextInput
-                placeholder="Create a password"
+                placeholder="Enter your email"
                 placeholderTextColor="#888"
-                value={password}
-                onChangeText={setPassword}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                textContentType="emailAddress"
+                className="w-full px-4 py-3.5 border border-gray-300 rounded-full text-base text-gray-700 mb-4"
+              />
+
+              {/* Password */}
+              <Text className="text-gray-700 mb-2">Password</Text>
+              <View className="w-full px-4 py-0.5 border border-gray-300 rounded-full flex-row items-center mb-2">
+                <TextInput
+                  placeholder="Create a password"
+                  placeholderTextColor="#888"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  textContentType="newPassword"
+                  className="flex-1 text-base text-gray-700"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text className="text-black text-xs font-medium">
+                    {showPassword ? "HIDE" : "SHOW"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text className="text-gray-500 text-xs mb-4">
+                Use 6 or more characters.
+              </Text>
+
+              {/* Confirm Password */}
+              <Text className="text-gray-700 mb-2">Confirm Password</Text>
+              <TextInput
+                placeholder="Re-enter your password"
+                placeholderTextColor="#888"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
-                autoComplete="off"
-                textContentType="newPassword"
-                className="flex-1 text-base text-gray-700"
+                className="w-full px-4 py-3.5 border border-gray-300 rounded-full text-base text-gray-700 mb-2"
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text className="text-black text-xs font-medium">
-                  {showPassword ? "HIDE" : "SHOW"}
+
+              {!passwordsMatch && confirmPassword ? (
+                <Text className="text-red-500 text-sm mb-5">
+                  Passwords don’t match
                 </Text>
+              ) : null}
+
+              {/* Continue Button */}
+              <TouchableOpacity
+                onPress={sendOtp}
+                disabled={!formIsValid || loading}
+                className={`w-full py-3.5 rounded-full justify-center items-center mt-4 ${
+                  formIsValid ? "bg-black" : "bg-gray-300"
+                }`}
+              >
+                {loading ? (
+                  <Text className="text-white text-lg font-bold">
+                    Sending...
+                  </Text>
+                ) : (
+                  <Text className="text-white text-lg font-bold">Continue</Text>
+                )}
               </TouchableOpacity>
             </View>
-            <Text className="text-gray-500 text-xs mb-6">
-              Use 6 or more characters.
-            </Text>
-
-            {/* Confirm Password */}
-            <Text className="text-gray-700 mb-2">Confirm Password</Text>
-            <TextInput
-              placeholder="Re-enter your password"
-              placeholderTextColor="#888"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 mb-2"
-            />
-
-            {!passwordsMatch && confirmPassword ? (
-              <Text className="text-red-500 text-sm mb-6">
-                Passwords don’t match
-              </Text>
-            ) : null}
-
-            {/* Continue Button */}
-            <TouchableOpacity
-              onPress={sendOtp}
-              disabled={!formIsValid || loading}
-              className={`w-full h-[53] rounded-full justify-center items-center mt-6 ${
-                formIsValid ? "bg-black" : "bg-gray-300"
-              }`}
-            >
-              {loading ? (
-                <Text className="text-white text-lg font-bold">Sending...</Text>
-              ) : (
-                <Text className="text-white text-lg font-bold">Continue</Text>
-              )}
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>

@@ -57,7 +57,7 @@ export const ProfileProvider = ({ children }) => {
       });
 
       setName(user.firstName || "");
-      setRole(user.aboutMe || "Looking for opportunities");
+      setRole(user.aboutMe || "Enter your role");
       setProfilePicUrl(fullProfilePicUrl);
       setWorkExperience(user.workExperience || []);
       setEducation(user.education || []);
@@ -85,7 +85,7 @@ export const ProfileProvider = ({ children }) => {
       }
 
       setName("");
-      setRole("Looking for opportunities");
+      setRole("Enter your role");
       setProfilePicUrl(null);
       setWorkExperience([]);
       setEducation([]);
@@ -120,7 +120,7 @@ export const ProfileProvider = ({ children }) => {
           
           console.log("👤 No logged-in user found at startup");
           setName("");
-          setRole("Looking for opportunities");
+          setRole("Enter your role");
           setProfilePicUrl(null);
           setWorkExperience([]);
           setEducation([]);

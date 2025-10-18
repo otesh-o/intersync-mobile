@@ -13,12 +13,12 @@ export default function Welcome() {
           resizeMode="contain"
         />
 
-        <Text
+        {/* <Text
           className="text-[27.11px] text-white uppercase text-center"
           style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
           INTERNSYNC
-        </Text>
+        </Text> */}
 
         <Text
           className="text-[24px] text-white font-bold text-center mt-4"

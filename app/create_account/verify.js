@@ -19,8 +19,7 @@ import { auth } from "../services/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import backIcon from "../../assets/images/back.png";
 
-
-const BASE_URL = "https://internsync-production.up.railway.app"; 
+const BASE_URL = "https://internsync-production.up.railway.app";
 const CODE_LENGTH = 6;
 
 export default function VerifyScreen() {
@@ -83,7 +82,7 @@ export default function VerifyScreen() {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`, 
+                Authorization: `Bearer ${idToken}`,
               },
               body: JSON.stringify({ uid, email: firebaseEmail }),
             }
@@ -352,16 +351,21 @@ export default function VerifyScreen() {
               className="flex-1 w-full px-5"
               style={{ maxWidth: 420, alignSelf: "center" }}
             >
+              {/* Header with Logo */}
               <View className="flex-row items-center justify-between mt-2">
                 <TouchableOpacity onPress={() => router.back()}>
                   <Image source={backIcon} className="w-6 h-6" />
                 </TouchableOpacity>
-                <Text
-                  className="text-[27.11px] text-black uppercase text-center"
-                  style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-                >
-                  INTERNSYNC
-                </Text>
+
+                {/* ✅ LOGO REPLACES TEXT */}
+                <View className="items-center">
+                  <Image
+                    source={require("../../assets/images/Internsync-black.png")}
+                    className="w-48 h-16"
+                    resizeMode="contain"
+                  />
+                </View>
+
                 <View className="w-6" />
               </View>
 
@@ -369,7 +373,6 @@ export default function VerifyScreen() {
                 Enter Verification Code
               </Text>
 
-             
               <TextInput
                 ref={inputRef}
                 value={code}
@@ -454,15 +457,3 @@ export default function VerifyScreen() {
     </SafeAreaView>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-

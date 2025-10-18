@@ -1,4 +1,4 @@
-// app/profile_page/main_profile.js
+// app/profile_page/MainProfile.js
 import { ScrollView, View } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";

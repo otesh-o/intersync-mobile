@@ -15,6 +15,9 @@ import {
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../services/firebaseConfig";
 
+// Import the logo (same as in Login.js)
+const logo = require("../../../assets/images/logo.png");
+
 export default function ForgotPasswordEmail() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -133,8 +136,8 @@ export default function ForgotPasswordEmail() {
     >
       <SafeAreaView className="flex-1">
         <View className="flex-1 pt-20 px-5">
-          {/* Header */}
-          <View className="items-center mb-10 relative">
+          {/* Header with back button and logo */}
+          <View className="flex-row items-center justify-center mb-10 relative">
             <TouchableOpacity
               onPress={() => router.back()}
               className="absolute left-0"
@@ -147,12 +150,15 @@ export default function ForgotPasswordEmail() {
               />
             </TouchableOpacity>
 
-            <Text
-              className="text-[27.11px] text-black uppercase"
-              style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
-            >
-              INTERNSYNC
-            </Text>
+            {/* Logo instead of "INTERNSYNC" text */}
+            <Image
+              source={logo}
+              className="w-[120px] h-[120px]"
+              resizeMode="contain"
+            />
+
+            {/* Spacer to balance layout */}
+            <View className="w-6" />
           </View>
 
           {/* Title */}

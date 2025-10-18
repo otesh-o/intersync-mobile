@@ -71,7 +71,7 @@ export default function RootLayout() {
 
 
 function AppContent() {
-  console.log("🎨 AppContent rendered — Stack mounted");
+  console.log("AppContent rendered — Stack mounted");
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

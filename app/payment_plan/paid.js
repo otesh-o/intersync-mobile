@@ -116,11 +116,9 @@ export default function PaymentSuccess() {
 
         <TouchableOpacity
           onPress={() => {
-            
             router.push({
-              pathname: "/Homepage/homepage", 
-              
-              params: { startTutorial: "true" },
+              pathname: "/Homepage/homepage",
+              params: { showTutorial: "true" }, // 👈 add this
             });
           }}
           style={{

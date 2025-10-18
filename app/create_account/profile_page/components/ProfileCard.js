@@ -12,8 +12,8 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
-import { useProfile } from "../../context/ProfileContext";
-import { api } from "../../services/api"; // For other profile updates
+import { useProfile } from "../../../context/ProfileContext";
+import { api } from "../../../services/api"; // For other profile updates
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileCard() {
@@ -239,7 +239,7 @@ export default function ProfileCard() {
             source={
               profilePicUrl
                 ? { uri: profilePicUrl }
-                : require("../../../assets/images/avatar.jpeg")
+                : require("../../../../assets/images/avatar.jpeg")
             }
             style={{
               width: 68,
@@ -301,7 +301,7 @@ export default function ProfileCard() {
               color: "#000",
             }}
           >
-            {name || "Anonymous"}
+            {name || "Enter your name"}
           </Text>
         )}
       </View>
@@ -342,7 +342,7 @@ export default function ProfileCard() {
               width: "80%",
             }}
           >
-            {role || "Enter your brief role"}
+            {role || "Enter your role or a brief bio."}
           </Text>
         )}
       </View>

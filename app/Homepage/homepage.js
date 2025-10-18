@@ -1,30 +1,36 @@
 // app/screens/Homepage.js
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  TextInput,
-  Animated,
   ActivityIndicator,
+  Animated,
+  Image,
+  Modal,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { router, useLocalSearchParams } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
-import { router } from "expo-router";
-import { folderIcon, homeIcon, bookmarkIcon } from "../constants/appData";
-import SideMenu from "../components/SideMenu";
 import JobCard from "../components/JobCard";
 import ProfileSetupModal from "../components/ProfileSetupModal";
-import { useProfile } from "../context/ProfileContext";
+import SideMenu from "../components/SideMenu";
+import { bookmarkIcon, folderIcon, homeIcon } from "../constants/appData";
 import { useAuth } from "../context/AuthContext";
-import { useSavedJobs } from "../context/SavedJobsContext";
 import { useJobs } from "../context/JobsContext";
+import { useProfile } from "../context/ProfileContext";
+import { useSavedJobs } from "../context/SavedJobsContext";
+import { api } from "../services/api"; // 👈 ADDED
 
 const Homepage = () => {
+  const insets = useSafeAreaInsets();
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const [isMenuVisible, setMenuVisible] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const slideAnim = useRef(new Animated.Value(-300)).current;
   const { jobs, isLoading: jobsLoading, currentMode, changeMode } = useJobs();
   const { savedJobs, setSavedJobs } = useSavedJobs();
@@ -32,11 +38,47 @@ const Homepage = () => {
   const { token } = useAuth;
   const [displayedJobs, setDisplayedJobs] = useState([]);
 
+  const { showTutorial: showTutorialParam } = useLocalSearchParams();
+
   useEffect(() => {
     if (!jobsLoading && Array.isArray(jobs)) {
-      setDisplayedJobs([...jobs]);
+      if (!searchQuery.trim()) {
+        setDisplayedJobs([...jobs]);
+      } else {
+        const query = searchQuery.toLowerCase().trim();
+        const filtered = jobs.filter((job) => {
+          const title = job.title?.toLowerCase() || "";
+          const company =
+            (typeof job.company === "object"
+              ? job.company.name
+              : job.company
+            )?.toLowerCase() || "";
+          const location = job.location?.toLowerCase() || "";
+          const jobType = job.jobType?.toLowerCase() || "";
+          const labels = (job.labels || []).join(" ").toLowerCase();
+
+          return (
+            title.includes(query) ||
+            company.includes(query) ||
+            location.includes(query) ||
+            jobType.includes(query) ||
+            labels.includes(query)
+          );
+        });
+        setDisplayedJobs(filtered);
+      }
     }
-  }, [jobs, jobsLoading]);
+  }, [jobs, jobsLoading, searchQuery]);
+
+  useEffect(() => {
+    if (showTutorialParam === "true") {
+      setShowTutorial(true);
+    }
+  }, [showTutorialParam]);
+
+  const closeTutorial = () => {
+    setShowTutorial(false);
+  };
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -44,10 +86,10 @@ const Homepage = () => {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [isMenuVisible]); 
+  }, [isMenuVisible]);
 
-  
-  const handleSwipe = (jobId, direction) => {
+  // ✅ UPDATED: async + mark job as seen
+  const handleSwipe = async (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
     if (
@@ -61,19 +103,27 @@ const Homepage = () => {
       ]);
     }
 
+    // ✅ MARK JOB AS SEEN/DISMISSED
+    try {
+      await api.post("/v1/job/seen", {
+        jobId,
+        action: direction === "right" ? "engaged" : "dismissed",
+      });
+    } catch (error) {
+      console.warn("Failed to mark job as seen:", error);
+      // Optional: show subtle error, but don't block UI
+    }
+
     setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
   };
 
+  const handlenotificationsPress = () => {
+    router.push("/Homepage/notifications");
+  };
 
-    const handlenotificationsPress = () => {
-      router.push("/Homepage/notifications");
-    };  
-
-
-    const handleApplicationTrackerPress = () => {
-      router.push("/Homepage/ApplicationTracker");
-    };
-
+  const handleApplicationTrackerPress = () => {
+    router.push("/Homepage/ApplicationTracker");
+  };
 
   const handleBookmarkPress = () => {
     router.push("/Homepage/saved");
@@ -86,26 +136,31 @@ const Homepage = () => {
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
-      <View className="flex-row items-center bg-slate-50 px-5 pt-[30px] pb-2.5 relative">
-        {/* Menu Button - Left */}
-        <TouchableOpacity className="p-1.5 z-10" onPress={handleMenuToggle}>
-          <Icon name="menu" size={30} color="#000" />
+      <View
+        className="flex-row items-center bg-slate-50 px-4"
+        style={{ paddingTop: insets.top + 8, paddingBottom: 10 }}
+      >
+        <TouchableOpacity
+          className="p-2"
+          style={{ zIndex: 10 }}
+          onPress={handleMenuToggle}
+        >
+          <Icon name="menu" size={26} color="#000" />
         </TouchableOpacity>
 
-        {/* Logo - Centered */}
-        <Image
-          source={require("../../assets/images/Internsync-black.png")}
-          className="absolute left-0 right-0 w-40 h-10 mx-auto"
-          resizeMode="contain"
-        />
+        <View className="flex-1 items-center max-w-xs">
+          <Image
+            source={require("../../assets/images/Internsync-black.png")}
+            className="w-full h-16"
+            resizeMode="contain"
+          />
+        </View>
 
-        {/* Empty view for layout balance */}
         <View className="w-10" />
       </View>
 
-      <View className="flex-1 px-5">
-        <View className="flex-row items-center mt-5">
+      <View className="flex-1 px-4">
+        <View className="flex-row items-center mt-4">
           <TouchableOpacity
             className="w-14 h-14 justify-center items-center rounded-full overflow-hidden"
             onPress={() => router.push("../profile_page/MainProfile")}
@@ -113,36 +168,21 @@ const Homepage = () => {
             {profilePicUrl ? (
               <Image
                 source={{ uri: profilePicUrl }}
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                }}
+                className="w-full h-full rounded-full"
                 resizeMode="cover"
               />
             ) : (
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: "#007AFF",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "white", fontSize: 18, fontWeight: "bold" }}
-                >
+              <View className="w-full h-full rounded-full bg-blue-500 justify-center items-center">
+                <Text className="text-white text-lg font-bold">
                   {profileName?.charAt(0).toUpperCase() || "U"}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
 
-          <View className="flex-1 ml-4 mr-2.5">
-            <Text className="text-lg text-gray-500">Hello</Text>
-            <Text className="text-2xl font-bold" numberOfLines={1}>
+          <View className="flex-1 ml-4 mr-2">
+            <Text className="text-base text-gray-500">Hello</Text>
+            <Text className="text-xl font-bold" numberOfLines={1}>
               {profileName || "User"}
             </Text>
           </View>
@@ -151,39 +191,50 @@ const Homepage = () => {
             className="relative w-10 h-10 justify-center items-center"
             onPress={handlenotificationsPress}
           >
-            <Icon name="notifications-outline" size={28} color="#000" />
-            <View className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-[1.5px] border-slate-50" />
+            <Icon name="notifications-outline" size={24} color="#000" />
+            <View className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-[1.5px] border-white" />
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row items-center bg-slate-50 rounded-3xl mt-6 px-4 border border-gray-300">
-          <Icon name="search" size={20} color="#888" />
+        <View className="flex-row items-center bg-slate-50 rounded-2xl mt-4 px-3 py-2 border border-gray-300">
+          <Icon name="search" size={18} color="#888" />
           <TextInput
             placeholder="Search by job name"
-            className="flex-1 h-14 text-base"
+            className="flex-1 ml-2 text-base"
             placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoComplete="off"
+            autoCorrect={false}
           />
-          <TouchableOpacity className="p-2.5">
-            <Icon name="options-outline" size={26} color="#000" />
-          </TouchableOpacity>
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Icon name="close-circle" size={18} color="#888" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity>
+              <Icon name="options-outline" size={22} color="#000" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        <View className="flex-1 justify-center items-center mt-5 mb-5">
+        <View className="flex-1 justify-center items-center mt-4 mb-4">
           {jobsLoading ? (
-            <View className="flex-1 justify-center items-center pb-12">
+            <View className="flex-1 justify-center items-center pb-16">
               <ActivityIndicator size="large" color="#000" />
-              <Text className="text-lg text-gray-600 mt-4">
+              <Text className="text-base text-gray-600 mt-3">
                 Loading {currentMode}...
               </Text>
             </View>
           ) : displayedJobs.length === 0 ? (
-            <View className="flex-1 justify-center items-center pb-12">
-              <Icon name="refresh" size={60} color="#ccc" />
-              <Text className="text-xl font-bold text-gray-500 mt-5 text-center">
-                No more jobs
+            <View className="flex-1 justify-center items-center pb-16">
+              <Icon name="search" size={50} color="#ccc" />
+              <Text className="text-lg font-bold text-gray-500 mt-4 text-center">
+                No matching jobs
               </Text>
-              <Text className="text-base text-gray-400 mt-2.5 text-center">
-                Check back later for new opportunities
+              <Text className="text-sm text-gray-400 mt-2 text-center">
+                Try a different search term
               </Text>
             </View>
           ) : (
@@ -200,8 +251,8 @@ const Homepage = () => {
                     position: "absolute",
                     zIndex: index + 1,
                     transform: [
-                      { scale: 1 - cardStackIndex * 0.05 },
-                      { translateY: cardStackIndex * 15 },
+                      { scale: 1 - cardStackIndex * 0.04 },
+                      { translateY: cardStackIndex * 12 },
                     ],
                   }}
                 />
@@ -211,16 +262,19 @@ const Homepage = () => {
         </View>
       </View>
 
-      <View className="flex-row justify-around items-center bg-white h-[75px] border-t border-slate-200 pb-2.5">
+      <View
+        className="flex-row justify-around items-center bg-white border-t border-slate-200 pb-2"
+        style={{ height: 70, paddingTop: 8 }}
+      >
         <TouchableOpacity
           className="flex-1 items-center justify-center"
           onPress={handleApplicationTrackerPress}
         >
-          <Image source={folderIcon} className="w-7 h-7" resizeMode="contain" />
+          <Image source={folderIcon} className="w-6 h-6" resizeMode="contain" />
         </TouchableOpacity>
 
         <TouchableOpacity className="flex-1 items-center justify-center">
-          <Image source={homeIcon} className="w-7 h-7" resizeMode="contain" />
+          <Image source={homeIcon} className="w-6 h-6" resizeMode="contain" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -229,7 +283,7 @@ const Homepage = () => {
         >
           <Image
             source={bookmarkIcon}
-            className="w-7 h-7"
+            className="w-6 h-6"
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -253,6 +307,30 @@ const Homepage = () => {
           }}
         />
       )}
+
+      <Modal
+        transparent
+        visible={showTutorial}
+        animationType="fade"
+        onRequestClose={closeTutorial}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 px-4">
+          <View className="bg-white rounded-3xl p-6 w-full max-w-sm">
+            <Text className="text-gray-600 text-center mb-5 leading-relaxed">
+              ✅ Swipe right or tap the checkmark to quick apply.
+              {"\n"}❌ Swipe left or tap the X to skip.
+            </Text>
+            <TouchableOpacity
+              className="bg-black rounded-full py-3 mx-auto w-4/5"
+              onPress={closeTutorial}
+            >
+              <Text className="text-white text-center font-bold">
+                Start getting offers!
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

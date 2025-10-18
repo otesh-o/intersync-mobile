@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { api } from "../services/api";
-
 
 const DescriptionView = ({ job }) => {
   return (
@@ -50,13 +51,11 @@ const DescriptionView = ({ job }) => {
   );
 };
 
-
 const CompanyView = ({ job }) => {
   const company = job.company;
 
   return (
     <View>
-      {/* About Us */}
       <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">
         About Us
       </Text>
@@ -65,8 +64,6 @@ const CompanyView = ({ job }) => {
           "We are a forward-thinking company focused on innovation, teamwork, and growth. Join us to build the future."}
       </Text>
 
-
-      {/* Address */}
       <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">
         Address
       </Text>
@@ -74,7 +71,6 @@ const CompanyView = ({ job }) => {
         {company?.address || "123 Innovation Drive, Tech City, CA 94000"}
       </Text>
 
-      {/* Hours */}
       <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">
         Hours
       </Text>
@@ -82,7 +78,6 @@ const CompanyView = ({ job }) => {
         {company?.hours || "Not specified"}
       </Text>
 
-      {/* Phone */}
       <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">
         Phone
       </Text>
@@ -90,7 +85,6 @@ const CompanyView = ({ job }) => {
         {company?.phone || "Not available"}
       </Text>
 
-      {/* Website */}
       {company?.website ? (
         <>
           <Text className="text-lg font-bold text-slate-800 mt-5 mb-2.5">
@@ -127,7 +121,6 @@ const JobDescriptionScreen = () => {
         const response = await api(`/v1/job/${id}`);
         if (response.success && response.data) {
           setJob(response.data);
-          console.log("Job loaded:", JSON.stringify(response.data, null, 2)); 
           setError(null);
         } else {
           throw new Error(response.message || "Job not found");
@@ -145,6 +138,30 @@ const JobDescriptionScreen = () => {
 
   const handleBackPress = () => {
     router.back();
+  };
+
+  const handleActionPress = () => {
+    if (job.sourceType === "csv") {
+      const url =
+        job.sourceUrl?.trim() ||
+        (typeof job.company === "object" ? job.company.website?.trim() : null);
+      if (url) {
+        Linking.openURL(url).catch(() =>
+          Alert.alert("Error", "Could not open website.")
+        );
+      } else {
+        Alert.alert("No Link", "This job has no external URL.");
+      }
+    } else {
+      router.push({
+        pathname: "/Homepage/apply",
+        params: { jobId: job._id },
+      });
+    }
+  };
+
+  const getButtonText = () => {
+    return job.sourceType === "csv" ? "Visit Website" : "Apply Now";
   };
 
   if (loading) {
@@ -191,7 +208,6 @@ const JobDescriptionScreen = () => {
     <View className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Icon
@@ -206,9 +222,7 @@ const JobDescriptionScreen = () => {
           />
         </TouchableOpacity>
 
-        <Text className="text-2xl font-bold flex-1 text-center">
-            DETAILS
-        </Text>
+        <Text className="text-2xl font-bold flex-1 text-center">DETAILS</Text>
 
         <View className="w-16" />
       </View>
@@ -232,7 +246,6 @@ const JobDescriptionScreen = () => {
               elevation: 3,
             }}
           >
-            
             <Image
               source={{
                 uri:
@@ -243,7 +256,6 @@ const JobDescriptionScreen = () => {
               resizeMode="contain"
             />
 
-           
             <View className="ml-4 flex-1">
               <Text
                 className="text-xl font-bold text-slate-800"
@@ -255,7 +267,6 @@ const JobDescriptionScreen = () => {
                 {company?.name || "Unknown Company"} • {job.location}
               </Text>
 
-              
               <View className="flex-row mt-2 flex-wrap">
                 {(job.labels || []).map((label, idx) => (
                   <View
@@ -285,7 +296,6 @@ const JobDescriptionScreen = () => {
             </View>
           </View>
 
-          {/* Tab Switcher */}
           <View className="flex-row mx-1 mb-6 bg-slate-200 rounded-xl p-1">
             <TouchableOpacity
               className={`flex-1 py-2.5 rounded-lg items-center ${
@@ -339,7 +349,6 @@ const JobDescriptionScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Tab Content */}
           {activeTab === "Description" ? (
             <DescriptionView job={job} />
           ) : (
@@ -350,14 +359,11 @@ const JobDescriptionScreen = () => {
         <View className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-slate-200">
           <TouchableOpacity
             className="bg-black py-4 rounded-2xl items-center"
-            onPress={() =>
-              router.push({
-                pathname: "/Homepage/apply",
-                params: { jobId: job._id },
-              })
-            }
+            onPress={handleActionPress}
           >
-            <Text className="text-white text-lg font-bold">Apply Now</Text>
+            <Text className="text-white text-lg font-bold">
+              {getButtonText()}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

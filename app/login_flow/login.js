@@ -16,12 +16,12 @@ export default function Login() {
           className="w-[182px] h-[182px] mb-[-10px]"
           resizeMode="contain"
         />
-        <Text
+        {/* <Text
           className="text-[27.11px] text-white uppercase text-center"
           style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
           INTERNSYNC
-        </Text>
+        </Text> */}
         <Text
           className="text-[24px] text-white font-bold text-center mt-4"
           style={{
