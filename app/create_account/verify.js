@@ -62,7 +62,7 @@ export default function VerifyScreen() {
       const otpData = await otpRes.json();
 
       if (otpRes.ok && otpData.success) {
-        console.log("✅ OTP verified — creating Firebase account...");
+        console.log("OTP verified — creating Firebase account...");
 
         try {
           const userCredential = await createUserWithEmailAndPassword(
@@ -72,7 +72,7 @@ export default function VerifyScreen() {
           );
           const { uid, email: firebaseEmail } = userCredential.user;
 
-          console.log("🎉 Firebase account created:", uid);
+          console.log("Firebase account created:", uid);
 
           const idToken = await userCredential.user.getIdToken();
 
@@ -91,7 +91,7 @@ export default function VerifyScreen() {
           const finalizeData = await finalizeRes.json();
 
           if (finalizeRes.status === 201 && finalizeData.success) {
-            console.log("✅ Account finalized in database:", finalizeData.user);
+            console.log("Account finalized in database:", finalizeData.user);
 
             await AsyncStorage.setItem("authToken", idToken);
 
@@ -99,7 +99,7 @@ export default function VerifyScreen() {
           } else {
             if (finalizeRes.status === 409) {
               showModal({
-                title: "🔐 Already Exists",
+                title: "Already Exists",
                 message:
                   finalizeData.message || "This account was already set up.",
                 actionText: "Continue",
@@ -110,7 +110,7 @@ export default function VerifyScreen() {
               });
             } else if (finalizeRes.status === 400) {
               showModal({
-                title: "📝 Setup Incomplete",
+                title: "Setup Incomplete",
                 message:
                   finalizeData.message || "Please restart the signup process.",
                 actionText: "Restart",
@@ -121,7 +121,7 @@ export default function VerifyScreen() {
               });
             } else if (finalizeRes.status === 401) {
               showModal({
-                title: "🔐 Unauthorized",
+                title: "Unauthorized",
                 message:
                   finalizeData.message || "Authentication failed. Try again.",
                 actionText: "Retry",
@@ -300,7 +300,7 @@ export default function VerifyScreen() {
       }
     } catch (error) {
       showModal({
-        title: "📶 No Connection",
+        title: "No Connection",
         message: "Couldn’t resend code. Check your internet.",
         actionText: "OK",
         onAction: () => setModalVisible(false),
@@ -357,7 +357,7 @@ export default function VerifyScreen() {
                   <Image source={backIcon} className="w-6 h-6" />
                 </TouchableOpacity>
 
-                {/* ✅ LOGO REPLACES TEXT */}
+                {/* LOGO REPLACES TEXT */}
                 <View className="items-center">
                   <Image
                     source={require("../../assets/images/Internsync-black.png")}

@@ -48,7 +48,7 @@ const SideMenu = ({
         className="absolute top-0 left-0 h-full w-[280px] z-[100]"
         style={{ transform: [{ translateX: slideAnim }] }}
       >
-        {/* 🔷 ZONE 1: Dark header (30% height) */}
+        {/*30% height */}
         <View className="h-[30%] bg-slate-800 px-5 flex-col justify-between pb-4">
           {/* 🔹 Group A: Top — Back icon + App name */}
           <View className="flex-row items-center pt-14">
@@ -60,7 +60,7 @@ const SideMenu = ({
             </Text>
           </View>
 
-          {/* 🔹 Group B: Bottom — Profile pic + Greeting */}
+          {/* Profile pic + Greeting */}
           <View className="flex-row items-center">
             {profilePicUrl ? (
               <Image
@@ -81,7 +81,7 @@ const SideMenu = ({
           </View>
         </View>
 
-        {/* ⚪ ZONE 2: Navigation (70% height) */}
+        {/*70% height */}
         <View className="h-[70%] bg-white rounded-t-2xl">
           <ScrollView
             contentContainerClassName="p-2.5"

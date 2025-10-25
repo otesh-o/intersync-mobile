@@ -20,7 +20,7 @@ export const ProfileProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadProfile = async () => {
-    console.log("🔍 Starting profile load...");
+    console.log("Starting profile load...");
     setIsLoading(true);
 
     try {
@@ -104,12 +104,12 @@ export const ProfileProvider = ({ children }) => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (isActive) {
         if (user) {
-          console.log("🔐 Firebase user detected:", user.uid);
+          console.log("Firebase user detected:", user.uid);
 
           try {
             const idToken = await user.getIdToken(true); 
             await AsyncStorage.setItem("authToken", idToken);
-            console.log("🔑 Auth token saved");
+            console.log("Auth token saved");
 
             await loadProfile();
           } catch (tokenError) {
@@ -118,7 +118,7 @@ export const ProfileProvider = ({ children }) => {
           }
         } else {
           
-          console.log("👤 No logged-in user found at startup");
+          console.log("No logged-in user found at startup");
           setName("");
           setRole("Enter your role");
           setProfilePicUrl(null);

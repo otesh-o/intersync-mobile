@@ -1,4 +1,5 @@
 // app/context/JobsContext.js
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "../services/api";
 
@@ -9,7 +10,7 @@ export const JobsProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("internships"); // Default mode
 
- 
+  // 🔒 Strict endpoint mapping — no fallback
   const getEndpoint = (mode) => {
     switch (mode) {
       case "internships":
@@ -19,33 +20,40 @@ export const JobsProvider = ({ children }) => {
       case "extracurriculars":
         return "/v1/job/extracurriculars";
       default:
-        return "/v1/job";
+        // This should never happen — but throw or log if it does
+        throw new Error(`Unknown job mode: ${mode}`);
     }
   };
 
-  const loadJobs = async (mode = currentMode) => {
-    console.log(`🔍 Starting job load for mode: ${mode}`);
+  const loadJobs = async (mode) => {
+    console.log(`🔄 Starting job load for mode: ${mode}`);
     setIsLoading(true);
 
     try {
-      const endpoint = getEndpoint(mode);
+      const endpoint = getEndpoint(mode); // Will throw if mode is invalid
       console.log("📡 Fetching from endpoint:", endpoint);
 
       const response = await api(endpoint);
 
-      console.log("Raw API Response:", JSON.stringify(response, null, 2));
+      console.log("=== API RESPONSE DEBUG ===");
+      console.log("Endpoint called:", endpoint);
+      console.log("Mode requested:", mode);
+      console.log("Number of jobs returned:", response?.data?.length);
+      console.log(
+        "First 3 jobs details:",
+        response?.data?.slice(0, 3).map((j) => ({
+          id: j._id,
+          title: j.title,
+          category: j.category,
+          sourceType: j.sourceType,
+        }))
+      );
+      console.log("========================");
 
-      // Validate structure
-      if (!response || !response.data) {
-        throw new Error("Invalid response format: missing data");
+      if (!response?.data || !Array.isArray(response.data)) {
+        throw new Error("API response must contain an array under 'data'");
       }
 
-      if (!Array.isArray(response.data)) {
-        console.warn("⚠️ Expected array, got:", typeof response.data);
-        throw new Error("Expected job list to be an array");
-      }
-
-      // Map to internal format
       const mapped = response.data.map((item, index) => {
         if (!item._id) {
           console.warn(`⚠️ Job at index ${index} has no _id`, item);
@@ -59,47 +67,53 @@ export const JobsProvider = ({ children }) => {
           type: item.type || "",
           workMode: item.workMode || "",
           level: item.level || "",
-          category: item.category || mode,
+          category: item.category || mode, // fallback to mode if missing
           description: item.description || "",
           image: item.image || "https://via.placeholder.com/300x200?text=Job",
+          sourceType: item.sourceType || "csv",
+          sourceUrl: item.sourceUrl || "",
+          bannerImageUrl: item.bannerImageUrl || "",
+          applyMode: item.applyMode || "",
+          jobType: item.jobType || "",
         };
       });
 
-      console.log(`🎉 Successfully loaded ${mapped.length} jobs for ${mode}`);
+      console.log(`✅ Successfully loaded ${mapped.length} jobs for ${mode}`);
+      console.log(
+        "📊 Categories in mapped jobs:",
+        mapped.slice(0, 5).map((j) => j.category)
+      );
+
       setJobs(mapped);
     } catch (error) {
       console.error("❌ Failed to load jobs:", error);
-      console.error("🚨 Error details:", {
-        message: error.message,
-        stack: error.stack,
-      });
-
       setJobs([]);
-
-    
     } finally {
       setIsLoading(false);
-      console.log("🏁 Job loading complete. isLoading = false");
+      console.log("✔️ Job loading complete. isLoading = false");
     }
   };
 
   const changeMode = (mode) => {
-    console.log(`🔄 Changing mode from '${currentMode}' to '${mode}'`);
+    if (!["internships", "scholarships", "extracurriculars"].includes(mode)) {
+      console.error("Invalid mode attempted:", mode);
+      return;
+    }
+    console.log(`Changing mode from '${currentMode}' to '${mode}'`);
     setCurrentMode(mode);
     loadJobs(mode);
   };
 
-
   const refreshJobs = () => {
-    console.log("🔁 Refreshing jobs for current mode:", currentMode);
+    console.log("Refreshing jobs for current mode:", currentMode);
     loadJobs(currentMode);
   };
 
- 
+  // ✅ Initialize with the correct default mode
   useEffect(() => {
-    console.log(" App started — initializing job load...");
-    loadJobs();
-  }, []);
+    console.log("App started — initializing job load for default mode...");
+    loadJobs(currentMode); // currentMode is "internships"
+  }, []); // currentMode is stable on mount, so safe
 
   return (
     <JobsContext.Provider

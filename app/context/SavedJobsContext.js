@@ -10,11 +10,11 @@ export const SavedJobsProvider = ({ children }) => {
 
   // Load saved jobs
   const loadSavedJobs = async () => {
-    console.log("🔍 Loading saved jobs from backend...");
+    console.log("Loading saved jobs from backend...");
     try {
       const response = await api("/v1/bookmark/user");
       console.log(
-        "✅ Raw saved jobs response:",
+        "Raw saved jobs response:",
         JSON.stringify(response, null, 2)
       );
 
@@ -26,15 +26,15 @@ export const SavedJobsProvider = ({ children }) => {
 
       for (const item of serverJobs) {
         
-        const jobId = item.jobId || item.id;
+        const jobId = item.jobId || item.id || item._id || item.job?._id;
 
         if (!jobId) {
-          console.warn("⚠️ Job missing ID in backend response:", item);
+          console.warn("Job missing ID in backend response:", item);
           continue;
         }
 
         if (idSet.has(jobId)) {
-          console.warn("⚠️ Duplicate job ID skipped:", jobId);
+          console.warn("Duplicate job ID skipped:", jobId);
           continue;
         }
 
@@ -73,7 +73,7 @@ export const SavedJobsProvider = ({ children }) => {
   const addSavedJob = (job) => {
     setSavedJobs((prev) => {
       if (prev.some((j) => j.id === job.id)) {
-        console.log("⚠️ Avoided duplicate add:", job.id);
+        console.log("Avoided duplicate add:", job.id);
         return prev;
       }
       return [job, ...prev];

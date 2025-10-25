@@ -1,5 +1,5 @@
 // app/components/JobCard.js
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -32,6 +32,13 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     resumeUrl,
   } = useProfile();
 
+ 
+  console.log("Job ID:", job.id);
+  console.log("Raw bannerImageUrl:", job.bannerImageUrl);
+  console.log("Trimmed bannerImageUrl:", job.bannerImageUrl?.trim());
+
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+
   const rotate = translateX.interpolate({
     inputRange: [-width / 2, 0, width / 2],
     outputRange: ["-12deg", "0deg", "12deg"],
@@ -62,19 +69,59 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     };
   };
 
-  const applyToJob = async (jobId) => {
-    try {
-      const payload = buildApplyPayload();
-      await api.post(`/v1/apply/job/${jobId}`, payload);
-    } catch (error) {
-      console.error("Apply failed:", error);
+const applyToJob = async (jobId) => {
+  try {
+    if (!resumeUrl || resumeUrl.trim() === "") {
+      Alert.alert(
+        "Resume Required",
+
+        "Please upload your resume in your profile before applying."
+      );
+
+      throw new Error("Resume not uploaded");
+    }
+
+    console.log("Preparing application for job:", jobId);
+
+    const payload = {
+      applicantName: profileName || "",
+
+      portfolioUrl: "",
+
+      resumeUrl: resumeUrl,
+
+      text: `I'm excited to apply for the ${job.title} role at ${
+        typeof job.company === "object"
+          ? job.company.name
+          : job.company || "this organization"
+      }.`,
+    };
+
+    console.log("Sending application payload:", payload);
+
+    await api(`/v1/application/job/${jobId}`, {
+      method: "POST",
+
+      headers: { "Content-Type": "application/json" },
+
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Job applied successfully:", jobId);
+  } catch (error) {
+    console.error("Apply failed:", error);
+
+    if (error.message !== "Resume not uploaded") {
       Alert.alert(
         "Application Failed",
-        "Could not submit your application. Please try again."
+
+        error.message || "Could not submit your application. Please try again."
       );
-      throw error;
     }
-  };
+
+    throw error;
+  }
+};
 
   const toggleBookmark = async () => {
     try {
@@ -105,7 +152,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
         }).start(async () => {
           try {
             if (direction === "right") {
-              if (job.sourceType === "website") {
+              if (job.sourceType === "web") {
                 await applyToJob(job.id);
               } else {
                 await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
@@ -129,6 +176,18 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               }),
             ]).start();
           }
+
+         
+          if (direction === "right") {
+            if (job.sourceType === "web") {
+              console.log("Applying to web job via swipe:", job.id);
+              await applyToJob(job.id);
+            } else {
+              console.log("Bookmarking CSV job via swipe:", job.id);
+              await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
+              refreshSavedJobs();
+            }
+          }
         });
       } else {
         Animated.parallel([
@@ -150,6 +209,15 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   };
 
   const handleButtonPress = async (direction) => {
+    console.log(
+      "Button pressed:",
+      direction,
+      "| Job ID:",
+      job.id,
+      "| Source:",
+      job.sourceType
+    );
+
     const toValue = direction === "right" ? width * 1.5 : -width * 1.5;
     Animated.timing(translateX, {
       toValue,
@@ -158,15 +226,27 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     }).start(async () => {
       try {
         if (direction === "right") {
-          if (job.sourceType === "website") {
+          if (job.sourceType === "web") {
+            console.log("Applying to web job:", job.id);
             await applyToJob(job.id);
+            console.log("Successfully applied to job:", job.id);
           } else {
+            console.log("Bookmarking CSV job:", job.id);
             await api(`/v1/bookmark/job/${job.id}`, { method: "POST" });
+            console.log("Successfully bookmarked job:", job.id);
             refreshSavedJobs();
+            console.log("Saved jobs list refreshed");
           }
+        } else {
+          console.log("Job dismissed:", job.id);
         }
+
+        console.log("Calling onSwipe callback for job:", job.id);
         onSwipe(job.id, direction);
       } catch (error) {
+        console.error("Error in handleButtonPress:", error);
+        console.log("Reverting card animation due to error");
+
         Animated.parallel([
           Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
           Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
@@ -175,21 +255,22 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     });
   };
 
-  const getCategoryLabel = (category) => {
-    switch (category) {
-      case "internships":
-        return "Internship";
-      case "extracurriculars":
-        return "Extracurricular";
-      case "scholarships":
-        return "Scholarship";
-      default:
-        return "Opportunity";
-    }
-  };
+  
 
   const getActionIcon = () => {
-    return job.sourceType === "website" ? "checkmark" : "bookmark";
+    return job.sourceType === "web" ? "checkmark" : "bookmark";
+  };
+
+
+  const getBannerUri = () => {
+    if (!imageLoadFailed) {
+      if (job.bannerImageUrl?.trim()) return job.bannerImageUrl.trim();
+      if (typeof job.company === "object" && job.company?.logoUrl?.trim()) {
+        return job.company.logoUrl.trim();
+      }
+    }
+    
+    return "https://i.pinimg.com/736x/b3/c8/31/b3c831ecff785cbb3e3ec2969ec16f7e.jpg";
   };
 
   return (
@@ -210,19 +291,17 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
         {/* Job Image */}
         <View className="relative">
           <Image
-            source={{
-              uri:
-                job.bannerImageUrl?.trim() ||
-                (typeof job.company === "object" &&
-                  job.company?.logoUrl?.trim()) ||
-                "https://i.pinimg.com/736x/b3/c8/31/b3c831ecff785cbb3e3ec2969ec16f7e.jpg",
+            source={{ uri: getBannerUri() }}
+            onError={() => {
+              console.warn("Failed to load image:", job.bannerImageUrl);
+              setImageLoadFailed(true);
             }}
             className="w-full h-40 rounded-t-2xl"
             resizeMode="cover"
           />
 
           {/* Top-right Bookmark (website jobs only) */}
-          {job.sourceType === "website" && (
+          {job.sourceType === "web" && (
             <TouchableOpacity
               className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 rounded-full justify-center items-center shadow-sm"
               onPress={toggleBookmark}
@@ -232,7 +311,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
           )}
 
           <View className="absolute -bottom-6 left-5 bg-white p-1.5 rounded-2xl shadow-md border border-slate-200">
-            {/* Company logo */}
+            
           </View>
         </View>
 
@@ -248,11 +327,11 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
 
             <View
               className="px-2.5 py-1 rounded-full ml-2"
-              style={{ backgroundColor: "#22C55E" }}
+              style={{}}
             >
-              <Text className="text-white text-xs font-bold uppercase tracking-wide">
+              {/* <Text className="text-white text-xs font-bold uppercase tracking-wide">
                 {getCategoryLabel(job.category)}
-              </Text>
+              </Text> */}
             </View>
           </View>
 
@@ -315,7 +394,6 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
         {/* Action Buttons */}
         {isTop && (
           <View className="flex-row justify-evenly pt-2 pb-5">
-            {/* ❌ Dismiss */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-red-400 border-0"
               style={{
@@ -333,7 +411,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ➕ View Details (website) OR Open External Link (csv) */}
+            {/*View Details or Open External Link */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full bg-slate-800"
               style={{
@@ -371,7 +449,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
               <Icon name="add" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* ✅ Apply or 🔖 Bookmark */}
+            {/* Apply or Bookmark */}
             <TouchableOpacity
               className="w-14 h-14 justify-center items-center rounded-full"
               style={{

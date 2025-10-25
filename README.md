@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+--Internsync
 
+Lead Mobile Developer: Ola Otesile
+Contributors: Emeka Iwuagwu, Naivedya Bhuyan (please add your name if you change anything in the code)
+
+Introduction-
+To whoever, for whatever reason, has opened this codebase...
+
+You’re probably here to change something.
+You’re also probably going to wish you didn’t.
+
+If I’m not dead, your best shot is to just page me for help. Only God and a small, really small part of me truly understand what’s going on in here.
+
+That said, welcome to the core of Internsync.
+
+Hours wasted here: 43hrs
+(please increase this count as it applies to you)
+
+What is Internsync?
+Internsync helps students and job seekers discover and apply for opportunities Tinder-style.
+Companies can upload job listings from the web platform, and users browse and apply through the mobile app.
+Behind the scenes, there is the backend connecting everything together (big up Harrison).
+
+So if something breaks or doesn’t load right, check the backend or the web app too. This is just one piece of a much bigger chain.
+
+
+Tech Stack-
+
+-React Native + Expo
+-NativeWind (for styling; please do not touch this part, I grew gray hairs making it behave)
+-Firebase (authentication and config inside services/firebaseConfig.js)
+-React Context API (for state management; yes, I know, not my proudest decision)
+Other libraries can be found in package.json. If you are curious or brave, open it at your own risk.
+
+Folder Overview-
+The structure is... custom.
+But it works. Mostly.
+You will find your way around after a few minutes (or hours, depending on your luck).
+
+How to Run-
 1. Install dependencies
+2. npm install
+3. Start the app - npx expo start(clear cache as often as you can)
+4. Pray to God or the universe (whatever you believe in).
 
-   ```bash
-   npm install
-   ```
+Authentication-
+Firebase handles user authentication.
+All related setup and logic live inside: ./services/firebaseConfig.js
 
-2. Start the app
 
-   ```bash
-   npx expo start
-   ```
+Environment Setup-
+Before running the app, make sure your environment variables (Firebase keys, API URLs, and so on) are set up properly.
+Check the sample file: .env.example
+or look inside: ./services/firebaseConfig.js
 
-In the output, you'll find options to open the app in a
+Final Words-
+If it breaks, it is probably your fault.
+If it works, you are welcome.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+“Built with confusion, persistence, and God's help.” 
+– Ola Otesile

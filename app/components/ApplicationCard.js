@@ -17,7 +17,7 @@ const formatTimeAgo = (dateString) => {
 };
 
 const getStatusColor = (status) => {
-  switch (status.toUpperCase()) {
+  switch (status?.toUpperCase()) {
     case "PENDING":
       return "#fbbf24";
     case "REVIEWED":
@@ -34,73 +34,69 @@ const getStatusColor = (status) => {
 };
 
 const ApplicationCard = ({ application }) => {
-  
-  const { jobTitle, company, location } = application.job || {};
+  if (!application) {
+    console.warn("ApplicationCard: received null or undefined application");
+    return null;
+  }
 
-  const title = jobTitle || "Job Title Not Available";
-  const companyName =
-    typeof company === "object" ? company.name : company || "Unknown Company";
-  const jobLocation = location || "Location not specified";
+  // The job data is in application.jobId (as an object), not application.job
+  const job = application.job || application.jobId || {};
+  const company = typeof job.company === "object" ? job.company : {};
+
+  const title = job.title || "Job Title Not Available";
+  const companyName = company.name || "Unknown Company";
+  const location = job.location || "Location not specified";
+  const applicantName = application.applicantName || "You";
+  const jobId = job._id || job.id;
 
   const handlePress = () => {
-    if (application.jobId) {
+    if (jobId) {
       router.push({
         pathname: "/Homepage/jobdescription",
-        params: { id: application.jobId },
+        params: { id: jobId },
       });
+    } else {
+      console.error(
+        "ApplicationCard: Cannot navigate — job ID is missing",
+        job
+      );
     }
   };
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-      <View className="bg-white border border-gray-300 rounded-lg p-4 mb-3 relative">
-        
-        <View
-          className="absolute top-3 right-3 px-2 py-1 rounded-full"
-          style={{ backgroundColor: getStatusColor(application.status) }}
-        >
-          <Text className="text-white text-xs font-bold uppercase tracking-tight">
-            {application.status}
+    <TouchableOpacity
+      className="bg-white border border-gray-300 rounded-lg p-3 mb-3"
+      onPress={handlePress}
+    >
+      <View className="flex-1">
+        <Text className="text-base font-bold text-black" numberOfLines={2}>
+          {title}
+        </Text>
+
+        <Text className="text-sm text-gray-600 mt-1">
+          {companyName} • {location}
+        </Text>
+
+        <Text className="text-sm text-gray-500 mt-1">
+          Applied by: {applicantName}
+        </Text>
+
+        <View className="flex-row items-center justify-between mt-2">
+          <Text className="text-xs text-gray-500">
+            {formatTimeAgo(application.createdAt)}
           </Text>
+
+          {application.status && (
+            <View
+              className="px-2 py-1 rounded-full"
+              style={{ backgroundColor: getStatusColor(application.status) }}
+            >
+              <Text className="text-white text-xs font-bold uppercase tracking-tight">
+                {application.status}
+              </Text>
+            </View>
+          )}
         </View>
-
-        
-        <View className="flex-row">
-          {/* Logo*/}
-          <View className="w-12 h-12 bg-slate-200 rounded-lg mr-4 justify-center items-center overflow-hidden">
-            <Icon name="briefcase-outline" size={28} color="#999" />
-          </View>
-
-          <View className="flex-1">
-            {/* Job Title */}
-            <Text className="text-base font-bold text-black" numberOfLines={1}>
-              {title}
-            </Text>
-
-            {/* Company & Location */}
-            <Text className="text-sm text-gray-600 mt-1">
-              {companyName} • {jobLocation}
-            </Text>
-
-            Applicant Name
-            <Text className="text-sm text-gray-500 mt-1">
-              Applied by: {application.applicantName}
-            </Text>
-
-            {/* Time */}
-            <Text className="text-xs text-gray-500 mt-2">
-              {formatTimeAgo(application.createdAt)}
-            </Text>
-          </View>
-        </View>
-
-    
-        <TouchableOpacity
-          className="mt-4 self-start bg-black py-1.5 px-4 rounded"
-          onPress={handlePress}
-        >
-          <Text className="text-white text-sm font-medium">View Details</Text>
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

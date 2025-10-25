@@ -46,6 +46,8 @@ const Homepage = () => {
         setDisplayedJobs([...jobs]);
       } else {
         const query = searchQuery.toLowerCase().trim();
+        console.log("Searching for:", query);
+
         const filtered = jobs.filter((job) => {
           const title = job.title?.toLowerCase() || "";
           const company =
@@ -57,14 +59,35 @@ const Homepage = () => {
           const jobType = job.jobType?.toLowerCase() || "";
           const labels = (job.labels || []).join(" ").toLowerCase();
 
-          return (
+          const matches =
             title.includes(query) ||
             company.includes(query) ||
             location.includes(query) ||
             jobType.includes(query) ||
-            labels.includes(query)
-          );
+            labels.includes(query);
+
+          return matches;
         });
+
+        console.log(`Search results: ${filtered.length} jobs found`);
+
+        // Log properties of each matched job
+        filtered.forEach((job, index) => {
+          console.log(`\n--- Job ${index + 1} ---`);
+          console.log("ID:", job.id);
+          console.log("Title:", job.title);
+          console.log("Source Type:", job.sourceType);
+          console.log(
+            "Company:",
+            typeof job.company === "object" ? job.company.name : job.company
+          );
+          console.log("Location:", job.location);
+          console.log("Category:", job.category);
+          console.log("Job Type:", job.jobType);
+
+          console.log("Full job object:", JSON.stringify(job, null, 2));
+        });
+
         setDisplayedJobs(filtered);
       }
     }
@@ -88,13 +111,15 @@ const Homepage = () => {
     }).start();
   }, [isMenuVisible]);
 
-  // ✅ UPDATED: async + mark job as seen
+  //mark job as seen
   const handleSwipe = async (jobId, direction) => {
     const jobToSave = jobs.find((job) => job.id === jobId);
 
+    //Only auto-save if it's a CSV job (or explicitly bookmarked)
     if (
       direction === "right" &&
       jobToSave &&
+      jobToSave.sourceType === "csv" &&
       !savedJobs.some((s) => s.id === jobId)
     ) {
       setSavedJobs((prev) => [
@@ -103,15 +128,17 @@ const Homepage = () => {
       ]);
     }
 
-    // ✅ MARK JOB AS SEEN/DISMISSED
     try {
-      await api.post("/v1/job/seen", {
-        jobId,
-        action: direction === "right" ? "engaged" : "dismissed",
+      await api("/v1/job/seen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId,
+          action: direction === "right" ? "engaged" : "dismissed",
+        }),
       });
     } catch (error) {
       console.warn("Failed to mark job as seen:", error);
-      // Optional: show subtle error, but don't block UI
     }
 
     setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
@@ -317,7 +344,7 @@ const Homepage = () => {
         <View className="flex-1 justify-center items-center bg-black/50 px-4">
           <View className="bg-white rounded-3xl p-6 w-full max-w-sm">
             <Text className="text-gray-600 text-center mb-5 leading-relaxed">
-              ✅ Swipe right or tap the checkmark to quick apply.
+              Swipe right or tap the checkmark to quick apply.
               {"\n"}❌ Swipe left or tap the X to skip.
             </Text>
             <TouchableOpacity

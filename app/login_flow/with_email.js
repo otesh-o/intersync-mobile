@@ -53,7 +53,7 @@ export default function LoginScreen() {
       );
       const user = userCredential.user;
 
-      console.log("🔐 Logged in:", user.uid);
+      console.log("Logged in:", user.uid);
 
       const idToken = await user.getIdToken();
 
@@ -70,19 +70,19 @@ export default function LoginScreen() {
         error.code === "auth/wrong-password" ||
         error.code === "auth/invalid-credential"
       ) {
-        title = "🔐 Couldn’t Sign In";
+        title = "Couldn’t Sign In";
         message =
           "Hmm, those credentials don’t match our records. Double-check your email and password.";
         actionText = "Try Again";
         onAction = () => setModalVisible(false);
       } else if (error.code === "auth/invalid-email") {
-        title = "✉️ Invalid Email";
+        title = "Invalid Email";
         message =
           "Hmm, that email doesn’t look right. Double-check and try again.";
         actionText = "Got it";
         onAction = () => setModalVisible(false);
       } else if (error.code === "auth/network-request-failed") {
-        title = "📶 No Connection";
+        title = "No Connection";
         message = "Oof, we can’t reach the server. Are you online?";
         actionText = "Retry";
         onAction = () => {
@@ -90,7 +90,7 @@ export default function LoginScreen() {
           setTimeout(handleLogin, 500);
         };
       } else if (error.code === "auth/too-many-requests") {
-        title = "⏱️ Locked Temporarily";
+        title = "Locked Temporarily";
         message = "Too many attempts. Reset your password or try again later.";
         actionText = "Reset Password";
         onAction = () => {
@@ -101,12 +101,12 @@ export default function LoginScreen() {
         error.code === "auth/internal-error" ||
         error.code === "auth/unknown-error"
       ) {
-        title = "🛠️ Unexpected Glitch";
+        title = "Unexpected Glitch";
         message = "Oof, something went wrong on our end. Try again in a bit.";
         actionText = "Dismiss";
         onAction = () => setModalVisible(false);
       } else {
-        title = "⚠️ Couldn’t Log In";
+        title = "Couldn’t Log In";
         message = "Something unexpected happened. Please try again.";
         actionText = "OK";
         onAction = () => setModalVisible(false);
@@ -169,7 +169,7 @@ export default function LoginScreen() {
           {/* Logo — EXACTLY like in EmailScreen.js */}
           <View className="items-center mb-8">
             <Image
-              source={require("../../assets/images/Internsync-black.png")} // 👈 Use the same logo!
+              source={require("../../assets/images/Internsync-black.png")}
               className="w-48 h-16"
               resizeMode="contain"
             />

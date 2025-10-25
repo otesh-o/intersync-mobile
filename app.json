@@ -17,7 +17,7 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.interSync_Mobile"
+      "package": "com.olaotesile.internsync"
     },
     "web": {
       "bundler": "metro",
