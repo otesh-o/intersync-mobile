@@ -26,40 +26,46 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const loadToken = async () => {
-      const savedToken = await getToken();
-      if (savedToken) {
-        setToken(savedToken);
+      try {
+        const savedToken = await getToken();
+        if (savedToken) {
+          setToken(savedToken);
+        }
+      } catch (error) {
+        console.warn("Failed to load token:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadToken();
   }, []);
 
-  // Login function
   const login = async (userToken) => {
     setToken(userToken);
     await saveToken(userToken);
   };
 
-  // Logout function
   const logout = async () => {
     setToken(null);
     await removeToken();
-    router.replace("/auth/login"); // Redirect to login
+    router.replace("/auth/login");
   };
 
-  const value = {
-    token,
-    isAuthenticated: !!token,
-    login,
-    logout,
-    loading,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        isAuthenticated: !!token,
+        login,
+        logout,
+        loading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Custom hook to use auth anywhere
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

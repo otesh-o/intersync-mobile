@@ -18,18 +18,12 @@ const formatTimeAgo = (dateString) => {
 
 const getStatusColor = (status) => {
   switch (status?.toUpperCase()) {
-    case "PENDING":
-      return "#fbbf24";
-    case "REVIEWED":
-      return "#8b5cf6";
-    case "INTERVIEW":
-      return "#3b82f6";
-    case "OFFER":
-      return "#10b981";
-    case "REJECTED":
-      return "#ef4444";
-    default:
-      return "#6b7280";
+    case "PENDING": return "#fbbf24";
+    case "REVIEWED": return "#8b5cf6";
+    case "INTERVIEW": return "#3b82f6";
+    case "OFFER": return "#10b981";
+    case "REJECTED": return "#ef4444";
+    default: return "#6b7280";
   }
 };
 
@@ -56,10 +50,7 @@ const ApplicationCard = ({ application }) => {
         params: { id: jobId },
       });
     } else {
-      console.error(
-        "ApplicationCard: Cannot navigate — job ID is missing",
-        job
-      );
+      console.error("ApplicationCard: Cannot navigate — job ID is missing", job);
     }
   };
 
@@ -69,7 +60,10 @@ const ApplicationCard = ({ application }) => {
       onPress={handlePress}
     >
       <View className="flex-1">
-        <Text className="text-base font-bold text-black" numberOfLines={2}>
+        <Text
+          className="text-base font-bold text-black"
+          numberOfLines={2}
+        >
           {title}
         </Text>
 
