@@ -13,18 +13,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SignupContext } from "../context/SignupContext";
-import { auth } from "../services/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import backIcon from "../../assets/images/back.png";
+import { useAuth } from "../context/AuthContext";
+import { SignupContext } from "../context/SignupContext";
 
-const BASE_URL = "https://internsync-production.up.railway.app";
+import { API_BASE_URL } from "../services/config";
+
+const BASE_URL = API_BASE_URL;
 const CODE_LENGTH = 6;
 
 export default function VerifyScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams();
+  const { login } = useAuth();
 
   const { signupData } = useContext(SignupContext);
   const password = signupData.password;
@@ -52,6 +53,22 @@ export default function VerifyScreen() {
     if (!isValid || loading) return;
     setLoading(true);
 
+    // MOCKING AUTH BACKEND FOR REVIEWER/UI TESTING
+    const isDebugEmail = email?.trim().toLowerCase() === "tester@intersync.com";
+
+    if (isDebugEmail) {
+      try {
+        await login("mock-token-debug", { debug: true });
+        router.replace("/create_account/interest");
+      } catch (e) {
+        console.error("Mock login error:", e);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    /* Original code logic commented out for UI testing
     try {
       const otpRes = await fetch(`${BASE_URL}/v1/auth/signup/verify-otp`, {
         method: "POST",
@@ -93,7 +110,7 @@ export default function VerifyScreen() {
           if (finalizeRes.status === 201 && finalizeData.success) {
             console.log("Account finalized in database:", finalizeData.user);
 
-            await AsyncStorage.setItem("authToken", idToken);
+            await login(idToken);
 
             router.replace("/create_account/interest");
           } else {
@@ -232,6 +249,7 @@ export default function VerifyScreen() {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const onChangeCode = (text) => {
@@ -430,9 +448,8 @@ export default function VerifyScreen() {
               <TouchableOpacity
                 onPress={handleVerify}
                 disabled={!isValid || loading}
-                className={`rounded-lg py-4 mb-6 ${
-                  isValid && !loading ? "bg-black" : "bg-gray-300"
-                }`}
+                className={`rounded-lg py-4 mb-6 ${isValid && !loading ? "bg-black" : "bg-gray-300"
+                  }`}
               >
                 {loading ? (
                   <Text className="text-center text-lg text-white font-semibold">
@@ -440,9 +457,8 @@ export default function VerifyScreen() {
                   </Text>
                 ) : (
                   <Text
-                    className={`text-center text-lg font-semibold ${
-                      isValid ? "text-white" : "text-gray-500"
-                    }`}
+                    className={`text-center text-lg font-semibold ${isValid ? "text-white" : "text-gray-500"
+                      }`}
                   >
                     Verify & Continue
                   </Text>

@@ -1,21 +1,21 @@
 // app/profile_page/edit-resume.js
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Modal,
-} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import * as DocumentPicker from "expo-document-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // Services
-import { api } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
+import { api } from "../services/api";
 
 export default function EditResume() {
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function EditResume() {
 
       const token = await AsyncStorage.getItem("authToken");
       const uploadResponse = await fetch(
-        "https://internsync-production.up.railway.app/v1/user/upload/resume",
+        `${API_BASE_URL}/v1/user/upload/resume`,
         {
           method: "POST",
           body: formData,

@@ -1,18 +1,18 @@
 // app/profile_page/edit-skills.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
+import { api } from "../services/api";
 
 export default function EditSkills() {
   const router = useRouter();
@@ -67,10 +67,10 @@ export default function EditSkills() {
         body: JSON.stringify({ skills: cleaned }),
       });
 
-      // ✅ Refresh context so MainProfile sees update
+      // Refresh context so MainProfile sees update
       await refreshProfile();
 
-      // ✅ Show success
+      // Show success
       Alert.alert("Success", "Skills updated!", [
         { text: "OK", onPress: () => router.back() },
       ]);

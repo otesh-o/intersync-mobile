@@ -1,18 +1,18 @@
 // app/profile_page/edit-resume.js
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Modal,
-} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import * as DocumentPicker from "expo-document-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api } from "../../services/api";
+import {
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useProfile } from "../../context/ProfileContext";
+import { api } from "../../services/api";
 
 export default function EditResume() {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function EditResume() {
 
       const token = await AsyncStorage.getItem("authToken");
       const uploadResponse = await fetch(
-        "https://internsync-production.up.railway.app/v1/user/upload/resume",
+        `${API_BASE_URL}/v1/user/upload/resume`,
         {
           method: "POST",
           body: formData,
@@ -164,9 +164,8 @@ export default function EditResume() {
       {/* Upload Button */}
       <View className="px-6 mt-auto mb-8">
         <TouchableOpacity
-          className={`w-full h-12 rounded-full flex items-center justify-center ${
-            !resume || uploading ? "bg-gray-400" : "bg-black"
-          }`}
+          className={`w-full h-12 rounded-full flex items-center justify-center ${!resume || uploading ? "bg-gray-400" : "bg-black"
+            }`}
           onPress={handleUpload}
           disabled={!resume || uploading}
         >

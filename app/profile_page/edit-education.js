@@ -1,19 +1,19 @@
 // app/profile_page/edit-education.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
-  Switch,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
+import { api } from "../services/api";
 
 export default function EditEducation() {
   const router = useRouter();
@@ -161,10 +161,10 @@ export default function EditEducation() {
         body: JSON.stringify({ education: formatted }),
       });
 
-      // ✅ Refresh context
+      // Refresh context
       await refreshProfile();
 
-      // ✅ Show success
+      // Show success
       Alert.alert("Success", "Education updated!", [
         { text: "OK", onPress: () => router.back() },
       ]);

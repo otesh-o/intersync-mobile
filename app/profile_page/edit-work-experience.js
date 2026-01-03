@@ -1,19 +1,19 @@
 // app/profile_page/edit-work-experience.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
-  Switch,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
+import { api } from "../services/api";
 
 export default function EditWorkExperience() {
   const router = useRouter();
@@ -101,7 +101,7 @@ export default function EditWorkExperience() {
     }
 
     try {
-      // ✅ Format for backend: clean & validate each job
+      // Format for backend: clean & validate each job
       const formattedJobs = jobs.map(({ id, ...job }) => {
         // Clean strings
         const cleaned = {
@@ -111,11 +111,11 @@ export default function EditWorkExperience() {
           current: !!job.current,
         };
 
-        // ✅ Start Date: must be valid YYYY-MM-DD or empty string
+        // Start Date: must be valid YYYY-MM-DD or empty string
         if (job.startDate) {
           const parsed = new Date(job.startDate);
           if (!isNaN(parsed)) {
-            cleaned.startDate = parsed.toISOString().split("T")[0]; // → "2024-07-06"
+            cleaned.startDate = parsed.toISOString().split("T")[0]; // "2024-07-06"
           } else {
             cleaned.startDate = "";
           }
@@ -123,7 +123,7 @@ export default function EditWorkExperience() {
           cleaned.startDate = "";
         }
 
-        // ✅ End Date: if currently working → null
+        // End Date: if currently working null
         if (job.current) {
           cleaned.endDate = null;
         } else if (job.endDate) {
@@ -147,7 +147,7 @@ export default function EditWorkExperience() {
       });
 
       console.log(
-        "📤 Sending to backend:",
+        "Sending to backend:",
         JSON.stringify(formattedJobs, null, 2)
       );
 
@@ -156,10 +156,10 @@ export default function EditWorkExperience() {
         body: JSON.stringify({ workExperience: formattedJobs }),
       });
 
-      // ✅ Refresh context
+      // Refresh context
       await refreshProfile();
 
-      // ✅ Show success message
+      // Show success message
       Alert.alert("Success", "Work experience updated!", [
         { text: "OK", onPress: () => router.back() },
       ]);

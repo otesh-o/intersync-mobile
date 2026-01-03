@@ -1,21 +1,21 @@
 // app/profile_page/edit-appreciation.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../../services/api";
 import { useProfile } from "../../context/ProfileContext";
+import { api } from "../../services/api";
 
 export default function EditAppreciation() {
   const router = useRouter();
-  // ✅ Get setAppreciation from context
+  // Get setAppreciation from context
   const {
     appreciation: currentAppreciation,
     setAppreciation,
@@ -101,10 +101,10 @@ export default function EditAppreciation() {
         url: item.url?.trim() || "",
       }));
 
-      // ✅ 1. Update context IMMEDIATELY (for instant UI sync)
+      // 1. Update context IMMEDIATELY (for instant UI sync)
       setAppreciation(formatted);
 
-      // ✅ 2. Save to backend
+      // 2. Save to backend
       await api("/v1/user/profile", {
         method: "PUT",
         body: JSON.stringify({ appreciation: formatted }),
@@ -119,7 +119,7 @@ export default function EditAppreciation() {
     } catch (error) {
       console.error("Save failed:", error);
 
-      // ✅ Roll back context on error (optional but robust)
+      // Roll back context on error (optional but robust)
       setAppreciation(currentAppreciation);
 
       Alert.alert("Save Failed", error.message || "Could not save. Try again.");

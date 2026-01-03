@@ -3,13 +3,16 @@
     "name": "Internsync",
     "slug": "interSync_Mobile",
     "version": "1.0.0",
+    "description": "Internsync connects students with internships seamlessly. Simplified applications and career tracking.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "intersyncmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.olaotesile.internsync",
+      "privacyPolicyUrl": "https://internsync.com/privacy"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +20,8 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.olaotesile.internsync"
+      "package": "com.olaotesile.internsync",
+      "privacyPolicyUrl": "https://internsync.com/privacy"
     },
     "web": {
       "bundler": "metro",

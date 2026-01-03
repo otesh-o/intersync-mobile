@@ -1,12 +1,11 @@
 // app/create_account/OnboardingModal.js
-import React, { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useProfile } from "../../context/ProfileContext";
 import ProfileCard from "../profile_page/components/ProfileCard";
 import SectionItem from "../profile_page/components/SectionItem";
-import { useProfile } from "../../context/ProfileContext";
-import { api } from "../../services/api";
-import * as DocumentPicker from "expo-document-picker";
 
 const DEFAULT_ABOUT_ME = "Tell us about yourself";
 
@@ -42,7 +41,7 @@ export default function OnboardingModal() {
     }
   };
 
-  // ✅ NO VALIDATION — just go to payment
+  // NO VALIDATION — just go to payment
   const handleContinue = () => {
     router.push("/payment_plan/access");
   };
@@ -107,8 +106,8 @@ export default function OnboardingModal() {
                 label === "About Me"
                   ? () => router.push("/profile_page/edit-about-me")
                   : label === "Work Experience"
-                  ? () => router.push("/profile_page/edit-work-experience")
-                  : undefined
+                    ? () => router.push("/profile_page/edit-work-experience")
+                    : undefined
               }
               onUpload={label === "Resume" ? pickResume : undefined}
             />
@@ -116,7 +115,7 @@ export default function OnboardingModal() {
         </View>
       </ScrollView>
 
-      {/* ✅ Always enabled — no checks */}
+      {/* Always enabled — no checks */}
       <View className="px-4 py-4 bg-white border-t border-gray-200">
         <TouchableOpacity
           className="py-4 rounded-full bg-black"

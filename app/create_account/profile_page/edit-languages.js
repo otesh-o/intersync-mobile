@@ -1,21 +1,21 @@
 // app/profile_page/edit-languages.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../../services/api";
 import { useProfile } from "../../context/ProfileContext";
+import { api } from "../../services/api";
 
 export default function EditLanguages() {
   const router = useRouter();
-  // ✅ Get current value + setter from context
+  // Get current value + setter from context
   const { languages: currentLanguages, setLanguages: setContextLanguages } =
     useProfile();
 
@@ -62,10 +62,10 @@ export default function EditLanguages() {
         ...new Set(localLanguages.map((l) => l.trim()).filter(Boolean)),
       ];
 
-      // ✅ 1. Update context IMMEDIATELY for instant UI sync
+      // 1. Update context IMMEDIATELY for instant UI sync
       setContextLanguages(cleaned);
 
-      // ✅ 2. Save to backend
+      // 2. Save to backend
       await api("/v1/user/profile", {
         method: "PUT",
         body: JSON.stringify({ languages: cleaned }),
@@ -76,7 +76,7 @@ export default function EditLanguages() {
       ]);
     } catch (error) {
       console.error("Save failed:", error);
-      // ✅ Roll back on error
+      // Roll back on error
       setContextLanguages(currentLanguages);
       Alert.alert("Save Failed", error.message || "Could not save. Try again.");
     }

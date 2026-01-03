@@ -1,26 +1,28 @@
 // app/create_account/email.js
 import { router } from "expo-router";
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
-  Image,
+  View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 👈 added
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // added
 
 import { SignupContext } from "../context/SignupContext";
 
-const BASE_URL = "https://internsync-production.up.railway.app";
+import { API_BASE_URL } from "../services/config";
+
+const BASE_URL = API_BASE_URL;
 
 export default function EmailScreen() {
-  const insets = useSafeAreaInsets(); // 👈 safe area
+  const insets = useSafeAreaInsets(); // safe area
   const { setSignupData } = useContext(SignupContext);
 
   const [email, setEmail] = useState("");
@@ -55,6 +57,17 @@ export default function EmailScreen() {
     if (!formIsValid) return;
     setLoading(true);
 
+    // MOCKING AUTH BACKEND FOR UI TESTING
+    console.log("MOCK: Skipping OTP send for:", email);
+    setSignupData({ email, password });
+    router.push({
+      pathname: "/create_account/verify",
+      params: { email: email.trim() },
+    });
+    setLoading(false);
+    return;
+
+    /* Original code logic commented out for UI testing
     try {
       const response = await fetch(`${BASE_URL}/v1/auth/signup/send-otp`, {
         method: "POST",
@@ -107,6 +120,7 @@ export default function EmailScreen() {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const CustomModal = () => {
@@ -228,9 +242,8 @@ export default function EmailScreen() {
               <TouchableOpacity
                 onPress={sendOtp}
                 disabled={!formIsValid || loading}
-                className={`w-full py-3.5 rounded-full justify-center items-center mt-4 ${
-                  formIsValid ? "bg-black" : "bg-gray-300"
-                }`}
+                className={`w-full py-3.5 rounded-full justify-center items-center mt-4 ${formIsValid ? "bg-black" : "bg-gray-300"
+                  }`}
               >
                 {loading ? (
                   <Text className="text-white text-lg font-bold">

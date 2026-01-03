@@ -1,21 +1,21 @@
 // app/profile_page/edit-skills.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../../services/api";
 import { useProfile } from "../../context/ProfileContext";
+import { api } from "../../services/api";
 
 export default function EditSkills() {
   const router = useRouter();
-  // ✅ Get current value + setter from context
+  // Get current value + setter from context
   const { skills: currentSkills, setSkills: setContextSkills } = useProfile();
 
   const [localSkills, setLocalSkills] = useState([]);
@@ -59,10 +59,10 @@ export default function EditSkills() {
         ...new Set(localSkills.map((s) => s.trim()).filter(Boolean)),
       ];
 
-      // ✅ 1. Update context IMMEDIATELY
+      // 1. Update context IMMEDIATELY
       setContextSkills(cleaned);
 
-      // ✅ 2. Save to backend
+      // 2. Save to backend
       await api("/v1/user/profile", {
         method: "PUT",
         body: JSON.stringify({ skills: cleaned }),
@@ -73,7 +73,7 @@ export default function EditSkills() {
       ]);
     } catch (error) {
       console.error("Save failed:", error);
-      // ✅ Roll back on error
+      // Roll back on error
       setContextSkills(currentSkills);
       Alert.alert("Save Failed", error.message || "Could not save. Try again.");
     }

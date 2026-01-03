@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { View, Image } from "react-native";
 import { router } from "expo-router";
+import { useEffect } from "react";
+import { Image, View } from "react-native";
 
 
 

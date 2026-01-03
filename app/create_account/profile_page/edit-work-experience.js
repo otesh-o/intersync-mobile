@@ -1,22 +1,22 @@
 // app/profile_page/edit-work-experience.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-  Switch,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../../services/api";
 import { useProfile } from "../../context/ProfileContext";
+import { api } from "../../services/api";
 
 export default function EditWorkExperience() {
   const router = useRouter();
-  // ✅ Get current value + setter from context
+  // Get current value + setter from context
   const {
     workExperience: currentWorkExperience,
     setWorkExperience: setContextWorkExperience,
@@ -143,10 +143,10 @@ export default function EditWorkExperience() {
         return cleaned;
       });
 
-      // ✅ 1. Update context IMMEDIATELY
+      // 1. Update context IMMEDIATELY
       setContextWorkExperience(formattedJobs);
 
-      // ✅ 2. Save to backend
+      // 2. Save to backend
       await api("/v1/user/profile", {
         method: "PUT",
         body: JSON.stringify({ workExperience: formattedJobs }),
@@ -157,7 +157,7 @@ export default function EditWorkExperience() {
       ]);
     } catch (error) {
       console.error("Save failed:", error);
-      // ✅ Roll back on error
+      // Roll back on error
       setContextWorkExperience(currentWorkExperience);
       Alert.alert("Save Failed", error.message || "Could not save. Try again.");
     }

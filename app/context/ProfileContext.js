@@ -1,10 +1,13 @@
 // app/context/ProfileContext.js
-import React, { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "../services/api";
 import { auth } from "../services/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "./AuthContext";
 
-const BASE_URL = "https://internsync-production.up.railway.app";
+import { API_BASE_URL } from "../services/config";
+
+const BASE_URL = API_BASE_URL;
 const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
@@ -18,14 +21,13 @@ export const ProfileProvider = ({ children }) => {
   const [appreciation, setAppreciation] = useState([]);
   const [resumeUrl, setResumeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { updatePlan, setPremium } = useAuth();
 
   const loadProfile = async () => {
-    console.log("Starting profile load...");
     setIsLoading(true);
 
     try {
       const response = await api("/v1/user/profile");
-      console.log("Raw API Response:", JSON.stringify(response, null, 2));
 
       const user = response.user;
       if (!user) {
@@ -48,13 +50,6 @@ export const ProfileProvider = ({ children }) => {
         fullResumeUrl = `${BASE_URL}${cleanPath}`;
       }
 
-      console.log("👤 User data received:", {
-        firstName: user.firstName,
-        aboutMe: user.aboutMe,
-        profilePicture: fullProfilePicUrl,
-        workExperienceCount: user.workExperience?.length,
-        resumeUrl: fullResumeUrl,
-      });
 
       setName(user.firstName || "");
       setRole(user.aboutMe || "Enter your role");
@@ -66,13 +61,12 @@ export const ProfileProvider = ({ children }) => {
       setAppreciation(user.appreciation || []);
       setResumeUrl(fullResumeUrl);
 
-      console.log("FULL PROFILE LOADED AND SYNCED TO CONTEXT", {
-        name: user.firstName,
-        role: user.aboutMe,
-        hasPfp: !!fullProfilePicUrl,
-        hasResume: !!fullResumeUrl,
-        workExpCount: user.workExperience?.length,
-      });
+      // 🗺️ Sync plan status to AuthContext
+      if (user.plan) {
+        updatePlan(user.plan);
+        setPremium(user.plan === "unlimited" || user.plan === "premium" || user.isPremium);
+      }
+
     } catch (error) {
       console.warn("Failed to load profile:", error.message);
 
@@ -99,15 +93,14 @@ export const ProfileProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    let isActive = true; 
+    let isActive = true;
 
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (isActive) {
         if (user) {
-          console.log("Firebase user detected:", user.uid);
 
           try {
-            const idToken = await user.getIdToken(true); 
+            const idToken = await user.getIdToken(true);
             await AsyncStorage.setItem("authToken", idToken);
             console.log("Auth token saved");
 
@@ -117,7 +110,7 @@ export const ProfileProvider = ({ children }) => {
             setIsLoading(false);
           }
         } else {
-          
+
           console.log("No logged-in user found at startup");
           setName("");
           setRole("Enter your role");
@@ -133,7 +126,7 @@ export const ProfileProvider = ({ children }) => {
       }
     });
 
-    
+
     return () => {
       isActive = false;
     };
@@ -164,7 +157,7 @@ export const ProfileProvider = ({ children }) => {
         resumeUrl,
         setResumeUrl,
 
-        
+
         isLoading,
         refreshProfile: loadProfile,
       }}

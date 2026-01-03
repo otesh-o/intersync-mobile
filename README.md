@@ -61,3 +61,8 @@ If it works, you are welcome.
 
 “Built with confusion, persistence, and God's help.” 
 – Ola Otesile
+
+Status: Active development | v1.1.0
+
+Need help?
+Reach out to Ola Otesile: olaotesile.vercel.app | @ola-otesile (GitHub/LinkedIn)

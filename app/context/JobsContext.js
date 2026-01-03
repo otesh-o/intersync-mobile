@@ -1,6 +1,6 @@
 // app/context/JobsContext.js
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "../services/api";
 
 const JobsContext = createContext();
@@ -10,7 +10,7 @@ export const JobsProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentMode, setCurrentMode] = useState("internships"); // Default mode
 
-  // 🔒 Strict endpoint mapping — no fallback
+  // Strict endpoint mapping — no fallback
   const getEndpoint = (mode) => {
     switch (mode) {
       case "internships":
@@ -26,29 +26,15 @@ export const JobsProvider = ({ children }) => {
   };
 
   const loadJobs = async (mode) => {
-    console.log(`🔄 Starting job load for mode: ${mode}`);
+    console.log(`Starting job load for mode: ${mode}`);
     setIsLoading(true);
 
     try {
       const endpoint = getEndpoint(mode); // Will throw if mode is invalid
-      console.log("📡 Fetching from endpoint:", endpoint);
+      console.log("Fetching from endpoint:", endpoint);
 
       const response = await api(endpoint);
 
-      console.log("=== API RESPONSE DEBUG ===");
-      console.log("Endpoint called:", endpoint);
-      console.log("Mode requested:", mode);
-      console.log("Number of jobs returned:", response?.data?.length);
-      console.log(
-        "First 3 jobs details:",
-        response?.data?.slice(0, 3).map((j) => ({
-          id: j._id,
-          title: j.title,
-          category: j.category,
-          sourceType: j.sourceType,
-        }))
-      );
-      console.log("========================");
 
       if (!response?.data || !Array.isArray(response.data)) {
         throw new Error("API response must contain an array under 'data'");
@@ -56,7 +42,7 @@ export const JobsProvider = ({ children }) => {
 
       const mapped = response.data.map((item, index) => {
         if (!item._id) {
-          console.warn(`⚠️ Job at index ${index} has no _id`, item);
+          console.warn(`Job at index ${index} has no _id`, item);
         }
         return {
           id: item._id,
@@ -78,19 +64,15 @@ export const JobsProvider = ({ children }) => {
         };
       });
 
-      console.log(`✅ Successfully loaded ${mapped.length} jobs for ${mode}`);
-      console.log(
-        "📊 Categories in mapped jobs:",
-        mapped.slice(0, 5).map((j) => j.category)
-      );
+      console.log(`Successfully loaded ${mapped.length} jobs for ${mode}`);
 
       setJobs(mapped);
     } catch (error) {
-      console.error("❌ Failed to load jobs:", error);
+      console.error("Failed to load jobs:", error);
       setJobs([]);
     } finally {
       setIsLoading(false);
-      console.log("✔️ Job loading complete. isLoading = false");
+      console.log("Job loading complete. isLoading = false");
     }
   };
 
@@ -99,19 +81,16 @@ export const JobsProvider = ({ children }) => {
       console.error("Invalid mode attempted:", mode);
       return;
     }
-    console.log(`Changing mode from '${currentMode}' to '${mode}'`);
     setCurrentMode(mode);
     loadJobs(mode);
   };
 
   const refreshJobs = () => {
-    console.log("Refreshing jobs for current mode:", currentMode);
     loadJobs(currentMode);
   };
 
-  // ✅ Initialize with the correct default mode
+  // Initialize with the correct default mode
   useEffect(() => {
-    console.log("App started — initializing job load for default mode...");
     loadJobs(currentMode); // currentMode is "internships"
   }, []); // currentMode is stable on mount, so safe
 

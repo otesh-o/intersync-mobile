@@ -1,11 +1,20 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 const checkIcon = require("../../assets/images/check.png");
 const backIcon = require("../../assets/images/back.png");
 
 export default function PaymentSuccess() {
   const { selectedAmount, planId } = useLocalSearchParams();
+  const { setPremium, updatePlan } = useAuth();
+
+  useEffect(() => {
+    console.log("💳 PaymentSuccess: Automatically unlocking Premium features...");
+    setPremium(true);
+    updatePlan("unlimited");
+  }, []);
 
   const plans = {
     monthly: "InternSync – Monthly Access",

@@ -1,6 +1,6 @@
 // app/profile_page/components/SectionItem.js
-import { Image, Pressable, Text, View, Linking } from "react-native";
 import { router } from "expo-router";
+import { Image, Linking, Pressable, Text, View } from "react-native";
 
 // Map section labels to their icon files
 const ICON_MAP = {
@@ -47,7 +47,7 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
             className="w-7 h-7 mr-3"
             resizeMode="contain"
           />
-          <Text className="font-semibold text-base text-gray-900 font-sans">
+          <Text className="font-semibold text-base text-gray-900" style={{ fontFamily: "Raleway-Medium" }}>
             {label}
           </Text>
         </View>
@@ -78,42 +78,43 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
 
           {/* Work Experience OR Education OR Appreciation */}
           {label === "Work Experience" ||
-          label === "Education" ||
-          label === "Appreciation" ? (
+            label === "Education" ||
+            label === "Appreciation" ? (
             <View className="mt-1">
               {Array.isArray(content) && content.length > 0 ? (
                 content.map((item, index) => (
                   <View key={item.id || index} className="mb-4">
                     {/* Title */}
-                    <Text className="text-lg font-semibold text-gray-900 font-sans">
+                    <Text className="text-lg font-semibold text-gray-900" style={{ fontFamily: "Raleway-Medium" }}>
                       {item.title || item.degree || "No title"}
                     </Text>
 
                     {/* Company or School */}
                     {item.company && (
-                      <Text className="text-sm text-gray-700 font-sans mt-1">
+                      <Text className="text-sm text-gray-700 mt-1" style={{ fontFamily: "Roboto" }}>
                         {item.company}
                       </Text>
                     )}
                     {item.school && (
-                      <Text className="text-sm text-gray-700 font-sans mt-1">
+                      <Text className="text-sm text-gray-700 mt-1" style={{ fontFamily: "Roboto" }}>
                         {item.school}
                       </Text>
                     )}
 
                     {/* Date Range */}
-                    <Text className="text-xs italic text-gray-500 font-sans mt-1">
+                    <Text className="text-xs italic text-gray-500 mt-1" style={{ fontFamily: "Roboto" }}>
                       {item.startDate
                         ? `${item.startDate} – ${item.endDate || "Present"}`
                         : item.date
-                        ? item.date
-                        : ""}
+                          ? item.date
+                          : ""}
                     </Text>
 
                     {/* Description */}
                     {item.description && (
                       <Text
-                        className="text-sm text-gray-600 font-sans mt-2"
+                        className="text-sm text-gray-600 mt-2"
+                        style={{ fontFamily: "Roboto" }}
                         numberOfLines={2}
                       >
                         {item.description}
@@ -143,13 +144,13 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
                     key={item}
                     className="bg-gray-200 px-3 py-1.5 rounded-full"
                   >
-                    <Text className="text-sm text-gray-800 font-sans">
+                    <Text className="text-sm text-gray-800" style={{ fontFamily: "Roboto" }}>
                       {item}
                     </Text>
                   </View>
                 ))
               ) : (
-                <Text className="text-sm text-gray-500 italic font-sans">
+                <Text className="text-sm text-gray-500 italic" style={{ fontFamily: "Roboto" }}>
                   {label === "Skills"
                     ? "No skills added"
                     : "No languages added"}
@@ -171,31 +172,32 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
                 >
                   <Text
                     numberOfLines={1}
-                    className="bg-gray-200 px-3 py-2 rounded text-sm text-gray-800 font-sans max-w-[300]"
+                    className="bg-gray-200 px-3 py-2 rounded text-sm text-gray-800 max-w-[300]"
+                    style={{ fontFamily: "Roboto" }}
                   >
                     📄 {content.name}
                   </Text>
                 </Pressable>
               ) : (
-                <Text className="text-sm text-gray-500 italic font-sans">
+                <Text className="text-sm text-gray-500 italic" style={{ fontFamily: "Roboto" }}>
                   No resume uploaded
                 </Text>
               )}
             </View>
           ) : /* Fallback: About Me */
-          typeof content === "string" ? (
-            content.trim() !== "" ? (
-              <Text className="text-sm text-gray-600 font-sans mt-1">
-                {content}
-              </Text>
-            ) : (
-              <Pressable onPress={openEditPage}>
-                <Text className="text-blue-500 font-medium text-sm mt-1">
-                  + Add About Me
+            typeof content === "string" ? (
+              content.trim() !== "" ? (
+                <Text className="text-sm text-gray-600 mt-1" style={{ fontFamily: "Roboto" }}>
+                  {content}
                 </Text>
-              </Pressable>
-            )
-          ) : null}
+              ) : (
+                <Pressable onPress={openEditPage}>
+                  <Text className="text-blue-500 font-medium text-sm mt-1">
+                    + Add About Me
+                  </Text>
+                </Pressable>
+              )
+            ) : null}
         </View>
       )}
     </View>

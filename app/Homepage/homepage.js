@@ -1,4 +1,4 @@
-// app/screens/Homepage.js
+import * as SecureStore from "expo-secure-store";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import Icon from "react-native-vector-icons/Ionicons";
 import JobCard from "../components/JobCard";
 import ProfileSetupModal from "../components/ProfileSetupModal";
 import SideMenu from "../components/SideMenu";
@@ -23,7 +23,7 @@ import { useAuth } from "../context/AuthContext";
 import { useJobs } from "../context/JobsContext";
 import { useProfile } from "../context/ProfileContext";
 import { useSavedJobs } from "../context/SavedJobsContext";
-import { api } from "../services/api"; // 👈 ADDED
+import { api } from "../services/api"; // ADDED
 
 const Homepage = () => {
   const insets = useSafeAreaInsets();
@@ -35,8 +35,78 @@ const Homepage = () => {
   const { jobs, isLoading: jobsLoading, currentMode, changeMode } = useJobs();
   const { savedJobs, setSavedJobs } = useSavedJobs();
   const { name: profileName, profilePicUrl } = useProfile();
-  const { token } = useAuth;
+  const { token, isPremium } = useAuth();
   const [displayedJobs, setDisplayedJobs] = useState([]);
+
+  // Limit Tracking
+  const [rightSwipesToday, setRightSwipesToday] = useState(0);
+  const [totalSwipesToday, setTotalSwipesToday] = useState(0);
+  const [isLimitReached, setIsLimitReached] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState("");
+  const [resetTimestamp, setResetTimestamp] = useState(null);
+
+  const SWIPE_LIMIT = 20;
+  const APP_LIMIT = 2; // "2 applications" (right swipes)
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (!resetTimestamp) return;
+
+      const now = new Date();
+      const diff = resetTimestamp - now;
+
+      if (diff <= 0) {
+        setTimeRemaining("0h 0m");
+        // Logic to clear limits once timer runs out
+        handleResetLimits();
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeRemaining(`${hours}h ${minutes}m`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    return () => clearInterval(interval);
+  }, [resetTimestamp]);
+
+  const handleResetLimits = async () => {
+    await SecureStore.deleteItemAsync('limit_reset_at');
+    await SecureStore.setItemAsync('right_swipes', '0');
+    await SecureStore.setItemAsync('total_swipes', '0');
+    setRightSwipesToday(0);
+    setTotalSwipesToday(0);
+    setIsLimitReached(false);
+    setResetTimestamp(null);
+  };
+
+  useEffect(() => {
+    const checkLimits = async () => {
+      const storedResetAt = await SecureStore.getItemAsync('limit_reset_at');
+
+      if (storedResetAt) {
+        const resetAt = parseInt(storedResetAt);
+        if (Date.now() > resetAt) {
+          // Window has expired
+          await handleResetLimits();
+        } else {
+          // Still in window
+          setResetTimestamp(new Date(resetAt));
+          const right = parseInt(await SecureStore.getItemAsync('right_swipes') || '0');
+          const total = parseInt(await SecureStore.getItemAsync('total_swipes') || '0');
+          setRightSwipesToday(right);
+          setTotalSwipesToday(total);
+          if (right >= APP_LIMIT || total >= SWIPE_LIMIT) {
+            setIsLimitReached(true);
+          }
+        }
+      }
+    };
+    checkLimits();
+  }, []);
 
   const { showTutorial: showTutorialParam } = useLocalSearchParams();
 
@@ -46,7 +116,6 @@ const Homepage = () => {
         setDisplayedJobs([...jobs]);
       } else {
         const query = searchQuery.toLowerCase().trim();
-        console.log("Searching for:", query);
 
         const filtered = jobs.filter((job) => {
           const title = job.title?.toLowerCase() || "";
@@ -69,24 +138,7 @@ const Homepage = () => {
           return matches;
         });
 
-        console.log(`Search results: ${filtered.length} jobs found`);
 
-        // Log properties of each matched job
-        filtered.forEach((job, index) => {
-          console.log(`\n--- Job ${index + 1} ---`);
-          console.log("ID:", job.id);
-          console.log("Title:", job.title);
-          console.log("Source Type:", job.sourceType);
-          console.log(
-            "Company:",
-            typeof job.company === "object" ? job.company.name : job.company
-          );
-          console.log("Location:", job.location);
-          console.log("Category:", job.category);
-          console.log("Job Type:", job.jobType);
-
-          console.log("Full job object:", JSON.stringify(job, null, 2));
-        });
 
         setDisplayedJobs(filtered);
       }
@@ -141,6 +193,27 @@ const Homepage = () => {
       console.warn("Failed to mark job as seen:", error);
     }
 
+    // Update limits
+    const newTotal = totalSwipesToday + 1;
+    const newRight = direction === "right" ? rightSwipesToday + 1 : rightSwipesToday;
+
+    setTotalSwipesToday(newTotal);
+    setRightSwipesToday(newRight);
+
+    // Set countdown timestamp on first swipe of the window
+    if (!resetTimestamp) {
+      const newResetAt = Date.now() + 24 * 60 * 60 * 1000;
+      await SecureStore.setItemAsync('limit_reset_at', newResetAt.toString());
+      setResetTimestamp(new Date(newResetAt));
+    }
+
+    await SecureStore.setItemAsync('total_swipes', newTotal.toString());
+    await SecureStore.setItemAsync('right_swipes', newRight.toString());
+
+    if (newRight >= APP_LIMIT || newTotal >= SWIPE_LIMIT) {
+      setIsLimitReached(true);
+    }
+
     setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
   };
 
@@ -164,26 +237,29 @@ const Homepage = () => {
       <StatusBar barStyle="dark-content" />
 
       <View
-        className="flex-row items-center bg-slate-50 px-4"
+        className="flex-row items-center justify-between bg-slate-50 px-4"
         style={{ paddingTop: insets.top + 8, paddingBottom: 10 }}
       >
         <TouchableOpacity
           className="p-2"
-          style={{ zIndex: 10 }}
           onPress={handleMenuToggle}
         >
           <Icon name="menu" size={26} color="#000" />
         </TouchableOpacity>
 
-        <View className="flex-1 items-center max-w-xs">
-          <Image
-            source={require("../../assets/images/Internsync-black.png")}
-            className="w-full h-16"
-            resizeMode="contain"
-          />
-        </View>
+        <Image
+          source={require("../../assets/images/Internsync-black.png")}
+          style={{ width: 150, height: 40 }}
+          resizeMode="contain"
+        />
 
-        <View className="w-10" />
+        <TouchableOpacity
+          className="relative p-2"
+          onPress={handlenotificationsPress}
+        >
+          <Icon name="notifications-outline" size={24} color="#000" />
+          <View className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 border-[1.5px] border-white" />
+        </TouchableOpacity>
       </View>
 
       <View className="flex-1 px-4">
@@ -207,23 +283,15 @@ const Homepage = () => {
             )}
           </TouchableOpacity>
 
-          <View className="flex-1 ml-4 mr-2">
+          <View className="flex-1 ml-4">
             <Text className="text-base text-gray-500">Hello</Text>
             <Text className="text-xl font-bold" numberOfLines={1}>
               {profileName || "User"}
             </Text>
           </View>
-
-          <TouchableOpacity
-            className="relative w-10 h-10 justify-center items-center"
-            onPress={handlenotificationsPress}
-          >
-            <Icon name="notifications-outline" size={24} color="#000" />
-            <View className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-[1.5px] border-white" />
-          </TouchableOpacity>
         </View>
 
-        <View className="flex-row items-center bg-slate-50 rounded-2xl mt-4 px-3 py-2 border border-gray-300">
+        <View className="flex-row items-center bg-[#F1F1F1] rounded-full mt-4 px-4 py-2">
           <Icon name="search" size={18} color="#888" />
           <TextInput
             placeholder="Search by job name"
@@ -254,15 +322,63 @@ const Homepage = () => {
                 Loading {currentMode}...
               </Text>
             </View>
+          ) : (isLimitReached && !isPremium) ? (
+            /* Limit Reached View — Matches Screenshot */
+            <View className="bg-white rounded-[32px] p-8 w-full items-center shadow-lg border border-gray-100">
+              {/* Lock Icon */}
+              <View className="w-16 h-16 rounded-full bg-[#E8F5E9] items-center justify-center mb-6">
+                <Icon name="lock-closed" size={30} color="#4CAF50" />
+              </View>
+
+              <Text
+                className="text-center text-slate-900 mb-2 text-3xl font-bold"
+              >
+                You're out of internships
+              </Text>
+
+              <Text className="text-gray-500 text-center text-sm mb-10 leading-relaxed px-4">
+                You've reached your daily limit for the free plan. Upgrade to Unlimited to discover more opportunities.
+              </Text>
+
+              {/* Stats Grid */}
+              <View className="flex-row gap-4 mb-10">
+                <View className="flex-1 bg-[#F8F9FA] rounded-2xl p-5 items-center">
+                  <Text className="text-slate-900 text-2xl font-bold">
+                    {totalSwipesToday}
+                  </Text>
+                  <Text className="text-gray-400 text-[10px] text-center mt-1">Internships{"\n"}viewed</Text>
+                </View>
+                <View className="flex-1 bg-[#F8F9FA] rounded-2xl p-5 items-center">
+                  <Text className="text-slate-900 text-2xl font-bold">
+                    0
+                  </Text>
+                  <Text className="text-gray-400 text-[10px] text-center mt-1">Remaining{"\n"}today</Text>
+                </View>
+              </View>
+
+              {/* Upgrade Button */}
+              <TouchableOpacity
+                onPress={() => router.push("/payment_plan/plan")}
+                className="bg-black w-full py-4 rounded-2xl items-center mb-4 shadow-sm"
+              >
+                <Text className="text-white font-bold text-base">Upgrade to Unlimited</Text>
+              </TouchableOpacity>
+
+              <Text className="text-gray-400 text-xs mt-2">
+                Resets in <Text className="font-bold text-gray-500">{timeRemaining}</Text>
+              </Text>
+            </View>
           ) : displayedJobs.length === 0 ? (
             <View className="flex-1 justify-center items-center pb-16">
-              <Icon name="search" size={50} color="#ccc" />
+              <Icon name={searchQuery ? "search" : "briefcase-outline"} size={50} color="#ccc" />
               <Text className="text-lg font-bold text-gray-500 mt-4 text-center">
-                No matching jobs
+                {searchQuery ? "No matching jobs" : `No ${currentMode} yet`}
               </Text>
-              <Text className="text-sm text-gray-400 mt-2 text-center">
-                Try a different search term
-              </Text>
+              {searchQuery && (
+                <Text className="text-sm text-gray-400 mt-2 text-center">
+                  Try a different search term
+                </Text>
+              )}
             </View>
           ) : (
             displayedJobs.map((job, index) => {
@@ -345,7 +461,7 @@ const Homepage = () => {
           <View className="bg-white rounded-3xl p-6 w-full max-w-sm">
             <Text className="text-gray-600 text-center mb-5 leading-relaxed">
               Swipe right or tap the checkmark to quick apply.
-              {"\n"}❌ Swipe left or tap the X to skip.
+              {"\n"}Swipe left or tap the X to skip.
             </Text>
             <TouchableOpacity
               className="bg-black rounded-full py-3 mx-auto w-4/5"

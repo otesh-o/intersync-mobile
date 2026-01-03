@@ -1,5 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 const logo = require("../../assets/images/logo.png");
 const globe = require("../../assets/images/globe.png");

@@ -1,21 +1,20 @@
 // app/components/JobCard.js
-import React, { useRef, useState } from "react";
+import { router } from "expo-router";
+import { useRef, useState } from "react";
 import {
-  View,
+  Alert,
+  Animated,
+  Image,
   Text,
   TouchableOpacity,
-  Image,
   useWindowDimensions,
-  Animated,
-  Alert,
-  Linking,
+  View
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { router } from "expo-router";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
-import { api } from "../services/api";
-import { useSavedJobs } from "../context/SavedJobsContext";
+import Icon from "react-native-vector-icons/Ionicons";
 import { useProfile } from "../context/ProfileContext";
+import { useSavedJobs } from "../context/SavedJobsContext";
+import { api } from "../services/api";
 
 const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
   const { width } = useWindowDimensions();
@@ -32,7 +31,7 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
     resumeUrl,
   } = useProfile();
 
- 
+
   console.log("Job ID:", job.id);
   console.log("Raw bannerImageUrl:", job.bannerImageUrl);
   console.log("Trimmed bannerImageUrl:", job.bannerImageUrl?.trim());
@@ -61,67 +60,65 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
       languages: Array.isArray(languages) ? languages : [],
       resumeUrl: resumeUrl || "",
       portfolioUrl: "",
-      message: `I'm excited to apply for the ${job.title} role at ${
-        typeof job.company === "object"
+      message: `I'm excited to apply for the ${job.title} role at ${typeof job.company === "object"
           ? job.company.name
           : job.company || "this organization"
-      }.`,
+        }.`,
     };
   };
 
-const applyToJob = async (jobId) => {
-  try {
-    if (!resumeUrl || resumeUrl.trim() === "") {
-      Alert.alert(
-        "Resume Required",
+  const applyToJob = async (jobId) => {
+    try {
+      if (!resumeUrl || resumeUrl.trim() === "") {
+        Alert.alert(
+          "Resume Required",
 
-        "Please upload your resume in your profile before applying."
-      );
+          "Please upload your resume in your profile before applying."
+        );
 
-      throw new Error("Resume not uploaded");
+        throw new Error("Resume not uploaded");
+      }
+
+      console.log("Preparing application for job:", jobId);
+
+      const payload = {
+        applicantName: profileName || "",
+
+        portfolioUrl: "",
+
+        resumeUrl: resumeUrl,
+
+        text: `I'm excited to apply for the ${job.title} role at ${typeof job.company === "object"
+            ? job.company.name
+            : job.company || "this organization"
+          }.`,
+      };
+
+      console.log("Sending application payload:", payload);
+
+      await api(`/v1/application/job/${jobId}`, {
+        method: "POST",
+
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify(payload),
+      });
+
+      console.log("Job applied successfully:", jobId);
+    } catch (error) {
+      console.error("Apply failed:", error);
+
+      if (error.message !== "Resume not uploaded") {
+        Alert.alert(
+          "Application Failed",
+
+          error.message || "Could not submit your application. Please try again."
+        );
+      }
+
+      throw error;
     }
-
-    console.log("Preparing application for job:", jobId);
-
-    const payload = {
-      applicantName: profileName || "",
-
-      portfolioUrl: "",
-
-      resumeUrl: resumeUrl,
-
-      text: `I'm excited to apply for the ${job.title} role at ${
-        typeof job.company === "object"
-          ? job.company.name
-          : job.company || "this organization"
-      }.`,
-    };
-
-    console.log("Sending application payload:", payload);
-
-    await api(`/v1/application/job/${jobId}`, {
-      method: "POST",
-
-      headers: { "Content-Type": "application/json" },
-
-      body: JSON.stringify(payload),
-    });
-
-    console.log("Job applied successfully:", jobId);
-  } catch (error) {
-    console.error("Apply failed:", error);
-
-    if (error.message !== "Resume not uploaded") {
-      Alert.alert(
-        "Application Failed",
-
-        error.message || "Could not submit your application. Please try again."
-      );
-    }
-
-    throw error;
-  }
-};
+  };
 
   const toggleBookmark = async () => {
     try {
@@ -177,7 +174,7 @@ const applyToJob = async (jobId) => {
             ]).start();
           }
 
-         
+
           if (direction === "right") {
             if (job.sourceType === "web") {
               console.log("Applying to web job via swipe:", job.id);
@@ -255,7 +252,7 @@ const applyToJob = async (jobId) => {
     });
   };
 
-  
+
 
   const getActionIcon = () => {
     return job.sourceType === "web" ? "checkmark" : "bookmark";
@@ -269,7 +266,7 @@ const applyToJob = async (jobId) => {
         return job.company.logoUrl.trim();
       }
     }
-    
+
     return "https://i.pinimg.com/736x/b3/c8/31/b3c831ecff785cbb3e3ec2969ec16f7e.jpg";
   };
 
@@ -311,7 +308,7 @@ const applyToJob = async (jobId) => {
           )}
 
           <View className="absolute -bottom-6 left-5 bg-white p-1.5 rounded-2xl shadow-md border border-slate-200">
-            
+
           </View>
         </View>
 
@@ -384,10 +381,10 @@ const applyToJob = async (jobId) => {
             {typeof job.description === "string"
               ? job.description
               : typeof job.description === "object"
-              ? job.description.details ||
+                ? job.description.details ||
                 job.description.summary ||
                 "No description available."
-              : "No description available."}
+                : "No description available."}
           </Text>
         </View>
 
@@ -425,25 +422,10 @@ const applyToJob = async (jobId) => {
                 borderColor: "rgba(255, 255, 255, 0.2)",
               }}
               onPress={() => {
-                if (job.sourceType === "csv") {
-                  const url =
-                    job.sourceUrl?.trim() ||
-                    (typeof job.company === "object"
-                      ? job.company.website?.trim()
-                      : null);
-                  if (url) {
-                    Linking.openURL(url).catch(() =>
-                      Alert.alert("Error", "Could not open link.")
-                    );
-                  } else {
-                    Alert.alert("No Link", "This job has no external URL.");
-                  }
-                } else {
-                  router.push({
-                    pathname: "/Homepage/jobdescription",
-                    params: { id: job.id },
-                  });
-                }
+                router.push({
+                  pathname: "/Homepage/jobdescription",
+                  params: { id: job.id },
+                });
               }}
             >
               <Icon name="add" size={30} color="#fff" />

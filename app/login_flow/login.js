@@ -1,11 +1,11 @@
 // app/login_flow/Login.js
-import { View, Text, Image, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 
 const logo = require("../../assets/images/logo.png");
 const googleIcon = require("../../assets/images/google.png");
-const emailIcon = require("../../assets/images/email.png"); 
+const emailIcon = require("../../assets/images/email.png");
 
 export default function Login() {
   return (

@@ -1,22 +1,23 @@
 // app/login_flow/with_email/LoginScreen.js
 import { router } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Image,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
 } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 import { auth } from "../services/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
+  const { login, isDebugMode } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,19 @@ export default function LoginScreen() {
     if (!isValid || loading) return;
     setLoading(true);
 
+    // Debug Mode Bypass
+    if (email.trim().toLowerCase() === "tester@intersync.com") {
+      try {
+        await login("mock-token-debug", { debug: true });
+        router.replace("../Homepage/homepage");
+      } catch (e) {
+        console.error("Debug login error:", e);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -53,11 +67,10 @@ export default function LoginScreen() {
       );
       const user = userCredential.user;
 
-      console.log("Logged in:", user.uid);
 
       const idToken = await user.getIdToken();
 
-      await AsyncStorage.setItem("authToken", idToken);
+      await login(idToken);
 
       router.replace("../Homepage/homepage");
     } catch (error) {
@@ -225,9 +238,8 @@ export default function LoginScreen() {
           <TouchableOpacity
             onPress={handleLogin}
             disabled={!isValid || loading}
-            className={`w-full h-[53] rounded-full justify-center items-center ${
-              isValid ? "bg-black" : "bg-gray-300"
-            }`}
+            className={`w-full h-[53] rounded-full justify-center items-center ${isValid ? "bg-black" : "bg-gray-300"
+              }`}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />

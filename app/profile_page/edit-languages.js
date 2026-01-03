@@ -1,18 +1,18 @@
 // app/profile_page/edit-languages.js
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
 import { useProfile } from "../context/ProfileContext";
+import { api } from "../services/api";
 
 export default function EditLanguages() {
   const router = useRouter();
@@ -71,10 +71,10 @@ export default function EditLanguages() {
         body: JSON.stringify({ languages: cleaned }),
       });
 
-      // ✅ Refresh context so MainProfile sees update
+      // Refresh context so MainProfile sees update
       await refreshProfile();
 
-      // ✅ Show success
+      // Show success
       Alert.alert("Success", "Languages updated!", [
         { text: "OK", onPress: () => router.back() },
       ]);

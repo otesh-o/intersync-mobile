@@ -1,32 +1,35 @@
 // app/components/ProfileCard.js
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
   Alert,
-  Image as RNImage,
   Platform,
+  Image as RNImage,
+  Text,
+  TextInput,
   ToastAndroid,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "../../../context/AuthContext";
 import { useProfile } from "../../../context/ProfileContext";
 import { api } from "../../../services/api"; // For other profile updates
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../../../services/config";
 
 export default function ProfileCard() {
   const { name, setName, role, setRole, profilePicUrl, setProfilePicUrl } =
     useProfile();
+  const { isPremium } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [localName, setLocalName] = useState(name);
   const [localRole, setLocalRole] = useState(role);
   const [uploading, setUploading] = useState(false);
 
-  // 🔍 Debug: Log when context values change
+  // Debug: Log when context values change
   React.useEffect(() => {
-    console.log("🔄 ProfileCard: Context updated", {
+    console.log("ProfileCard: Context updated", {
       name,
       role,
       profilePicUrl: profilePicUrl ? "URL present" : null,
@@ -50,11 +53,11 @@ export default function ProfileCard() {
 
   // Function: Pick image and upload to backend
   const pickImage = async () => {
-    console.log("🖼️ Starting image picker...");
+    console.log("Starting image picker...");
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      console.warn("📷 Permission denied");
+      console.warn("Permission denied");
       Alert.alert("Permission required", "Please allow access to photos.");
       return;
     }
@@ -67,12 +70,12 @@ export default function ProfileCard() {
     });
 
     if (result.canceled) {
-      console.log("❌ Image selection canceled");
+      console.log("Image selection canceled");
       return;
     }
 
     const uri = result.assets[0].uri;
-    console.log("📎 Selected image URI:", uri);
+    console.log("Selected image URI:", uri);
     setUploading(true);
 
     try {
@@ -85,7 +88,7 @@ export default function ProfileCard() {
         name: getFileName(uri),
       };
 
-      console.log("📤 Uploading file:", fileEntry);
+      console.log("Uploading file:", fileEntry);
       formData.append("file", fileEntry);
 
       // --- Upload to Backend ---
@@ -94,10 +97,9 @@ export default function ProfileCard() {
         throw new Error("No auth token found. Please log in.");
       }
 
-      
-      const endpoint =
-        "https://internsync-production.up.railway.app/v1/user/upload/profile-picture";
-      console.log("📡 Sending to endpoint:", endpoint);
+
+      const endpoint = `${API_BASE_URL}/v1/user/upload/profile-picture`;
+      console.log("Sending to endpoint:", endpoint);
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -109,7 +111,7 @@ export default function ProfileCard() {
       });
 
       const data = await response.json();
-      console.log("📥 Server Response:", data);
+      console.log("Server Response:", data);
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || "Upload failed");
@@ -117,7 +119,7 @@ export default function ProfileCard() {
 
       // --- Success: Extract public URL ---
       const imageUrl = data.absoluteUrl?.trim();
-      console.log("🔗 Received image URL:", imageUrl);
+      console.log("Received image URL:", imageUrl);
 
       if (!imageUrl) {
         throw new Error("No public URL returned from server");
@@ -125,12 +127,12 @@ export default function ProfileCard() {
 
       // Update frontend context
       setProfilePicUrl(imageUrl);
-      console.log("✅ Profile picture updated in context");
+      console.log("Profile picture updated in context");
 
-      // ✅ Show success
+      // Show success
       showSuccess("Profile picture updated!");
     } catch (error) {
-      console.error("🚨 Profile picture upload failed:", error);
+      console.error("Profile picture upload failed:", error);
       Alert.alert("Upload Failed", error.message || "Could not upload image.");
     } finally {
       setUploading(false);
@@ -144,7 +146,7 @@ export default function ProfileCard() {
       return;
     }
 
-    console.log("💾 Saving profile:", { name: localName, aboutMe: localRole });
+    console.log("Saving profile:", { name: localName, aboutMe: localRole });
 
     try {
       await api("/v1/user/profile", {
@@ -159,10 +161,10 @@ export default function ProfileCard() {
       setRole(localRole.trim() || "");
       setIsEditing(false);
 
-      console.log("✅ Name and role saved successfully");
+      console.log("Name and role saved successfully");
       showSuccess("Name and role saved!");
     } catch (error) {
-      console.error("❌ Save failed:", error);
+      console.error("Save failed:", error);
       Alert.alert("Save Failed", error.message || "Could not save profile.");
     }
   };
@@ -188,14 +190,14 @@ export default function ProfileCard() {
       webp: "image/webp",
     };
     const type = mimeMap[extension] || "image/jpeg";
-    console.log(`📄 Detected MIME type for .${extension}: ${type}`);
+    console.log(`Detected MIME type for .${extension}: ${type}`);
     return type;
   };
 
   // Helper: Extract filename
   const getFileName = (uri) => {
     const name = uri.split("/").pop() || "profile-pic.jpg";
-    console.log(`📎 Generated filename: ${name}`);
+    console.log(`Generated filename: ${name}`);
     return name;
   };
 
@@ -345,6 +347,29 @@ export default function ProfileCard() {
             {role || "Enter your role or a brief bio."}
           </Text>
         )}
+      </View>
+
+      {/* Plan Badge */}
+      <View
+        style={{
+          backgroundColor: isPremium ? "#EAB308" : "#64748B",
+          paddingHorizontal: 12,
+          paddingVertical: 4,
+          borderRadius: 100,
+          marginTop: 8,
+        }}
+      >
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 10,
+            fontWeight: "700",
+            textTransform: "uppercase",
+            fontFamily: "Raleway",
+          }}
+        >
+          {isPremium ? "Premium member" : "Free Plan"}
+        </Text>
       </View>
     </View>
   );
