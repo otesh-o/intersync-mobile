@@ -1,13 +1,13 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   Image,
-  TextInput,
   KeyboardAvoidingView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useState, useRef } from "react";
 
 
 export default function VerifyCodeScreen() {
@@ -33,7 +33,7 @@ export default function VerifyCodeScreen() {
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-white pt-20 px-5">
-      
+
       <View className="items-center mb-10">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -49,7 +49,7 @@ export default function VerifyCodeScreen() {
           className="text-[27.11px] text-black uppercase"
           style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
-          INTERSYNC
+          INTERNSYNC
         </Text>
       </View>
 
@@ -65,7 +65,7 @@ export default function VerifyCodeScreen() {
         Check your Email
       </Text>
 
-      
+
       <Text
         className="text-[16px] text-[#828693] font-semibold"
         style={{
@@ -81,7 +81,7 @@ export default function VerifyCodeScreen() {
         code that was mentioned in the email
       </Text>
 
-     
+
       <View className="flex-row justify-between mb-8" style={{ gap: 10 }}>
         {code.map((digit, index) => (
           <TextInput
@@ -105,11 +105,10 @@ export default function VerifyCodeScreen() {
         ))}
       </View>
 
-      
+
       <TouchableOpacity
-        className={`items-center justify-center ${
-          isCodeComplete ? "bg-black" : "bg-gray-300"
-        }`}
+        className={`items-center justify-center ${isCodeComplete ? "bg-black" : "bg-gray-300"
+          }`}
         style={{
           width: 336,
           height: 50,
@@ -126,7 +125,7 @@ export default function VerifyCodeScreen() {
         <Text className="text-white text-[18px] font-bold">Verify</Text>
       </TouchableOpacity>
 
-      
+
       <Text
         className="text-center text-[#828693] mt-6"
         style={{

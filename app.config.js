@@ -1,12 +1,12 @@
 module.exports = {
     expo: {
-        name: "Internsync",
-        slug: "interSync_Mobile",
+        name: "InternSync",
+        slug: "internSync_Mobile",
         version: "1.0.0",
-        description: "Internsync connects students with internships seamlessly. Simplified applications and career tracking.",
+        description: "InternSync connects students with internships seamlessly. Simplified applications and career tracking.",
         orientation: "portrait",
         icon: "./assets/images/icon.png",
-        scheme: "intersyncmobile",
+        scheme: "internsyncmobile",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
         ios: {

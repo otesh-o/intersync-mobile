@@ -54,7 +54,7 @@ export default function VerifyScreen() {
     setLoading(true);
 
     // MOCKING AUTH BACKEND FOR REVIEWER/UI TESTING
-    const isDebugEmail = email?.trim().toLowerCase() === "tester@intersync.com";
+    const isDebugEmail = email?.trim().toLowerCase() === "tester@internsync.com";
 
     if (isDebugEmail) {
       try {

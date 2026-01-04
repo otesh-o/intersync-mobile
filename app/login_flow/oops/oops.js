@@ -1,10 +1,10 @@
 import { router } from "expo-router";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function OopsScreen() {
   return (
     <View className="flex-1 bg-white pt-20 px-5">
-      
+
       <View className="items-center mb-10">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -19,14 +19,14 @@ export default function OopsScreen() {
           className="text-[27.11px] text-black uppercase"
           style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
-          INTERSYNC
+          INTERNSYNC
         </Text>
       </View>
 
-      
+
       <Text className="text-[28px] font-bold text-center mt-8">Oops!</Text>
 
-      
+
       <Text
         className="text-[18px] font-medium text-[#828693] text-center mt-8"
         style={{
@@ -35,10 +35,10 @@ export default function OopsScreen() {
           alignSelf: "center",
         }}
       >
-        We couldn’t find an intern sync account connected to that Gmail Account.
+        We couldn’t find an InternSync account connected to that Gmail Account.
       </Text>
 
-      
+
       <TouchableOpacity
         onPress={() => router.push("/create_account/email")}
         className="mt-10 bg-black items-center justify-center"

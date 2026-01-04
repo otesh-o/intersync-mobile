@@ -47,7 +47,7 @@ export default function LoginScreen() {
     setLoading(true);
 
     // Debug Mode Bypass
-    if (email.trim().toLowerCase() === "tester@intersync.com") {
+    if (email.trim().toLowerCase() === "tester@internsync.com") {
       try {
         await login("mock-token-debug", { debug: true });
         router.replace("../Homepage/homepage");

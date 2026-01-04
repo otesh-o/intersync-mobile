@@ -1,17 +1,17 @@
 // app/login_flow/forgot_password/set_new_password.js
 
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   Image,
   Modal,
   Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons"; 
 
 export default function SetNewPasswordScreen() {
   const [password, setPassword] = useState("");
@@ -72,7 +72,7 @@ export default function SetNewPasswordScreen() {
           className="text-[27.11px] text-black uppercase"
           style={{ fontFamily: "ClaireNewsBold", lineHeight: 30 }}
         >
-          INTERSYNC
+          INTERNSYNC
         </Text>
       </View>
 
@@ -108,7 +108,7 @@ export default function SetNewPasswordScreen() {
             if (errors.password)
               setErrors((prev) => ({ ...prev, password: "" }));
           }}
-          secureTextEntry={!showPassword} 
+          secureTextEntry={!showPassword}
           style={{
             width: 336,
             height: 53,
@@ -139,7 +139,7 @@ export default function SetNewPasswordScreen() {
         <View className="h-5 mb-4" />
       )}
 
-      
+
       <View style={{ width: 336, marginBottom: 10 }}>
         <TextInput
           placeholder="Confirm Password"
@@ -181,7 +181,7 @@ export default function SetNewPasswordScreen() {
         <View className="h-5 mb-6" />
       )}
 
-      
+
       <TouchableOpacity
         className="items-center justify-center bg-black"
         style={{
@@ -200,32 +200,32 @@ export default function SetNewPasswordScreen() {
       <Modal visible={showSuccessModal} transparent animationType="fade">
         <View
           className="flex-1 items-center justify-center"
-          style={{ backgroundColor: "rgba(170, 170, 170, 0.7)" }} 
+          style={{ backgroundColor: "rgba(170, 170, 170, 0.7)" }}
         >
-          
+
           <View
             className="items-center px-6 py-8"
             style={{
               width: 340,
-              backgroundColor: "white", 
+              backgroundColor: "white",
               borderRadius: 16,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 6,
-              elevation: 3, 
+              elevation: 3,
             }}
           >
-            
+
             <Image
               source={require("../../../assets/images/check.png")}
               style={{ width: 98, height: 98, marginBottom: 16 }}
               resizeMode="contain"
             />
 
-            
+
             <Text
-              className="text-black mb-3" 
+              className="text-black mb-3"
               style={{
                 width: 313,
                 height: 20,
@@ -241,12 +241,12 @@ export default function SetNewPasswordScreen() {
               Successful
             </Text>
 
-            
+
             <Text
-              className="text-black mb-6" 
+              className="text-black mb-6"
               style={{
-                width: 200, 
-                height: 69, 
+                width: 200,
+                height: 69,
                 fontFamily: "Roboto",
                 fontWeight: "500",
                 fontSize: 15.54,
@@ -262,7 +262,7 @@ export default function SetNewPasswordScreen() {
             </Text>
 
             <TouchableOpacity
-              className="items-center justify-center bg-black" 
+              className="items-center justify-center bg-black"
               style={{
                 width: 300,
                 height: 58.4,
