@@ -3,6 +3,7 @@
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { deleteUserAccount } from "../services/profileService";
 
 const AuthContext = createContext(null);
 
@@ -99,6 +100,15 @@ export const AuthProvider = ({ children }) => {
         isDebugMode,
         setPremium,
         updatePlan,
+        deleteAccount: async () => {
+          try {
+            await deleteUserAccount();
+            await logout();
+          } catch (error) {
+            console.error("Account deletion failed:", error);
+            throw error;
+          }
+        },
         isAuthenticated: !!token,
         hasSelectedPlan: !!plan,
         login,

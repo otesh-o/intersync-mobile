@@ -17,3 +17,13 @@ web-build/
 *.pem
 .env
 clear/
+package-lock.json
+.idea/
+.vscode/
+*.log
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.bundle/
+vendor/

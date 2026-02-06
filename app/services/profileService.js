@@ -17,3 +17,9 @@ export const updateProfile = async (updates) => {
     body: JSON.stringify(updates),
   });
 };
+
+export const deleteUserAccount = async () => {
+  return await api("/v1/user/account", {
+    method: "DELETE",
+  });
+};

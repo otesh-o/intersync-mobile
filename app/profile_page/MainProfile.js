@@ -1,7 +1,7 @@
 // app/profile_page/MainProfile.js
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 // Components
 import Header from "./components/Header";
@@ -20,7 +20,7 @@ const DEFAULT_ABOUT_ME = "Tell us about yourself";
 export default function MainProfile() {
   const [expandedSection, setExpandedSection] = useState(null);
   const router = useRouter();
-  const { isPremium, setPremium } = useAuth();
+  const { isPremium, setPremium, deleteAccount } = useAuth();
 
   // Get real data from context (loaded from GET /v1/user/profile)
   const {
@@ -62,6 +62,33 @@ export default function MainProfile() {
         }
       ]
     );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAccount();
+            } catch (error) {
+              Alert.alert("Error", "Failed to delete account. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const openPrivacyPolicy = () => {
+    Linking.openURL(
+      "https://docs.google.com/document/d/1DIHDsrmfBaz15RrHTwCOtXNbf3Dw4dRCH8o2HkSeO7w/edit?tab=t.0"
+    ).catch((err) => console.error("Couldn't load page", err));
   };
 
   const toggleExpand = (section) => {
@@ -141,6 +168,41 @@ export default function MainProfile() {
           )}
         </View>
       </View>
-    </ScrollView>
+
+      {/* Legal & Account Actions */}
+      <View className="w-full max-w-md mt-6 px-4 pb-8">
+        <Text className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ fontFamily: "Raleway-Medium" }}>
+          Legal & Account
+        </Text>
+        <View className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          {/* Privacy Policy */}
+          <TouchableOpacity
+            onPress={openPrivacyPolicy}
+            className="flex-row items-center justify-between p-4 border-b border-gray-100"
+          >
+            <View className="flex-row items-center">
+              <Icon name="shield-checkmark-outline" size={22} color="#4B5563" />
+              <Text className="ml-3 text-gray-700 font-medium" style={{ fontFamily: "Roboto" }}>
+                Privacy Policy
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          {/* Delete Account */}
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            className="flex-row items-center justify-between p-4"
+          >
+            <View className="flex-row items-center">
+              <Icon name="trash-outline" size={22} color="#EF4444" />
+              <Text className="ml-3 text-red-500 font-medium" style={{ fontFamily: "Roboto" }}>
+                Delete Account
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView >
   );
 }
