@@ -57,15 +57,15 @@ module.exports = {
             eas: {
                 projectId: "369333f0-bbe3-49e0-afce-81e3c0ffa108"
             },
-            // 🔐 Environment Variables for Production
-            firebaseApiKey: process.env.FIREBASE_API_KEY || "AIzaSyBhnS7Klo4XcksmSVmD2RtN7ckpz3p9xX8",
-            firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || "internsync-435f0.firebaseapp.com",
-            firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "internsync-435f0",
-            firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || "internsync-435f0.appspot.com",
-            firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "1028469357708",
-            firebaseAppId: process.env.FIREBASE_APP_ID || "1:1028469357708:web:d936783ea35e74eb114fa9",
-            firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-N5B7HE8C7K",
-            apiBaseUrl: process.env.API_BASE_URL || "https://internsync-production.up.railway.app"
+            // 🔐 Environment Variables
+            firebaseApiKey: process.env.FIREBASE_API_KEY,
+            firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
+            firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+            firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+            firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+            firebaseAppId: process.env.FIREBASE_APP_ID,
+            firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID,
+            apiBaseUrl: process.env.API_BASE_URL
         }
     }
 };
