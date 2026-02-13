@@ -1,4 +1,4 @@
-package com.olaotesile.internsync
+package com.internsync.app
 
 import android.app.Application
 import android.content.res.Configuration

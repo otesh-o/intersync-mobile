@@ -1,4 +1,4 @@
-package com.olaotesile.internsync
+package com.internsync.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

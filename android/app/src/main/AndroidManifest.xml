@@ -26,7 +26,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="internsyncmobile"/>
-        <data android:scheme="exp+internsyncmobile"/>
+        <data android:scheme="exp+intersyncmobile"/>
       </intent-filter>
     </activity>
   </application>

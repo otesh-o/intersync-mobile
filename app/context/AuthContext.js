@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.deleteItemAsync(PREMIUM_KEY);
     await SecureStore.deleteItemAsync(PLAN_KEY);
     await SecureStore.deleteItemAsync(DEBUG_MODE_KEY);
-    router.replace("/auth/login");
+    router.replace("/login_flow/login");
   };
 
   const updatePlan = async (newPlan) => {

@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Image, View } from "react-native";
+import { useAuth } from "./context/AuthContext";
 
 
 
@@ -8,13 +9,21 @@ import { Image, View } from "react-native";
 const logo = require("../assets/images/logo.png");
 
 export default function Index() {
+  const { loading, isAuthenticated } = useAuth();
+
   useEffect(() => {
+    if (loading) return;
+
     const timer = setTimeout(() => {
-      router.replace("/welcome");
+      if (isAuthenticated) {
+        router.replace("/Homepage/homepage");
+      } else {
+        router.replace("/welcome");
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading, isAuthenticated]);
 
   return (
     <View className="flex-1 bg-black justify-center items-center">

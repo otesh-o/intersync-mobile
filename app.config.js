@@ -11,9 +11,9 @@ module.exports = {
         newArchEnabled: true,
         ios: {
             supportsTablet: true,
-            bundleIdentifier: "com.olaotesile.internsync",
+            bundleIdentifier: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            buildNumber: "7",
+            buildNumber: "3",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false
             }
@@ -22,11 +22,12 @@ module.exports = {
             adaptiveIcon: {
                 foregroundImage: "./assets/images/adaptive-icon.png",
                 backgroundColor: "#000000"
+
             },
             edgeToEdgeEnabled: true,
-            package: "com.olaotesile.internsync",
+            package: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            versionCode: 7
+            versionCode: 3
         },
         web: {
             bundler: "metro",

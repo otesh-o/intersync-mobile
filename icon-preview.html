@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Adaptive Icon Preview</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .preview-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 { margin-bottom: 20px; color: #333; }
+        .icon-container {
+            width: 108px;
+            height: 108px;
+            background-color: #000000; /* Matching your app background */
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+        }
+        .icon-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Masks */
+        .circle { border-radius: 50%; }
+        .rounded-square { border-radius: 20%; }
+        .squircle { 
+            clip-path: path('M 54,0 C 14,0 0,14 0,54 0,94 14,108 54,108 94,108 108,94 108,54 108,14 94,0 54,0 Z');
+        }
+
+        .guide-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 72px; /* 66% safe zone */
+            height: 72px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <h1>Adaptive Icon Preview</h1>
+    <p>This shows how the "assets/images/adaptive-icon.png" will be cropped on different Android devices.</p>
+    
+    <div class="container">
+        <div class="preview-box">
+            <h3>Full Image (108dp)</h3>
+            <div class="icon-container">
+                <img src="assets/images/adaptive-icon.png" class="icon-image">
+                <div class="guide-circle"></div>
+            </div>
+            <p>Dashed line = Safe Zone (66%)</p>
+        </div>
+
+        <div class="preview-box">
+            <h3>Circle Crop</h3>
+            <div class="icon-container circle">
+                <img src="assets/images/adaptive-icon.png" class="icon-image">
+            </div>
+        </div>
+
+        <div class="preview-box">
+            <h3>Rounded Square</h3>
+            <div class="icon-container rounded-square">
+                <img src="assets/images/adaptive-icon.png" class="icon-image">
+            </div>
+        </div>
+
+        <div class="preview-box">
+            <h3>Squircle (Samsung/modern)</h3>
+            <div class="icon-container squircle">
+                <img src="assets/images/adaptive-icon.png" class="icon-image">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
