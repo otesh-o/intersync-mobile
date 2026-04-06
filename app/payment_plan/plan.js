@@ -19,7 +19,7 @@ export default function Plan() {
 
   useEffect(() => {
     async function fetchPrices() {
-      if (isDebugMode) {
+      if (__DEV__ && isDebugMode) {
         setPrices({
           monthly: { id: "mock-price-id", unit_amount: 800, currency: "usd" },
         });
@@ -83,7 +83,7 @@ export default function Plan() {
       return;
     }
 
-    if (isDebugMode) {
+    if (__DEV__ && isDebugMode) {
       const amount = prices["monthly"] ? (prices["monthly"].unit_amount / 100).toFixed(2) : "8.00";
       console.log("Debug Mode: Bypassing Stripe checkout...");
       router.push({

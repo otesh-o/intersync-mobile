@@ -1,6 +1,6 @@
 // app/context/ProfileContext.js
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
 import { api } from "../services/api";
 import { auth } from "../services/firebaseConfig";
 import { useAuth } from "./AuthContext";
@@ -9,6 +9,7 @@ import { API_BASE_URL } from "../services/config";
 
 const BASE_URL = API_BASE_URL;
 const ProfileContext = createContext();
+const TOKEN_KEY = "auth-token";
 
 export const ProfileProvider = ({ children }) => {
   const [name, setName] = useState("");
@@ -101,7 +102,7 @@ export const ProfileProvider = ({ children }) => {
 
           try {
             const idToken = await user.getIdToken(true);
-            await AsyncStorage.setItem("authToken", idToken);
+            await SecureStore.setItemAsync(TOKEN_KEY, idToken);
             console.log("Auth token saved");
 
             await loadProfile();
@@ -129,6 +130,9 @@ export const ProfileProvider = ({ children }) => {
 
     return () => {
       isActive = false;
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
     };
   }, []);
 

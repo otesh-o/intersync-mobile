@@ -14,10 +14,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import backIcon from "../../assets/images/back.png";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
 import { SignupContext } from "../context/SignupContext";
 
 import { API_BASE_URL } from "../services/config";
+import { auth } from "../services/firebaseConfig";
 
 const BASE_URL = API_BASE_URL;
 const CODE_LENGTH = 6;
@@ -53,22 +55,6 @@ export default function VerifyScreen() {
     if (!isValid || loading) return;
     setLoading(true);
 
-    // MOCKING AUTH BACKEND FOR REVIEWER/UI TESTING
-    const isDebugEmail = email?.trim().toLowerCase() === "tester@internsync.com";
-
-    if (isDebugEmail) {
-      try {
-        await login("mock-token-debug", { debug: true });
-        router.replace("/create_account/interest");
-      } catch (e) {
-        console.error("Mock login error:", e);
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    /* Original code logic commented out for UI testing
     try {
       const otpRes = await fetch(`${BASE_URL}/v1/auth/signup/verify-otp`, {
         method: "POST",
@@ -249,7 +235,6 @@ export default function VerifyScreen() {
     } finally {
       setLoading(false);
     }
-    */
   };
 
   const onChangeCode = (text) => {

@@ -1,7 +1,7 @@
 // app/components/ProfileCard.js
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
+import * as SecureStore from "expo-secure-store";
 import {
   Alert,
   Platform,
@@ -92,7 +92,7 @@ export default function ProfileCard() {
       formData.append("file", fileEntry);
 
       // --- Upload to Backend ---
-      const token = await AsyncStorage.getItem("authToken");
+      const token = await SecureStore.getItemAsync("auth-token");
       if (!token) {
         throw new Error("No auth token found. Please log in.");
       }

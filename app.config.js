@@ -2,7 +2,7 @@ module.exports = {
     expo: {
         name: "InternSync",
         slug: "interSync_Mobile",
-        version: "1.0.0",
+        version: "1.0.6",
         description: "InternSync connects students with internships seamlessly. Simplified applications and career tracking.",
         orientation: "portrait",
         icon: "./assets/images/icon.png",
@@ -13,7 +13,7 @@ module.exports = {
             supportsTablet: true,
             bundleIdentifier: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            buildNumber: "3",
+            buildNumber: "6",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false
             }
@@ -27,7 +27,7 @@ module.exports = {
             edgeToEdgeEnabled: true,
             package: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            versionCode: 3
+            versionCode: 6
         },
         web: {
             bundler: "metro",

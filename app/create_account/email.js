@@ -57,17 +57,6 @@ export default function EmailScreen() {
     if (!formIsValid) return;
     setLoading(true);
 
-    // MOCKING AUTH BACKEND FOR UI TESTING
-    console.log("MOCK: Skipping OTP send for:", email);
-    setSignupData({ email, password });
-    router.push({
-      pathname: "/create_account/verify",
-      params: { email: email.trim() },
-    });
-    setLoading(false);
-    return;
-
-    /* Original code logic commented out for UI testing
     try {
       const response = await fetch(`${BASE_URL}/v1/auth/signup/send-otp`, {
         method: "POST",
@@ -87,9 +76,17 @@ export default function EmailScreen() {
 
       if (response.ok) {
         setSignupData({ email, password });
-        router.push({
-          pathname: "/create_account/verify",
-          params: { email: email.trim() },
+        showModal({
+          title: "Code Sent",
+          message: `We sent a 6-digit code to ${email.trim()}.`,
+          actionText: "Continue",
+          onAction: () => {
+            setModalVisible(false);
+            router.push({
+              pathname: "/create_account/verify",
+              params: { email: email.trim() },
+            });
+          },
         });
       } else {
         showModal({
@@ -120,7 +117,6 @@ export default function EmailScreen() {
     } finally {
       setLoading(false);
     }
-    */
   };
 
   const CustomModal = () => {

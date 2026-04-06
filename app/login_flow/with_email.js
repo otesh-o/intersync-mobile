@@ -17,7 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { auth } from "../services/firebaseConfig";
 
 export default function LoginScreen() {
-  const { login, isDebugMode } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,19 +45,6 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!isValid || loading) return;
     setLoading(true);
-
-    // Debug Mode Bypass
-    if (email.trim().toLowerCase() === "tester@internsync.com") {
-      try {
-        await login("mock-token-debug", { debug: true });
-        router.replace("../Homepage/homepage");
-      } catch (e) {
-        console.error("Debug login error:", e);
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
 
     try {
       const userCredential = await signInWithEmailAndPassword(

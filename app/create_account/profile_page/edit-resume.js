@@ -1,5 +1,4 @@
 // app/profile_page/edit-resume.js
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -11,8 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import { useProfile } from "../../context/ProfileContext";
 import { api } from "../../services/api";
+import { API_BASE_URL } from "../../services/config";
 
 export default function EditResume() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function EditResume() {
         name: resume.name,
       });
 
-      const token = await AsyncStorage.getItem("authToken");
+      const token = await SecureStore.getItemAsync("auth-token");
       const uploadResponse = await fetch(
         `${API_BASE_URL}/v1/user/upload/resume`,
         {

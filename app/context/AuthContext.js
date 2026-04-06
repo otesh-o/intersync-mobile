@@ -45,7 +45,12 @@ export const AuthProvider = ({ children }) => {
         setPlan(savedPlan);
 
         const savedDebug = await SecureStore.getItemAsync(DEBUG_MODE_KEY);
-        setIsDebugMode(savedDebug === "true");
+        if (!__DEV__ && savedDebug === "true") {
+          await SecureStore.deleteItemAsync(DEBUG_MODE_KEY);
+          setIsDebugMode(false);
+        } else {
+          setIsDebugMode(savedDebug === "true");
+        }
       } catch (error) {
         console.warn("Failed to load auth state:", error);
       } finally {

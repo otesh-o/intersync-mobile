@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../services/api";
 
 const checkIcon = require("../../assets/images/check.png");
 const backIcon = require("../../assets/images/back.png");
@@ -11,14 +12,40 @@ export default function PaymentSuccess() {
   const { setPremium, updatePlan } = useAuth();
 
   useEffect(() => {
-    console.log("💳 PaymentSuccess: Automatically unlocking Premium features...");
-    setPremium(true);
-    updatePlan("unlimited");
+    let isActive = true;
+
+    const refreshPlan = async () => {
+      try {
+        const response = await api("/v1/user/profile");
+        const user = response?.user;
+        if (!isActive || !user) return;
+
+        if (user.plan) {
+          updatePlan(user.plan);
+          setPremium(
+            user.plan === "unlimited" ||
+              user.plan === "premium" ||
+              user.isPremium
+          );
+        }
+      } catch (error) {
+        console.warn(
+          "PaymentSuccess: could not refresh plan:",
+          error?.message || error
+        );
+      }
+    };
+
+    refreshPlan();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const plans = {
-    monthly: "InternSync – Monthly Access",
-    annual: "InternSync – Annual Access",
+    monthly: "InternSync - Monthly Access",
+    annual: "InternSync - Annual Access",
   };
 
   const planName = plans[planId] || "InternSync Access";
@@ -127,7 +154,7 @@ export default function PaymentSuccess() {
           onPress={() => {
             router.push({
               pathname: "/Homepage/homepage",
-              params: { showTutorial: "true" }, // 👈 add this
+              params: { showTutorial: "true" },
             });
           }}
           style={{
