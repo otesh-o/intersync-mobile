@@ -2,10 +2,6 @@
 
 --Internsync
 
-Lead Mobile Developer: Ola Otesile
-Contributors: Emeka Iwuagwu, Naivedya Bhuyan (please add your name if you change anything in the code)
-
-
 What is Internsync?
 Internsync helps students and job seekers discover and apply for opportunities Tinder-style.
 Companies can upload job listings from the web platform, and users browse and apply through the mobile app.
