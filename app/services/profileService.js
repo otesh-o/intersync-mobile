@@ -23,3 +23,4 @@ export const deleteUserAccount = async () => {
     method: "DELETE",
   });
 };
+

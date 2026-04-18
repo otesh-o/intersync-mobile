@@ -187,7 +187,7 @@ export default function ForgotPasswordEmail() {
             autoCapitalize="none"
             autoComplete="email"
             textContentType="emailAddress"
-            className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 mb-10"
+            className="w-full h-[53px] px-5 border border-gray-300 rounded-full text-base text-gray-700 mb-10"
           />
 
           {/* Reset Button */}
@@ -213,3 +213,4 @@ export default function ForgotPasswordEmail() {
     </KeyboardAvoidingView>
   );
 }
+

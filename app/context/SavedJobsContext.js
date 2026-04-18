@@ -115,3 +115,4 @@ export const SavedJobsProvider = ({ children }) => {
 };
 
 export const useSavedJobs = () => useContext(SavedJobsContext);
+

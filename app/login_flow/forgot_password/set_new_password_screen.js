@@ -283,3 +283,4 @@ export default function SetNewPasswordScreen() {
     </View>
   );
 }
+

@@ -12,3 +12,4 @@ export const register = async (email, password) => {
     localId: "mock-local-id",
   };
 };
+

@@ -203,3 +203,4 @@ export default function SectionItem({ label, content, isExpanded, onToggle }) {
     </View>
   );
 }
+

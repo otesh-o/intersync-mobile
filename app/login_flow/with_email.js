@@ -53,12 +53,8 @@ export default function LoginScreen() {
         password
       );
       const user = userCredential.user;
-
-
       const idToken = await user.getIdToken();
-
       await login(idToken);
-
       router.replace("../Homepage/homepage");
     } catch (error) {
       console.error("Login error:", error.code, error.message);
@@ -148,12 +144,10 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       className="flex-1 bg-white"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-6 pt-8">
-          {" "}
-          {/* Reduced top padding */}
-          {/* Back button — minimal, top-left */}
           <View className="self-start mb-2">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -166,7 +160,6 @@ export default function LoginScreen() {
               />
             </TouchableOpacity>
           </View>
-          {/* Logo — EXACTLY like in EmailScreen.js */}
           <View className="items-center mb-8">
             <Image
               source={require("../../assets/images/Internsync-black.png")}
@@ -174,7 +167,6 @@ export default function LoginScreen() {
               resizeMode="contain"
             />
           </View>
-          {/* Welcome */}
           <Text
             className="text-3xl font-bold text-center mb-8"
             style={{ fontFamily: "Roboto", lineHeight: 35 }}
@@ -191,11 +183,10 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoComplete="email"
               textContentType="emailAddress"
-              className="w-full h-[53] px-5 border border-gray-300 rounded-full text-base text-gray-700 font-sans"
+              className="w-full h-[53px] px-5 border border-gray-300 rounded-full text-base text-gray-700 font-sans"
             />
 
-            {/* Password */}
-            <View className="flex-row items-center w-full h-[53] px-5 border border-gray-300 rounded-full">
+            <View className="flex-row items-center w-full h-[53px] px-5 border border-gray-300 rounded-full">
               <TextInput
                 placeholder="Password"
                 placeholderTextColor="#888"
@@ -225,7 +216,7 @@ export default function LoginScreen() {
           <TouchableOpacity
             onPress={handleLogin}
             disabled={!isValid || loading}
-            className={`w-full h-[53] rounded-full justify-center items-center ${isValid ? "bg-black" : "bg-gray-300"
+            className={`w-full h-[53px] rounded-full justify-center items-center ${isValid ? "bg-black" : "bg-gray-300"
               }`}
           >
             {loading ? (

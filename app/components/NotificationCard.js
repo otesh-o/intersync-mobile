@@ -148,3 +148,4 @@ const NotificationCard = ({ item, onRemove }) => {
 };
 
 export default NotificationCard;
+

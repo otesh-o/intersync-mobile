@@ -372,3 +372,4 @@ const JobDescriptionScreen = () => {
 };
 
 export default JobDescriptionScreen;
+

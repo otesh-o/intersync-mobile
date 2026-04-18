@@ -193,3 +193,4 @@ const SavedJobCard = ({ item, onRemove }) => {
 };
 
 export default SavedJobCard;
+

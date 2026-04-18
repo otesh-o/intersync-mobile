@@ -349,3 +349,4 @@ export default function ProfileCard() {
     </View>
   );
 }
+

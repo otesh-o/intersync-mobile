@@ -13,16 +13,15 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // added
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SignupContext } from "../context/SignupContext";
-
 import { API_BASE_URL } from "../services/config";
 
 const BASE_URL = API_BASE_URL;
 
 export default function EmailScreen() {
-  const insets = useSafeAreaInsets(); // safe area
+  const insets = useSafeAreaInsets();
   const { setSignupData } = useContext(SignupContext);
 
   const [email, setEmail] = useState("");
@@ -153,6 +152,7 @@ export default function EmailScreen() {
     <KeyboardAvoidingView
       className="flex-1 bg-white"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
@@ -160,13 +160,11 @@ export default function EmailScreen() {
           keyboardShouldPersistTaps="handled"
           style={{ paddingTop: insets.top + 16 }}
         >
-          {/* Max-width container for tablets */}
-          <View className="w-full max-w-md">
-            {/* Logo */}
+          <View className="w-full max-w-md self-center">
             <View className="items-center mb-10">
               <Image
                 source={require("../../assets/images/Internsync-black.png")}
-                className="w-40 h-14" // responsive size
+                className="w-40 h-14"
                 resizeMode="contain"
               />
             </View>
@@ -176,7 +174,6 @@ export default function EmailScreen() {
                 Let’s Get You Started
               </Text>
 
-              {/* Email */}
               <Text className="text-gray-700 mb-2">Email</Text>
               <TextInput
                 placeholder="Enter your email"
@@ -190,7 +187,6 @@ export default function EmailScreen() {
                 className="w-full px-4 py-3.5 border border-gray-300 rounded-full text-base text-gray-700 mb-4"
               />
 
-              {/* Password */}
               <Text className="text-gray-700 mb-2">Password</Text>
               <View className="w-full px-4 py-0.5 border border-gray-300 rounded-full flex-row items-center mb-2">
                 <TextInput
@@ -216,7 +212,6 @@ export default function EmailScreen() {
                 Use 6 or more characters.
               </Text>
 
-              {/* Confirm Password */}
               <Text className="text-gray-700 mb-2">Confirm Password</Text>
               <TextInput
                 placeholder="Re-enter your password"
@@ -234,7 +229,6 @@ export default function EmailScreen() {
                 </Text>
               ) : null}
 
-              {/* Continue Button */}
               <TouchableOpacity
                 onPress={sendOtp}
                 disabled={!formIsValid || loading}

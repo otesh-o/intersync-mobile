@@ -37,3 +37,4 @@ const ProfileSetupModal = ({ isVisible, onClose, onSetup }) => {
 };
 
 export default ProfileSetupModal;
+

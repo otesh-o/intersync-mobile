@@ -31,3 +31,4 @@ const WelcomeOverlay = ({ onQuickGuide, onSkip }) => {
 };
 
 export default WelcomeOverlay;
+

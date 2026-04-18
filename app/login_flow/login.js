@@ -4,7 +4,6 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 
 
 const logo = require("../../assets/images/logo.png");
-const googleIcon = require("../../assets/images/google.png");
 const emailIcon = require("../../assets/images/email.png");
 
 export default function Login() {
@@ -45,24 +44,6 @@ export default function Login() {
           />
           <Text className="text-black text-lg font-bold">Login with Email</Text>
         </TouchableOpacity>
-
-        {/* Login with Google */}
-        <TouchableOpacity
-          className="flex-row bg-white w-[304px] h-[53px] rounded-full justify-center items-center"
-          onPress={() => {
-            // FIREBASE AUTH: Google login implementation
-            alert("Google login is currently unavailable.");
-          }}
-        >
-          <Image
-            source={googleIcon}
-            className="w-6 h-6 absolute left-6"
-            resizeMode="contain"
-          />
-          <Text className="text-black text-lg font-bold">
-            Login with Google
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
@@ -79,3 +60,4 @@ export default function Login() {
     </View>
   );
 }
+

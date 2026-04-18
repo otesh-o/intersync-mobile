@@ -29,3 +29,4 @@ export const TUTORIAL_STEPS = [
     { icon: 'home-outline', title: 'Home', text: 'Discover And Swipe Through The Latest Opportunities.', modalPosition: { bottom: 130, alignSelf: 'center' }, arrowStyle: { bottom: -30, alignSelf: 'center', transform: [{ rotate: '90deg' }], marginLeft: -35.5 }, spotlight: { bottom: 18, alignSelf: 'center', width: 60, height: 60, marginLeft: -30 }, highlightedComponent: { type: 'image', source: homeIcon, style: { width: 28, height: 28 } } },
     { icon: 'bookmark-outline', title: 'Saved Internships', text: 'All Swipe-Rights Land Here! Review And Apply Anytime.', modalPosition: { bottom: 130, right: 25 }, arrowStyle: { bottom: -30, right: 20, transform: [{ rotate: '90deg' }] }, spotlight: { bottom: 18, right: 40, width: 60, height: 60 }, highlightedComponent: { type: 'image', source: bookmarkIcon, style: { width: 28, height: 28 } } },
 ];
+

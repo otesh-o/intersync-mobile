@@ -24,11 +24,12 @@ export default function FirstNameScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1 bg-white"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View className="flex-1 bg-white items-center">
+          <View className="flex-1 bg-white">
             <View
               className="flex-1 w-full px-5"
               style={{ maxWidth: 420, alignSelf: "center" }}
@@ -88,3 +89,4 @@ export default function FirstNameScreen() {
     </SafeAreaView>
   );
 }
+

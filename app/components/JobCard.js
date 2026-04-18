@@ -457,3 +457,4 @@ const JobCard = ({ job, onSwipe, isTop, style = {} }) => {
 };
 
 export default JobCard;
+

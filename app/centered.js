@@ -12,3 +12,4 @@ export default function Centered({ children, className = "", style }) {
     </View>
   );
 }
+
