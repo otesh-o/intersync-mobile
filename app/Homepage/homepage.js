@@ -32,7 +32,7 @@ const Homepage = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const slideAnim = useRef(new Animated.Value(-300)).current;
-  const { jobs, isLoading: jobsLoading, currentMode, changeMode } = useJobs();
+  const { jobs, isLoading: jobsLoading, currentMode, error: jobsError, refreshJobs, changeMode } = useJobs();
   const { savedJobs, setSavedJobs } = useSavedJobs();
   const { name: profileName, profilePicUrl } = useProfile();
   const { token, isPremium } = useAuth();
@@ -333,11 +333,11 @@ const Homepage = () => {
               <Text
                 className="text-center text-slate-900 mb-2 text-3xl font-bold"
               >
-                You're out of internships
+                You&apos;re out of internships
               </Text>
 
               <Text className="text-gray-500 text-center text-sm mb-10 leading-relaxed px-4">
-                You've reached your daily limit for the free plan. Upgrade to Unlimited to discover more opportunities.
+                You&apos;ve reached your daily limit for the free plan. Upgrade to Unlimited to discover more opportunities.
               </Text>
 
               {/* Stats Grid */}
@@ -368,8 +368,24 @@ const Homepage = () => {
                 Resets in <Text className="font-bold text-gray-500">{timeRemaining}</Text>
               </Text>
             </View>
+          ) : jobsError ? (
+            <View className="flex-1 justify-center items-center pb-16 px-10">
+              <Icon name="alert-circle-outline" size={50} color="#EF4444" />
+              <Text className="text-lg font-bold text-gray-900 mt-4 text-center">
+                Connection Issue
+              </Text>
+              <Text className="text-sm text-gray-500 mt-2 text-center">
+                {jobsError}
+              </Text>
+              <TouchableOpacity
+                onPress={refreshJobs}
+                className="mt-6 bg-black px-6 py-2 rounded-full"
+              >
+                <Text className="text-white font-semibold">Try Again</Text>
+              </TouchableOpacity>
+            </View>
           ) : displayedJobs.length === 0 ? (
-            <View className="flex-1 justify-center items-center pb-16">
+            <View className="flex-1 justify-center items-center pb-16 px-10">
               <Icon name={searchQuery ? "search" : "briefcase-outline"} size={50} color="#ccc" />
               <Text className="text-lg font-bold text-gray-500 mt-4 text-center">
                 {searchQuery ? "No matching jobs" : `No ${currentMode} yet`}

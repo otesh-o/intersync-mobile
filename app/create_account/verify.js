@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import backIcon from "../../assets/images/back.png";
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
 import { SignupContext } from "../context/SignupContext";
@@ -357,7 +357,7 @@ export default function VerifyScreen() {
               {/* Header with Logo */}
               <View className="flex-row items-center justify-between mt-2">
                 <TouchableOpacity onPress={() => router.back()}>
-                  <Image source={backIcon} className="w-6 h-6" />
+                  <Icon name="chevron-back" size={28} color="#000" />
                 </TouchableOpacity>
 
                 {/* LOGO REPLACES TEXT */}
@@ -399,13 +399,13 @@ export default function VerifyScreen() {
 
               <View className="mt-6">
                 <Text className="text-gray-500 text-center">
-                  We’ve sent a 6-digit code to{"\n"}
+                  We have sent a 6-digit code to{"\n"}
                   <Text className="font-medium">{email}</Text>
                 </Text>
 
                 <View className="mt-4">
                   <Text className="text-gray-500 text-center">
-                    Didn’t receive a code?{" "}
+                    Did not receive a code?{" "}
                     <Text
                       className="text-indigo-600 underline font-bold"
                       onPress={!loading ? resendOtp : null}

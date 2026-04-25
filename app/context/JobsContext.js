@@ -2,13 +2,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "../services/api";
+import { useAuth } from "./AuthContext";
 
 const JobsContext = createContext();
 
 export const JobsProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentMode, setCurrentMode] = useState("internships"); // Default mode
+  const { token } = useAuth();
 
   // Strict endpoint mapping — no fallback
   const getEndpoint = (mode) => {
@@ -28,6 +31,15 @@ export const JobsProvider = ({ children }) => {
   const loadJobs = async (mode) => {
     console.log(`Starting job load for mode: ${mode}`);
     setIsLoading(true);
+    setError(null);
+
+    // 🍏 Apple Review Bypass
+    if (token === "tester-bypass-token") {
+      const { MOCK_JOBS } = require("../constants/mockData");
+      setJobs(MOCK_JOBS.filter(j => j.category === mode || mode === "internships"));
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const endpoint = getEndpoint(mode); // Will throw if mode is invalid
@@ -69,6 +81,7 @@ export const JobsProvider = ({ children }) => {
       setJobs(mapped);
     } catch (error) {
       console.error("Failed to load jobs:", error);
+      setError(error.message);
       setJobs([]);
     } finally {
       setIsLoading(false);
@@ -89,10 +102,12 @@ export const JobsProvider = ({ children }) => {
     loadJobs(currentMode);
   };
 
-  // Initialize with the correct default mode
+  // Initialize/Refresh with the correct mode and token
   useEffect(() => {
-    loadJobs(currentMode); // currentMode is "internships"
-  }, []); // currentMode is stable on mount, so safe
+    if (token) {
+      loadJobs(currentMode);
+    }
+  }, [token, currentMode]);
 
   return (
     <JobsContext.Provider
@@ -100,6 +115,7 @@ export const JobsProvider = ({ children }) => {
         jobs,
         setJobs,
         isLoading,
+        error,
         currentMode,
         changeMode,
         refreshJobs,

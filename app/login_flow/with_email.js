@@ -5,12 +5,15 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
@@ -47,6 +50,14 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
+      // 🍏 Apple Review Bypass
+      if (email.trim().toLowerCase() === "tester@internsync.com" && password === "123456") {
+        await login("tester-bypass-token", { debug: true });
+        router.replace("../Homepage/homepage");
+        setLoading(false);
+        return;
+      }
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -147,88 +158,95 @@ export default function LoginScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <SafeAreaView className="flex-1">
-        <View className="flex-1 px-6 pt-8">
-          <View className="self-start mb-2">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              accessibilityLabel="Go back"
-            >
-              <Image
-                source={require("../../assets/images/back.png")}
-                className="w-6 h-6"
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
-          <View className="items-center mb-8">
-            <Image
-              source={require("../../assets/images/Internsync-black.png")}
-              className="w-48 h-16"
-              resizeMode="contain"
-            />
-          </View>
-          <Text
-            className="text-3xl font-bold text-center mb-8"
-            style={{ fontFamily: "Roboto", lineHeight: 35 }}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
           >
-            Welcome Back!
-          </Text>
-          <View className="gap-4 mb-6">
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#888"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              textContentType="emailAddress"
-              className="w-full h-[53px] px-5 border border-gray-300 rounded-full text-base text-gray-700 font-sans"
-            />
-
-            <View className="flex-row items-center w-full h-[53px] px-5 border border-gray-300 rounded-full">
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#888"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={secureEntry}
-                autoComplete="password"
-                textContentType="password"
-                className="flex-1 text-base text-gray-700 font-sans"
-              />
-              <TouchableOpacity onPress={togglePasswordVisibility}>
-                <Text className="text-indigo-600 text-xs font-semibold">
-                  {secureEntry ? "SHOW" : "HIDE"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => router.push("/login_flow/forgot_password/email")}
-              className="self-start mt-2"
-            >
-              <Text className="text-indigo-600 font-bold text-sm">
-                Forgot password?
+            <View className="flex-1 px-6 pt-8 pb-10">
+              <View className="self-start mb-2">
+                <TouchableOpacity
+                  onPress={() => router.back()}
+                  accessibilityLabel="Go back"
+                >
+                  <Image
+                    source={require("../../assets/images/back.png")}
+                    className="w-6 h-6"
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+              <View className="items-center mb-8">
+                <Image
+                  source={require("../../assets/images/Internsync-black.png")}
+                  className="w-48 h-16"
+                  resizeMode="contain"
+                />
+              </View>
+              <Text
+                className="text-3xl font-bold text-center mb-8"
+                style={{ fontFamily: "Roboto", lineHeight: 35 }}
+              >
+                Welcome Back!
               </Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={!isValid || loading}
-            className={`w-full h-[53px] rounded-full justify-center items-center ${isValid ? "bg-black" : "bg-gray-300"
-              }`}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white text-lg font-bold">Log in</Text>
-            )}
-          </TouchableOpacity>
-          <Text className="text-center mt-6 text-gray-600 font-bold text-sm">
-            Trouble logging in?
-          </Text>
-        </View>
+              <View className="gap-4 mb-6">
+                <TextInput
+                  placeholder="Email"
+                  placeholderTextColor="#888"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  className="w-full h-[53px] px-5 border border-gray-300 rounded-full text-base text-gray-700 font-sans"
+                />
+
+                <View className="flex-row items-center w-full h-[53px] px-5 border border-gray-300 rounded-full">
+                  <TextInput
+                    placeholder="Password"
+                    placeholderTextColor="#888"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={secureEntry}
+                    autoComplete="password"
+                    textContentType="password"
+                    className="flex-1 text-base text-gray-700 font-sans"
+                  />
+                  <TouchableOpacity onPress={togglePasswordVisibility}>
+                    <Text className="text-indigo-600 text-xs font-semibold">
+                      {secureEntry ? "SHOW" : "HIDE"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => router.push("/login_flow/forgot_password/email")}
+                  className="self-start mt-2"
+                >
+                  <Text className="text-indigo-600 font-bold text-sm">
+                    Forgot password?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                onPress={handleLogin}
+                disabled={!isValid || loading}
+                className={`w-full h-[53px] rounded-full justify-center items-center ${isValid ? "bg-black" : "bg-gray-300"
+                  }`}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white text-lg font-bold">Log in</Text>
+                )}
+              </TouchableOpacity>
+              <Text className="text-center mt-6 text-gray-600 font-bold text-sm">
+                Trouble logging in?
+              </Text>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
 
         <CustomModal />
       </SafeAreaView>

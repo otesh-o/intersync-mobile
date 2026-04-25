@@ -8,9 +8,11 @@ import {
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View,
+    SafeAreaView,
+    Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons as Icon } from "@expo/vector-icons";
+import { SafeAreaView as ContextSafeAreaView } from "react-native-safe-area-context";
 
 const TOTAL_DIGITS = 8; // YYYYMMDD
 
@@ -95,10 +97,9 @@ export default function BirthdayScreen() {
               style={{ maxWidth: 420, alignSelf: "center" }}
             >
               <View className="flex-row items-center justify-between mt-2">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <Text className="text-3xl text-gray-700">{'\u00D7'}</Text>
+                <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
+                  <Icon name="chevron-back" size={28} color="#000" />
                 </TouchableOpacity>
-                <View className="w-6" />
               </View>
 
               <Text className="mt-10 text-3xl font-semibold text-gray-800">

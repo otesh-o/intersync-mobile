@@ -16,14 +16,29 @@ const firebaseConfig = {
   measurementId: extra.firebaseMeasurementId,
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+let auth;
+let storage;
 
-// 🔑 Initialize auth with AsyncStorage persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
-
-const storage = getStorage(app);
+if (firebaseConfig.apiKey) {
+  app = initializeApp(firebaseConfig);
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+  storage = getStorage(app);
+} else {
+  console.error("❌ CRITICAL: Firebase API Key is missing. Check your eas.json or environment variables.");
+  // Provide dummy objects to prevent immediate crashes in other files
+  app = {};
+  auth = {
+    onAuthStateChanged: (cb) => {
+      console.warn("Firebase Auth not initialized: onAuthStateChanged called");
+      return () => {};
+    },
+    currentUser: null,
+  };
+  storage = {};
+}
 
 export { auth, storage };
 export default app;

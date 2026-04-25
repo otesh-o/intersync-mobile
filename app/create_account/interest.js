@@ -9,8 +9,10 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons as Icon } from "@expo/vector-icons";
 
 const interestsList = [
   "Computer Science",
@@ -47,7 +49,13 @@ const Interest = () => {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.container}>
-        <Text style={styles.close}>✕</Text>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          accessibilityLabel="Go back"
+          style={styles.backButton}
+        >
+          <Icon name="chevron-back" size={24} color="#000" />
+        </TouchableOpacity>
 
         <Text style={styles.title}>Opportunities</Text>
         <Text style={styles.subtitle}>
@@ -93,11 +101,9 @@ const Interest = () => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  close: {
-    fontSize: 28,
-    alignSelf: "flex-start",
-    color: "#666",
+  backButton: {
     marginBottom: 20,
+    alignSelf: "flex-start",
   },
   title: { fontSize: 28, fontWeight: "bold", color: "#111", marginBottom: 10 },
   subtitle: { fontSize: 14, color: "#666", marginBottom: 20 },

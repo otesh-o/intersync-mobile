@@ -10,6 +10,7 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons as Icon } from "@expo/vector-icons";
 
 const logo = require("../../assets/images/logo.png"); // Adjust path if needed
 
@@ -26,11 +27,8 @@ export default function Agreement() {
       >
         {/* Header with back button and logo */}
         <View className="pt-6 px-5 w-full flex-row items-center justify-between mb-8">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Image
-              source={require("../../assets/images/back.png")}
-              className="w-6 h-6"
-            />
+          <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
+            <Icon name="chevron-back" size={28} color="#000" />
           </TouchableOpacity>
           {/* Logo instead of "INTERNSYNC" text */}
           <Image

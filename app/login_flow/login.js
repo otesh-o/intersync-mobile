@@ -5,10 +5,23 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 
 const logo = require("../../assets/images/logo.png");
 const emailIcon = require("../../assets/images/email.png");
+const backIcon = require("../../assets/images/back.png");
 
 export default function Login() {
   return (
     <View className="flex-1 bg-black px-6 justify-center items-center">
+      <TouchableOpacity
+        onPress={() => router.back()}
+        className="absolute top-14 left-6 z-10"
+        accessibilityLabel="Go back"
+      >
+        <Image
+          source={backIcon}
+          className="w-6 h-6"
+          style={{ tintColor: "white" }}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
       <View className="items-center mb-8">
         <Image
           source={logo}

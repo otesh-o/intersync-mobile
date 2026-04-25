@@ -12,11 +12,10 @@ import { SavedJobsProvider } from "./context/SavedJobsContext";
 import { SignupProvider } from "./context/SignupContext";
 import "./globals.css";
 
+import { Raleway_400Regular, Raleway_500Medium } from "@expo-google-fonts/raleway";
+import { Roboto_400Regular, Roboto_700Bold } from "@expo-google-fonts/roboto";
+
 const ClaireNewsBold = require("../assets/fonts/ClaireNewsBold.otf");
-const Raleway_400Regular = require("../node_modules/@expo-google-fonts/raleway/400Regular/Raleway_400Regular.ttf");
-const Raleway_500Medium = require("../node_modules/@expo-google-fonts/raleway/500Medium/Raleway_500Medium.ttf");
-const Roboto_400Regular = require("../node_modules/@expo-google-fonts/roboto/400Regular/Roboto_400Regular.ttf");
-const Roboto_700Bold = require("../node_modules/@expo-google-fonts/roboto/700Bold/Roboto_700Bold.ttf");
 
 // New: Authenticated App Wrapper
 function AuthenticatedApp() {
@@ -58,7 +57,15 @@ function AuthenticatedApp() {
   }
 
   // Only render Stack when auth state is known
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ProfileProvider>
+      <SavedJobsProvider>
+        <JobsProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </JobsProvider>
+      </SavedJobsProvider>
+    </ProfileProvider>
+  );
 }
 
 export default function RootLayout() {
@@ -85,14 +92,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SignupProvider>
         <AuthProvider>
-          {/* Move AuthenticatedApp inside AuthProvider so it can use useAuth */}
-          <ProfileProvider>
-            <SavedJobsProvider>
-              <JobsProvider>
-                <AuthenticatedApp />
-              </JobsProvider>
-            </SavedJobsProvider>
-          </ProfileProvider>
+          {/* AuthenticatedApp now contains the data providers */}
+          <AuthenticatedApp />
         </AuthProvider>
       </SignupProvider>
     </GestureHandlerRootView>

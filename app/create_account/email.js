@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SignupContext } from "../context/SignupContext";
@@ -160,6 +161,11 @@ export default function EmailScreen() {
           keyboardShouldPersistTaps="handled"
           style={{ paddingTop: insets.top + 16 }}
         >
+          <View className="absolute left-4 z-10" style={{ top: 16 }}>
+            <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
+              <Icon name="chevron-back" size={28} color="#000" />
+            </TouchableOpacity>
+          </View>
           <View className="w-full max-w-md self-center">
             <View className="items-center mb-10">
               <Image

@@ -22,10 +22,26 @@ export const ProfileProvider = ({ children }) => {
   const [appreciation, setAppreciation] = useState([]);
   const [resumeUrl, setResumeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { updatePlan, setPremium } = useAuth();
+  const { updatePlan, setPremium, token } = useAuth();
 
   const loadProfile = async () => {
     setIsLoading(true);
+
+    // 🍏 Apple Review Bypass
+    if (token === "tester-bypass-token") {
+      const { MOCK_PROFILE } = require("../constants/mockData");
+      setName(MOCK_PROFILE.name);
+      setRole(MOCK_PROFILE.role);
+      setProfilePicUrl(MOCK_PROFILE.profilePicUrl);
+      setWorkExperience(MOCK_PROFILE.workExperience);
+      setEducation(MOCK_PROFILE.education);
+      setSkills(MOCK_PROFILE.skills);
+      setLanguages(MOCK_PROFILE.languages);
+      setPremium(true);
+      updatePlan("unlimited");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await api("/v1/user/profile");
@@ -36,21 +52,20 @@ export const ProfileProvider = ({ children }) => {
       }
 
       let fullProfilePicUrl = null;
-      if (user.profilePicture) {
+      if (user.profilePicture && BASE_URL) {
         const cleanPath = user.profilePicture.startsWith("/")
           ? user.profilePicture.trim()
           : "/" + user.profilePicture.trim();
-        fullProfilePicUrl = `${BASE_URL}${cleanPath}`;
+        fullProfilePicUrl = `${(BASE_URL || "").replace(/\/$/, "")}${cleanPath}`;
       }
 
       let fullResumeUrl = null;
-      if (user.resumeUrl) {
+      if (user.resumeUrl && BASE_URL) {
         const cleanPath = user.resumeUrl.startsWith("/")
           ? user.resumeUrl.trim()
           : "/" + user.resumeUrl.trim();
-        fullResumeUrl = `${BASE_URL}${cleanPath}`;
+        fullResumeUrl = `${(BASE_URL || "").replace(/\/$/, "")}${cleanPath}`;
       }
-
 
       setName(user.firstName || "");
       setRole(user.aboutMe || "Enter your role");
@@ -99,7 +114,6 @@ export const ProfileProvider = ({ children }) => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (isActive) {
         if (user) {
-
           try {
             const idToken = await user.getIdToken(true);
             await SecureStore.setItemAsync(TOKEN_KEY, idToken);
@@ -111,7 +125,6 @@ export const ProfileProvider = ({ children }) => {
             setIsLoading(false);
           }
         } else {
-
           console.log("No logged-in user found at startup");
           setName("");
           setRole("Enter your role");
@@ -127,7 +140,6 @@ export const ProfileProvider = ({ children }) => {
       }
     });
 
-
     return () => {
       isActive = false;
       if (typeof unsubscribe === "function") {
@@ -135,6 +147,13 @@ export const ProfileProvider = ({ children }) => {
       }
     };
   }, []);
+
+  // 🍏 Trigger profile load when token changes (important for Reviewer Bypass)
+  useEffect(() => {
+    if (token) {
+      loadProfile();
+    }
+  }, [token]);
 
   return (
     <ProfileContext.Provider
@@ -161,7 +180,6 @@ export const ProfileProvider = ({ children }) => {
         resumeUrl,
         setResumeUrl,
 
-
         isLoading,
         refreshProfile: loadProfile,
       }}
@@ -172,4 +190,3 @@ export const ProfileProvider = ({ children }) => {
 };
 
 export const useProfile = () => useContext(ProfileContext);
-

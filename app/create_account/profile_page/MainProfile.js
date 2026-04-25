@@ -2,7 +2,8 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { useProfile } from "../../context/ProfileContext";
 import ProfileCard from "../profile_page/components/ProfileCard";
 import SectionItem from "../profile_page/components/SectionItem";
@@ -73,16 +74,25 @@ export default function OnboardingModal() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="px-4 pt-8 pb-6">
-        <Text
-          className="text-2xl font-bold text-black text-center"
-          style={{ fontFamily: "ClaireNewsBold" }}
+      <View className="px-4 pt-12 pb-6 flex-row items-center justify-center relative">
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          className="absolute left-4 top-12 z-10"
+          accessibilityLabel="Go back"
         >
-          Set up your profile
-        </Text>
-        <Text className="text-gray-500 text-center mt-2 text-sm">
-          This info will be sent when applying.
-        </Text>
+          <Icon name="chevron-back" size={28} color="#000" />
+        </TouchableOpacity>
+        <View>
+          <Text
+            className="text-2xl font-bold text-black text-center"
+            style={{ fontFamily: "ClaireNewsBold" }}
+          >
+            Set up your profile
+          </Text>
+          <Text className="text-gray-500 text-center mt-2 text-sm">
+            This info will be sent when applying.
+          </Text>
+        </View>
       </View>
 
       <ScrollView

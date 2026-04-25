@@ -1,12 +1,14 @@
 // app/context/SavedJobsContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "../services/api";
+import { useAuth } from "./AuthContext";
 
 const SavedJobsContext = createContext();
 
 export const SavedJobsProvider = ({ children }) => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { token } = useAuth();
 
   // Load saved jobs
   const loadSavedJobs = async () => {
@@ -95,8 +97,10 @@ export const SavedJobsProvider = ({ children }) => {
   const refreshSavedJobs = loadSavedJobs;
 
   useEffect(() => {
-    loadSavedJobs();
-  }, []);
+    if (token) {
+      loadSavedJobs();
+    }
+  }, [token]);
 
   return (
     <SavedJobsContext.Provider

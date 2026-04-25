@@ -4,6 +4,11 @@ import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL } from "./config";
 
 export const api = async (endpoint, options = {}) => {
+  if (!API_BASE_URL) {
+    console.error("CRITICAL: API_BASE_URL is undefined. Check app.config.js and environment variables.");
+    throw new Error("Application configuration error. Please contact support.");
+  }
+
   const token = await SecureStore.getItemAsync("auth-token");
 
   if (!token) {

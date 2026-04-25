@@ -9,8 +9,10 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons as Icon } from "@expo/vector-icons";
 
 export default function Creat() {
   const router = useRouter();
@@ -43,6 +45,11 @@ export default function Creat() {
         className="flex-1"
       >
         <ScrollView contentContainerClassName="px-6 py-8">
+          <View className="mb-4">
+            <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
+              <Icon name="chevron-back" size={28} color="#000" />
+            </TouchableOpacity>
+          </View>
           
           <Text className="text-2xl font-bold text-gray-900 pt-20 mb-8">
             What kind of jobs are you looking for?
