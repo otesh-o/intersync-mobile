@@ -21,7 +21,10 @@ export default function OnboardingModal() {
     languages,
     appreciation,
     resumeUrl,
+    deleteAccount,
   } = useProfile();
+
+  const { deleteAccount: deleteAuthAccount } = useAuth();
 
   const [localResumeUrl, setLocalResumeUrl] = useState(null);
 
@@ -134,6 +137,32 @@ export default function OnboardingModal() {
           <Text className="text-white text-center font-bold text-lg">
             Continue to Payment
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="mt-4 py-2"
+          onPress={() => {
+            Alert.alert(
+              "Delete Account",
+              "Are you sure you want to delete your account? This action cannot be undone.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      await deleteAuthAccount();
+                    } catch (error) {
+                      Alert.alert("Error", "Failed to delete account.");
+                    }
+                  },
+                },
+              ]
+            );
+          }}
+        >
+          <Text className="text-red-500 text-center font-medium">Delete Account</Text>
         </TouchableOpacity>
       </View>
     </View>

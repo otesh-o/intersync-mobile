@@ -21,7 +21,7 @@ const SideMenu = ({
   currentMode,
 }) => {
   const { name: profileName, profilePicUrl } = useProfile();
-  const { isPremium, setPremium, isDebugMode, logout } = useAuth();
+  const { isPremium, setPremium, isDebugMode, logout, deleteAccount } = useAuth();
 
   const menuItems = [
     { id: "internships", icon: "briefcase-outline", title: "Internships" },
@@ -165,6 +165,38 @@ const SideMenu = ({
               </View>
               <Text className="text-[15px] font-medium text-red-600">
                 Sign Out
+              </Text>
+            </TouchableOpacity>
+
+            {/* Delete Account Button (Apple Compliance 5.1.1) */}
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-sm mt-3"
+              onPress={() => {
+                Alert.alert(
+                  "Delete Account",
+                  "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Delete Account",
+                      style: "destructive",
+                      onPress: async () => {
+                        try {
+                          await deleteAccount();
+                        } catch (error) {
+                          Alert.alert("Error", "Failed to delete account. Please try again later.");
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+            >
+              <View className="w-9 h-9 rounded-full justify-center items-center mr-3 bg-red-50">
+                <Icon name="trash-outline" size={22} color="#EF4444" />
+              </View>
+              <Text className="text-[15px] font-medium text-red-600">
+                Delete Account
               </Text>
             </TouchableOpacity>
 

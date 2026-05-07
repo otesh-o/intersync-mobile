@@ -1,7 +1,7 @@
 // app/profile_page/MainProfile.js
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Linking, ScrollView, Text, TouchableOpacity, View, Platform } from "react-native";
 
 // Components
 import Header from "./components/Header";
@@ -46,22 +46,28 @@ export default function MainProfile() {
       : null,
   };
 
-  const handleCancelSubscription = () => {
-    Alert.alert(
-      "Cancel Subscription",
-      "Are you sure you want to cancel your Unlimited plan? You will lose access to unlimited swipes and applications.",
-      [
-        { text: "Keep Plan", style: "cancel" },
-        {
-          text: "Cancel Subscription",
-          style: "destructive",
-          onPress: () => {
-            setPremium(false);
-            Alert.alert("Subscription Cancelled", "Your plan has been downgraded to Free.");
+  const handleManageSubscription = () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL("https://apps.apple.com/account/subscriptions").catch((err) =>
+        Alert.alert("Error", "Could not open subscription settings.")
+      );
+    } else {
+      Alert.alert(
+        "Subscription Management",
+        "Your subscription is managed through our website. Would you like to contact support to cancel?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Downgrade to Free",
+            style: "destructive",
+            onPress: () => {
+              setPremium(false);
+              Alert.alert("Subscription Cancelled", "Your plan has been downgraded to Free.");
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -153,10 +159,10 @@ export default function MainProfile() {
 
           {isPremium ? (
             <TouchableOpacity
-              onPress={handleCancelSubscription}
-              className="w-full py-3 items-center justify-center bg-white border border-red-100 rounded-xl"
+              onPress={handleManageSubscription}
+              className="w-full py-3 items-center justify-center bg-white border border-slate-200 rounded-xl"
             >
-              <Text className="text-red-500 font-semibold" style={{ fontFamily: "Raleway-Medium" }}>Cancel Subscription</Text>
+              <Text className="text-slate-700 font-semibold" style={{ fontFamily: "Raleway-Medium" }}>Manage Subscription</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity

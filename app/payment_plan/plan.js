@@ -2,7 +2,8 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import * as RNIap from "react-native-iap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { API_BASE_URL } from "../services/config";
@@ -14,6 +15,7 @@ export default function Plan() {
   const [selectedPlan, setSelectedPlan] = useState("Unlimited");
   const [loading, setLoading] = useState(false);
   const [prices, setPrices] = useState({});
+  const [appleProduct, setAppleProduct] = useState(null);
   const insets = useSafeAreaInsets();
   const { token, isDebugMode, updatePlan, setPremium } = useAuth();
 
@@ -50,50 +52,159 @@ export default function Plan() {
     fetchPrices();
   }, []);
 
+  // 🍏 Apple IAP Initialization
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    let purchaseUpdateSubscription;
+    let purchaseErrorSubscription;
+
+    const initIAP = async () => {
+      try {
+        await RNIap.initConnection();
+        if (Platform.OS === 'ios') {
+          await RNIap.clearTransactionIOS();
+        }
+        // Fetch our product to get the REAL price from Apple
+        const products = await RNIap.getSubscriptions({ skus: ["com.internsync.unlimited"] });
+        if (products && products.length > 0) {
+          setAppleProduct(products[0]);
+        }
+      } catch (err) {
+        console.warn("IAP initialization failed:", err);
+      }
+    };
+
+    initIAP();
+
+    // Listen for successful purchases
+    purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(async (purchase) => {
+      const receipt = purchase.transactionReceipt;
+      if (receipt) {
+        try {
+          // Tell the backend to verify the receipt
+          const response = await fetch(`${API_BASE_URL}/v1/billing/apple/verify`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ receipt }),
+          });
+
+          const data = await response.json();
+          if (response.ok && data.success) {
+            await RNIap.finishTransaction({ purchase, isConsumable: false });
+            await updatePlan("unlimited");
+            await setPremium(true);
+            Alert.alert("Success", "Welcome to Unlimited!");
+            router.replace("/Homepage/homepage");
+          }
+        } catch (err) {
+          console.error("Backend verification failed:", err);
+          Alert.alert("Error", "We couldn't verify your purchase. Please contact support.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+
+    purchaseErrorSubscription = RNIap.purchaseErrorListener((error) => {
+      console.warn("purchaseErrorListener", error);
+      setLoading(false);
+      if (error.code !== 'E_USER_CANCELLED') {
+        Alert.alert("Error", "There was a problem with your purchase.");
+      }
+    });
+
+    return () => {
+      if (purchaseUpdateSubscription) purchaseUpdateSubscription.remove();
+      if (purchaseErrorSubscription) purchaseErrorSubscription.remove();
+      RNIap.endConnection();
+    };
+  }, [token]);
+
+  const handleRestore = async () => {
+    setLoading(true);
+    try {
+      const purchases = await RNIap.getAvailablePurchases();
+      if (purchases && purchases.length > 0) {
+        // Just take the latest receipt and verify it
+        const receipt = purchases[purchases.length - 1].transactionReceipt;
+        const response = await fetch(`${API_BASE_URL}/v1/billing/apple/verify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ receipt }),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          await updatePlan("unlimited");
+          await setPremium(true);
+          Alert.alert("Success", "Purchase Restored!");
+          router.replace("/Homepage/homepage");
+        } else {
+          Alert.alert("Restore Failed", "No active subscription found.");
+        }
+      } else {
+        Alert.alert("Restore Failed", "No previous purchases found.");
+      }
+    } catch (err) {
+      console.error("Restore Error:", err);
+      Alert.alert("Error", "Could not restore purchases.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleContinue = async () => {
     if (selectedPlan === "Free") {
       setLoading(true);
       try {
-        // Sync plan selection to local state
         await updatePlan("free");
         await setPremium(false);
-
-        // Optional: Notify backend about free plan selection if endpoint exists
-        // await api("/v1/user/plan", { method: "POST", body: JSON.stringify({ plan: "free" }) });
-
         router.replace("/Homepage/homepage");
       } catch (err) {
-        console.error("Plan selection error:", err);
-        Alert.alert("Error", "Could not select plan. Please try again.");
+        console.error("Plan error:", err);
+        Alert.alert("Error", "Could not select plan.");
       } finally {
         setLoading(false);
       }
       return;
     }
 
-    // Unlimited plan logic
-    const priceId = prices["monthly"]?.id;
-    if (!priceId) {
-      Alert.alert("Error", "Could not find pricing information. Please try again.");
-      return;
-    }
-
     if (!token) {
-      Alert.alert("Not logged in", "Please log in to continue.");
-      return;
-    }
-
-    if (__DEV__ && isDebugMode) {
-      const amount = prices["monthly"] ? (prices["monthly"].unit_amount / 100).toFixed(2) : "8.00";
-      console.log("Debug Mode: Bypassing Stripe checkout...");
-      router.push({
-        pathname: "/payment_plan/paid",
-        params: { selectedAmount: amount, planId: "monthly" },
-      });
+      Alert.alert("Error", "Please log in.");
       return;
     }
 
     setLoading(true);
+
+    // 🍏 Apple In-App Purchase Flow
+    if (Platform.OS === 'ios') {
+      try {
+        await RNIap.requestSubscription({ sku: "com.internsync.unlimited" });
+      } catch (err) {
+        console.warn("IAP Error:", err);
+        setLoading(false);
+        if (err.code !== 'E_USER_CANCELLED') {
+          Alert.alert("Error", "Apple purchase failed.");
+        }
+      }
+      return;
+    }
+
+    // 🤖 Android / Stripe Flow
+    const priceId = prices["monthly"]?.id;
+    if (!priceId) {
+      Alert.alert("Error", "Pricing info missing.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const successUrl = Linking.createURL("payment_plan/paid", { queryParams: { planId: "monthly" } });
       const cancelUrl = Linking.createURL("payment_plan/review", { queryParams: { planId: "monthly" } });
@@ -129,8 +240,8 @@ export default function Plan() {
     "Advanced analytics & insights",
     "Priority 24/7 support",
     "Unlimited storage",
-    "Custom integrations",
-    "Team collaboration",
+    "Personalized internship matching",
+    "Early access to new listings",
   ];
 
   const freeFeatures = [
@@ -145,7 +256,7 @@ export default function Plan() {
   return (
     <View className="flex-1 bg-[#F6F6F6]" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="px-6 py-4">
+      <View className="px-6 py-4 flex-row items-center justify-between">
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 justify-center">
           <Image
             source={backIcon}
@@ -153,6 +264,12 @@ export default function Plan() {
             resizeMode="contain"
           />
         </TouchableOpacity>
+
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity onPress={handleRestore}>
+            <Text className="text-gray-500 font-medium">Restore</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
@@ -219,27 +336,31 @@ export default function Plan() {
             <Text
               style={{
                 fontFamily: "Raleway-Medium",
-                fontSize: 64,
+                fontSize: selectedPlan === "Unlimited" && Platform.OS === 'ios' ? 48 : 64,
                 color: "#000",
                 fontWeight: "700"
               }}
             >
               {selectedPlan === "Unlimited"
-                ? (prices["monthly"]
-                  ? `$${Math.round(prices["monthly"].unit_amount / 100)}`
-                  : "$8")
+                ? (Platform.OS === 'ios'
+                  ? (appleProduct?.localizedPrice || "$7.99")
+                  : (prices["monthly"]
+                    ? `$${Math.round(prices["monthly"].unit_amount / 100)}`
+                    : "$8"))
                 : "$0"}
             </Text>
-            <Text
-              style={{
-                fontFamily: "Raleway",
-                fontSize: 24,
-                color: "#888",
-                marginLeft: 8
-              }}
-            >
-              /mo
-            </Text>
+            {!(selectedPlan === "Unlimited" && Platform.OS === 'ios') && (
+              <Text
+                style={{
+                  fontFamily: "Raleway",
+                  fontSize: 24,
+                  color: "#888",
+                  marginLeft: 8
+                }}
+              >
+                /mo
+              </Text>
+            )}
           </View>
 
           <Text
@@ -250,7 +371,7 @@ export default function Plan() {
               marginBottom: 32
             }}
           >
-            billed monthly
+            {selectedPlan === "Unlimited" && Platform.OS === 'ios' ? "Cancel anytime in App Store" : "billed monthly"}
           </Text>
 
           {/* Features */}
@@ -298,6 +419,18 @@ export default function Plan() {
               </Text>
             )}
           </TouchableOpacity>
+
+          {Platform.OS === 'ios' && selectedPlan === "Unlimited" && (
+            <View className="mt-6 flex-row justify-center items-center gap-x-4">
+              <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync("https://docs.google.com/document/d/1DIHDsrmfBaz15RrHTwCOtXNbf3Dw4dRCH8o2HkSeO7w/edit?tab=t.0")}>
+                <Text className="text-gray-400 text-xs underline">Terms of Use</Text>
+              </TouchableOpacity>
+              <Text className="text-gray-300">•</Text>
+              <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync("https://docs.google.com/document/d/1DIHDsrmfBaz15RrHTwCOtXNbf3Dw4dRCH8o2HkSeO7w/edit?tab=t.0")}>
+                <Text className="text-gray-400 text-xs underline">Privacy Policy</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>

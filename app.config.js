@@ -13,7 +13,7 @@ module.exports = {
             supportsTablet: false,
             bundleIdentifier: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            buildNumber: "13",
+            buildNumber: "16",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 UIRequiresFullScreen: true,
@@ -50,7 +50,17 @@ module.exports = {
             "expo-font",
             "expo-secure-store",
             "expo-web-browser",
-            "expo-dev-client"
+            "expo-dev-client",
+            "react-native-iap",
+            [
+                "expo-build-properties",
+                {
+                    "ios": {
+                        "deploymentTarget": "15.1",
+                        "useFrameworks": "static"
+                    }
+                }
+            ]
         ],
         experiments: {
             typedRoutes: true
