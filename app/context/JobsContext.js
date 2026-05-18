@@ -66,7 +66,7 @@ export const JobsProvider = ({ children }) => {
           workMode: item.workMode || "",
           level: item.level || "",
           category: item.category || mode, // fallback to mode if missing
-          description: item.description || "",
+          description: String(item.description || "").replace(/Stuyvesant High School/gi, ""),
           image: item.image || "https://via.placeholder.com/300x200?text=Job",
           sourceType: item.sourceType || "csv",
           sourceUrl: item.sourceUrl || "",

@@ -33,7 +33,7 @@ const Homepage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const slideAnim = useRef(new Animated.Value(-300)).current;
   const { jobs, isLoading: jobsLoading, currentMode, error: jobsError, refreshJobs, changeMode } = useJobs();
-  const { savedJobs, setSavedJobs } = useSavedJobs();
+  const { savedJobs, setSavedJobs, refreshSavedJobs } = useSavedJobs();
   const { name: profileName, profilePicUrl } = useProfile();
   const { token, isPremium } = useAuth();
   const [displayedJobs, setDisplayedJobs] = useState([]);
@@ -45,8 +45,8 @@ const Homepage = () => {
   const [timeRemaining, setTimeRemaining] = useState("");
   const [resetTimestamp, setResetTimestamp] = useState(null);
 
-  const SWIPE_LIMIT = 20;
-  const APP_LIMIT = 2; // "2 applications" (right swipes)
+  const SWIPE_LIMIT = 100; // Increased total views
+  const APP_LIMIT = 20; // 20 applications (right swipes)
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -99,14 +99,14 @@ const Homepage = () => {
           const total = parseInt(await SecureStore.getItemAsync('total_swipes') || '0');
           setRightSwipesToday(right);
           setTotalSwipesToday(total);
-          if (right >= APP_LIMIT || total >= SWIPE_LIMIT) {
+          if (currentMode === 'internships' && (right >= APP_LIMIT || total >= SWIPE_LIMIT)) {
             setIsLimitReached(true);
           }
         }
       }
     };
     checkLimits();
-  }, []);
+  }, [currentMode]);
 
   const { showTutorial: showTutorialParam } = useLocalSearchParams();
 
@@ -158,63 +158,74 @@ const Homepage = () => {
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: isMenuVisible ? 0 : -300,
-      duration: 300,
+      duration: 180,
       useNativeDriver: true,
     }).start();
   }, [isMenuVisible]);
 
   //mark job as seen
-  const handleSwipe = async (jobId, direction) => {
+  const handleSwipe = (jobId, direction) => {
+    // 1. REMOVE FROM UI IMMEDIATELY (Highest Priority)
+    setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
+
     const jobToSave = jobs.find((job) => job.id === jobId);
 
-    //Only auto-save if it's a CSV job (or explicitly bookmarked)
-    if (
-      direction === "right" &&
-      jobToSave &&
-      jobToSave.sourceType === "csv" &&
-      !savedJobs.some((s) => s.id === jobId)
-    ) {
-      setSavedJobs((prev) => [
-        ...prev,
-        { ...jobToSave, savedAt: new Date().toISOString() },
-      ]);
-    }
-
-    try {
-      await api("/v1/job/seen", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobId,
-          action: direction === "right" ? "engaged" : "dismissed",
-        }),
+    // 3. BACKGROUND API CALLS (Don't await)
+    // Call swipe/action for BOTH directions to enforce limits
+    api("/v1/swipe/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobId,
+        action: direction === "right" ? "like" : "dislike",
+      }),
+    })
+      .then((response) => {
+        if (response?.success === false || response?.message?.includes("limit reached")) {
+          setIsLimitReached(true);
+        } else if (direction === "right") {
+          // If swipe recorded successfully AND it was a right swipe, also bookmark it
+          api(`/v1/bookmark/job/${jobId}`, { method: "POST" })
+            .then(() => refreshSavedJobs())
+            .catch(err => console.warn("Bookmark failed:", err));
+        }
+      })
+      .catch(err => {
+        console.warn("Swipe action failed:", err);
+        if (err.message?.includes("limit reached") || err.message?.includes("429")) {
+          setIsLimitReached(true);
+        }
       });
-    } catch (error) {
-      console.warn("Failed to mark job as seen:", error);
-    }
 
-    // Update limits
+    api("/v1/job/seen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobId,
+        action: direction === "right" ? "engaged" : "dismissed",
+      }),
+    }).catch(err => console.warn("Background API sync failed:", err));
+
+    // 4. UPDATE LIMITS & STORAGE (Non-blocking)
     const newTotal = totalSwipesToday + 1;
     const newRight = direction === "right" ? rightSwipesToday + 1 : rightSwipesToday;
 
     setTotalSwipesToday(newTotal);
     setRightSwipesToday(newRight);
 
-    // Set countdown timestamp on first swipe of the window
-    if (!resetTimestamp) {
-      const newResetAt = Date.now() + 24 * 60 * 60 * 1000;
-      await SecureStore.setItemAsync('limit_reset_at', newResetAt.toString());
-      setResetTimestamp(new Date(newResetAt));
-    }
 
-    await SecureStore.setItemAsync('total_swipes', newTotal.toString());
-    await SecureStore.setItemAsync('right_swipes', newRight.toString());
 
-    if (newRight >= APP_LIMIT || newTotal >= SWIPE_LIMIT) {
-      setIsLimitReached(true);
-    }
-
-    setDisplayedJobs((prev) => prev.filter((job) => job.id !== jobId));
+    // Async storage updates (Non-blocking)
+    const updateStorage = async () => {
+      if (!resetTimestamp) {
+        const newResetAt = Date.now() + 24 * 60 * 60 * 1000;
+        await SecureStore.setItemAsync('limit_reset_at', newResetAt.toString());
+        setResetTimestamp(new Date(newResetAt));
+      }
+      await SecureStore.setItemAsync('total_swipes', newTotal.toString());
+      await SecureStore.setItemAsync('right_swipes', newRight.toString());
+    };
+    updateStorage().catch(err => console.error("Storage sync failed:", err));
   };
 
   const handlenotificationsPress = () => {
@@ -238,7 +249,7 @@ const Homepage = () => {
 
       <View
         className="flex-row items-center justify-between bg-slate-50 px-4"
-        style={{ paddingTop: insets.top + 8, paddingBottom: 10 }}
+        style={{ paddingTop: insets.top + 28, paddingBottom: 10 }}
       >
         <TouchableOpacity
           className="p-2"
@@ -322,7 +333,7 @@ const Homepage = () => {
                 Loading {currentMode}...
               </Text>
             </View>
-          ) : (isLimitReached && !isPremium) ? (
+          ) : (isLimitReached && !isPremium && currentMode === 'internships') ? (
             /* Limit Reached View — Matches Screenshot */
             <View className="bg-white rounded-[32px] p-8 w-full items-center shadow-lg border border-gray-100">
               {/* Lock Icon */}

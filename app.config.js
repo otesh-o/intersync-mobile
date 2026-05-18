@@ -13,7 +13,7 @@ module.exports = {
             supportsTablet: false,
             bundleIdentifier: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            buildNumber: "16",
+            buildNumber: "25",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 UIRequiresFullScreen: true,
@@ -29,7 +29,7 @@ module.exports = {
             edgeToEdgeEnabled: true,
             package: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            versionCode: 13
+            versionCode: 15
         },
         web: {
             bundler: "metro",

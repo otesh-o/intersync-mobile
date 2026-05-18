@@ -13,6 +13,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { router } from "expo-router";
 import { api } from "../services/api";
 import ApplicationCard from "../components/ApplicationCard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ApplicationTracker = () => {
   const [applications, setApplications] = useState([]);
@@ -80,12 +81,13 @@ const ApplicationTracker = () => {
     setFilteredApplications(filtered);
   }, [searchQuery, applications]);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
-      
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pb-4" style={{ paddingTop: insets.top + 28 }}>
         
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Icon

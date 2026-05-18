@@ -98,24 +98,22 @@ export default function VerifyScreen() {
 
             await login(idToken);
 
-            router.replace("/create_account/interest");
+            router.replace("/create_account/first-name");
           } else {
             if (finalizeRes.status === 409) {
               showModal({
                 title: "Already Exists",
-                message:
-                  finalizeData.message || "This account was already set up.",
+                message: finalizeData.message || "This account was already set up.",
                 actionText: "Continue",
                 onAction: () => {
                   setModalVisible(false);
-                  router.replace("/create_account/interest");
+                  router.replace("/create_account/first-name");
                 },
               });
             } else if (finalizeRes.status === 400) {
               showModal({
                 title: "Setup Incomplete",
-                message:
-                  finalizeData.message || "Please restart the signup process.",
+                message: finalizeData.message || "Please restart the signup process.",
                 actionText: "Restart",
                 onAction: () => {
                   setModalVisible(false);
@@ -125,17 +123,14 @@ export default function VerifyScreen() {
             } else if (finalizeRes.status === 401) {
               showModal({
                 title: "Unauthorized",
-                message:
-                  finalizeData.message || "Authentication failed. Try again.",
+                message: finalizeData.message || "Authentication failed. Try again.",
                 actionText: "Retry",
                 onAction: handleVerify,
               });
             } else {
               showModal({
                 title: "Save Failed",
-                message:
-                  finalizeData.message ||
-                  "Could not save your account. Please try again.",
+                message: finalizeData.message || "Could not save your account. Please try again.",
                 actionText: "Retry",
                 onAction: handleVerify,
               });
@@ -458,4 +453,3 @@ export default function VerifyScreen() {
     </SafeAreaView>
   );
 }
-

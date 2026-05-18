@@ -45,7 +45,6 @@ export default function PaymentSuccess() {
 
   const plans = {
     monthly: "InternSync - Monthly Access",
-    annual: "InternSync - Annual Access",
   };
 
   const planName = plans[planId] || "InternSync Access";

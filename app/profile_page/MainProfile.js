@@ -54,15 +54,13 @@ export default function MainProfile() {
     } else {
       Alert.alert(
         "Subscription Management",
-        "Your subscription is managed through our website. Would you like to contact support to cancel?",
+        "For support or to manage your subscription, please contact us.",
         [
           { text: "Cancel", style: "cancel" },
           {
-            text: "Downgrade to Free",
-            style: "destructive",
+            text: "Contact Support",
             onPress: () => {
-              setPremium(false);
-              Alert.alert("Subscription Cancelled", "Your plan has been downgraded to Free.");
+              Linking.openURL("mailto:support@internsync.com");
             }
           }
         ]

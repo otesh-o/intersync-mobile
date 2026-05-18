@@ -55,7 +55,7 @@ export const SavedJobsProvider = ({ children }) => {
           type: item.type || "",
           workMode: item.workMode || "",
           level: item.level || "",
-          description: item.description || "",
+          description: String(item.description || "").replace(/Stuyvesant High School/gi, ""),
           image: item.image || "https://via.placeholder.com/300",
           savedAt: item.createdAt
             ? new Date(item.createdAt).toISOString()

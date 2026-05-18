@@ -57,7 +57,7 @@ const Interest = () => {
           <Icon name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
 
-        <Text style={styles.title}>Opportunities</Text>
+        <Text style={styles.title}>Choose Your Interests</Text>
         <Text style={styles.subtitle}>
           Select areas you’re most interested in. This helps us connect you with
           the right opportunities.
@@ -88,10 +88,13 @@ const Interest = () => {
         </ScrollView>
 
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, selected.length < 3 && styles.buttonDisabled]}
           onPress={() => router.push("/create_account/kind_of_jobs")}
+          disabled={selected.length < 3}
         >
-          <Text style={styles.buttonText}>Continue 2/5</Text>
+          <Text style={styles.buttonText}>
+            {selected.length < 3 ? `Select ${3 - selected.length} more` : "Continue 2/5"}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -129,6 +132,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  buttonDisabled: { backgroundColor: "#ccc" },
 });
 
 export default Interest;

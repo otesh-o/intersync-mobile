@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { api } from "../services/api";
 import NotificationCard from "../components/NotificationCard";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 const Notifications = () => {
@@ -76,12 +77,14 @@ const Notifications = () => {
     fetchNotifications();
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
+      <View className="flex-row justify-between items-center bg-slate-50 px-5 pb-4" style={{ paddingTop: insets.top + 28 }}>
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Icon
             name="chevron-back"

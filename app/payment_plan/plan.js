@@ -37,8 +37,7 @@ export default function Plan() {
           if (Array.isArray(data.prices)) {
             data.prices.forEach((p) => {
               if (p.recurring?.interval) {
-                const mappedKey = p.recurring.interval === "month" ? "monthly" :
-                  p.recurring.interval === "year" ? "annual" : p.recurring.interval;
+                const mappedKey = p.recurring.interval === "month" ? "monthly" : p.recurring.interval;
                 obj[mappedKey] = p;
               }
             });
@@ -46,7 +45,7 @@ export default function Plan() {
           setPrices(obj);
         }
       } catch (err) {
-        console.error("Error fetching prices:", err);
+        // Silently ignore or log error
       }
     }
     fetchPrices();
@@ -197,40 +196,44 @@ export default function Plan() {
       return;
     }
 
-    // 🤖 Android / Stripe Flow
-    const priceId = prices["monthly"]?.id;
-    if (!priceId) {
-      Alert.alert("Error", "Pricing info missing.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const successUrl = Linking.createURL("payment_plan/paid", { queryParams: { planId: "monthly" } });
-      const cancelUrl = Linking.createURL("payment_plan/review", { queryParams: { planId: "monthly" } });
-
-      const response = await fetch(
-        `${API_BASE_URL}/v1/billing/checkout/session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ priceId, successUrl, cancelUrl }),
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok && data.success && data.url) {
-        await WebBrowser.openBrowserAsync(data.url);
-      } else {
-        Alert.alert("Checkout Error", data.message || "Failed to start checkout");
+    if (Platform.OS === 'android') {
+      // 🤖 Android / Stripe Flow
+      const priceId = prices["monthly"]?.id;
+      if (!priceId) {
+        Alert.alert("Error", "Pricing info missing.");
+        setLoading(false);
+        return;
       }
-    } catch (err) {
-      console.error("Payment error:", err);
-      Alert.alert("Payment Error", "Something went wrong. Please try again.");
-    } finally {
+
+      try {
+        const successUrl = Linking.createURL("payment_plan/paid", { queryParams: { planId: "monthly" } });
+        const cancelUrl = Linking.createURL("payment_plan/review", { queryParams: { planId: "monthly" } });
+
+        const response = await fetch(
+          `${API_BASE_URL}/v1/billing/checkout/session`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ priceId, successUrl, cancelUrl }),
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok && data.success && data.url) {
+          await WebBrowser.openBrowserAsync(data.url);
+        } else {
+          Alert.alert("Checkout Error", data.message || "Failed to start checkout");
+        }
+      } catch (err) {
+        console.error("Payment error:", err);
+        Alert.alert("Payment Error", "Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
       setLoading(false);
     }
   };
@@ -245,9 +248,10 @@ export default function Plan() {
   ];
 
   const freeFeatures = [
-    "3 Applications per month",
+    "20 on first day, then 3/day for Internships",
+    "5 Scholarships per day",
+    "5 Extracurriculars per day",
     "Basic internship search",
-    "Community access",
     "Profile builder",
   ];
 
@@ -423,11 +427,11 @@ export default function Plan() {
           {Platform.OS === 'ios' && selectedPlan === "Unlimited" && (
             <View className="mt-6 flex-row justify-center items-center gap-x-4">
               <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync("https://docs.google.com/document/d/1DIHDsrmfBaz15RrHTwCOtXNbf3Dw4dRCH8o2HkSeO7w/edit?tab=t.0")}>
-                <Text className="text-gray-400 text-xs underline">Terms of Use</Text>
+                <Text className="text-gray-600 text-sm underline">Terms of Use</Text>
               </TouchableOpacity>
               <Text className="text-gray-300">•</Text>
               <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync("https://docs.google.com/document/d/1DIHDsrmfBaz15RrHTwCOtXNbf3Dw4dRCH8o2HkSeO7w/edit?tab=t.0")}>
-                <Text className="text-gray-400 text-xs underline">Privacy Policy</Text>
+                <Text className="text-gray-600 text-sm underline">Privacy Policy</Text>
               </TouchableOpacity>
             </View>
           )}

@@ -14,6 +14,17 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { api } from "../services/api";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const cleanText = (text) => {
+  if (!text) return "";
+  // More aggressive cleaning: remove special formatting characters and extra whitespace
+  return text
+    .replace(/[*#_>"`~|\[\]\(\)!]+/g, "")
+    .replace(/^\s*[-•*+]\s*/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
 
 const DescriptionView = ({ job }) => {
   return (
@@ -22,7 +33,7 @@ const DescriptionView = ({ job }) => {
         Job Description
       </Text>
       <Text className="text-base text-slate-600 leading-6">
-        {job.description?.details || "No description available."}
+        {cleanText(job.description?.details) || cleanText(job.description) || "No description available."}
       </Text>
 
       {job.description?.requirements && (
@@ -31,7 +42,7 @@ const DescriptionView = ({ job }) => {
             Requirements
           </Text>
           <Text className="text-base text-slate-600 leading-6 ml-1">
-            • {job.description.requirements}
+            {cleanText(job.description.requirements)}
           </Text>
         </>
       )}
@@ -107,6 +118,7 @@ const JobDescriptionScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("Description");
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -141,28 +153,73 @@ const JobDescriptionScreen = () => {
   };
 
   const handleActionPress = () => {
-    if (job.sourceType === "csv") {
-      const url =
-        job.sourceUrl?.trim() ||
-        (typeof job.company === "object" ? job.company.website?.trim() : null);
-      if (url) {
-        Linking.openURL(url).catch(() =>
-          Alert.alert("Error", "Could not open website.")
-        );
-      } else {
-        Alert.alert("No Link", "This job has no external URL.");
-      }
-    } else {
-      router.push({
-        pathname: "/Homepage/apply",
-        params: { jobId: job._id },
+    // Call swipe/action with "like" to enforce limits
+    api("/v1/swipe/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobId: job._id,
+        action: "like",
+      }),
+    })
+      .then((response) => {
+        if (response?.success === false || response?.message?.includes("limit reached")) {
+          Alert.alert(
+            "Limit Reached",
+            "You have reached your daily limit for this section. Upgrade to Premium to continue."
+          );
+        } else {
+          // Proceed with original action
+          if (job.sourceType === "csv") {
+            const url =
+              job.sourceUrl?.trim() ||
+              (typeof job.company === "object" ? job.company.website?.trim() : null);
+            if (url) {
+              Linking.openURL(url).catch(() =>
+                Alert.alert("Error", "Could not open website.")
+              );
+            } else {
+              Alert.alert("No Link", "This job has no external URL.");
+            }
+          } else {
+            router.push({
+              pathname: "/Homepage/apply",
+              params: { jobId: job._id },
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn("Swipe action failed on apply:", err);
+        if (err.message?.includes("limit reached") || err.message?.includes("429")) {
+          Alert.alert(
+            "Limit Reached",
+            "You have reached your daily limit for this section. Upgrade to Premium to continue."
+          );
+        } else {
+          // Fallback: let them proceed if it's just a network error on the tracker
+          if (job.sourceType === "csv") {
+            const url =
+              job.sourceUrl?.trim() ||
+              (typeof job.company === "object" ? job.company.website?.trim() : null);
+            if (url) {
+              Linking.openURL(url).catch(() => {});
+            }
+          } else {
+            router.push({
+              pathname: "/Homepage/apply",
+              params: { jobId: job._id },
+            });
+          }
+        }
       });
-    }
   };
 
   const getButtonText = () => {
     return job.sourceType === "csv" ? "Visit Website" : "Apply Now";
   };
+
+  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
@@ -202,23 +259,20 @@ const JobDescriptionScreen = () => {
   }
 
   const company = job.company;
-  const cleanLogoUrl = (company?.logoUrl || "").trim();
 
   return (
     <View className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
 
-      <View className="flex-row justify-between items-center bg-slate-50 px-5 pt-[30px] pb-4">
+      <View 
+        className="flex-row items-center justify-between bg-slate-50 px-4"
+        style={{ paddingTop: insets.top + 28, paddingBottom: 10 }}
+      >
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Icon
             name="chevron-back"
             size={28}
             color="#000"
-            style={{
-              textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: 1,
-              textShadowColor: "#000",
-            }}
           />
         </TouchableOpacity>
 
@@ -248,10 +302,16 @@ const JobDescriptionScreen = () => {
           >
             <Image
               source={{
-                uri:
-                  cleanLogoUrl ||
-                  "https://images.unsplash.com/photo-1750515712802-8b63e7dfbb36?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHw4fHx8ZW58MHx8fHx8",
+                uri: (() => {
+                  if (!imageLoadFailed) {
+                    const logoUrl = typeof job.company === "object" ? job.company?.logoUrl : null;
+                    if (logoUrl?.trim()) return logoUrl.trim();
+                    if (job.bannerImageUrl?.trim()) return job.bannerImageUrl.trim();
+                  }
+                  return "https://i.pinimg.com/736x/b3/c8/31/b3c831ecff785cbb3e3ec2969ec16f7e.jpg";
+                })(),
               }}
+              onError={() => setImageLoadFailed(true)}
               className="w-20 h-20 rounded-lg"
               resizeMode="contain"
             />
@@ -296,64 +356,7 @@ const JobDescriptionScreen = () => {
             </View>
           </View>
 
-          <View className="flex-row mx-1 mb-6 bg-slate-200 rounded-xl p-1">
-            <TouchableOpacity
-              className={`flex-1 py-2.5 rounded-lg items-center ${
-                activeTab === "Description" ? "bg-white" : ""
-              }`}
-              style={
-                activeTab === "Description"
-                  ? {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 2,
-                      elevation: 2,
-                    }
-                  : {}
-              }
-              onPress={() => setActiveTab("Description")}
-            >
-              <Text
-                className={`text-base font-semibold ${
-                  activeTab === "Description" ? "text-black" : "text-slate-600"
-                }`}
-              >
-                Description
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-2.5 rounded-lg items-center ${
-                activeTab === "Company" ? "bg-white" : ""
-              }`}
-              style={
-                activeTab === "Company"
-                  ? {
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 2,
-                      elevation: 2,
-                    }
-                  : {}
-              }
-              onPress={() => setActiveTab("Company")}
-            >
-              <Text
-                className={`text-base font-semibold ${
-                  activeTab === "Company" ? "text-black" : "text-slate-600"
-                }`}
-              >
-                Company
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {activeTab === "Description" ? (
-            <DescriptionView job={job} />
-          ) : (
-            <CompanyView job={job} />
-          )}
+          <DescriptionView job={job} />
         </ScrollView>
 
         <View className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-slate-200">
@@ -372,4 +375,3 @@ const JobDescriptionScreen = () => {
 };
 
 export default JobDescriptionScreen;
-
