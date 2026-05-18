@@ -13,7 +13,7 @@ module.exports = {
             supportsTablet: false,
             bundleIdentifier: "com.internsync.app",
             privacyPolicyUrl: "https://internsync.com/privacy",
-            buildNumber: "25",
+            buildNumber: "26",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 UIRequiresFullScreen: true,
